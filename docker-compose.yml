@@ -2,9 +2,11 @@ name: home-ops
 
 # Apps
 include:
-  - core/traefik/traefik.yml
   - core/ddns-updater/ddns-updater.yml
+  - core/database/database.yml
+  - core/traefik/traefik.yml
   - apps/adminer/adminer.yml
+  - apps/roundcube/roundcube.yml
   - apps/website-aaronsoft/website-aaronsoft.yml
   - apps/website-get-orga-niced/website-get-orga-niced.yml
 

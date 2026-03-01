@@ -1,0 +1,69 @@
+services:
+  roundcube-init:
+    image: busybox:1.36
+    container_name: roundcube-init
+    command: sh -c "mkdir -p /data/temp /data/logs && chown -R 33:33 /data"
+    volumes:
+      - ./data:/data
+    network_mode: none
+    read_only: true
+    cap_drop: [ALL]
+    cap_add: [CHOWN, FOWNER, DAC_OVERRIDE]
+    security_opt: [no-new-privileges:true]
+
+  roundcube:
+    image: roundcube/roundcubemail:latest-apache
+    container_name: roundcube
+    restart: unless-stopped
+    depends_on:
+      roundcube-init:
+        condition: service_completed_successfully
+        
+    env_file:
+      - ../../.env
+      - .env
+
+    environment:
+      - DB_USER=${MYSQL_USER}
+      - DB_PASS=${MYSQL_PASSWORD}
+      - DB_NAME=${MYSQL_DATABASE}
+      - DES_KEY=${ROUNDCUBEMAIL_DES_KEY}
+      - GOOGLE_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_SECRET=${GOOGLE_CLIENT_SECRET}
+
+    cap_drop: [ALL]
+    cap_add: [CHOWN, SETGID, SETUID, DAC_OVERRIDE] 
+    security_opt: [no-new-privileges:true]
+    read_only: true
+
+    tmpfs:
+      - /tmp
+      - /var/run/apache2
+      - /var/log/apache2
+      - /run/lock
+
+    volumes:
+      - ./data/temp:/var/www/html/temp
+      - ./data/logs:/var/www/html/logs
+      - ./config/config.inc.php:/var/www/html/config/config.inc.php:ro
+      - ./config/aaronsoft_config.inc.php:/var/www/html/config/aaronsoft_config.inc.php:ro
+      - ./config/get-orga-niced_config.inc.php:/var/www/html/config/get-orga-niced_config.inc.php:ro
+      - ./plugins/google_addressbook:/var/www/html/plugins/google_addressbook:ro
+
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.roundcube.rule=${HOST_RULE}"
+      - "traefik.http.routers.roundcube.entrypoints=websecure"
+      - "traefik.http.routers.roundcube.tls=true"
+      - "traefik.http.routers.roundcube.middlewares=sec-public@file"
+      - "traefik.http.services.roundcube.loadbalancer.server.port=80"
+
+    networks:
+      - traefik-public
+      - db-internal
+
+networks:
+  traefik-public:
+    name: traefik-public
+  db-internal:
+    name: db-internal

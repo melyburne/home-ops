@@ -1,0 +1,48 @@
+services:
+  mariadb:
+    image: mariadb:10.11
+    container_name: mariadb
+    restart: unless-stopped
+    
+    env_file:
+      - ../../.env
+      - .env
+
+    environment:
+      - MARIADB_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MARIADB_DATABASE=${MYSQL_DATABASE}
+      - MARIADB_USER=${MYSQL_USER}
+      - MARIADB_PASSWORD=${MYSQL_PASSWORD}
+      - TZ=${TZ}
+
+    # Security Hardening
+    cap_drop: [ALL]
+    cap_add:
+      - SETUID
+      - SETGID
+      - CHOWN
+      - DAC_OVERRIDE
+    security_opt: [no-new-privileges:true]
+    read_only: true
+
+    # Writable areas required by MariaDB
+    tmpfs:
+      - /tmp
+      - /run/mysqld
+
+    volumes:
+      - ./db_data:/var/lib/mysql
+
+    networks:
+      - db-internal
+
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+networks:
+  db-internal:
+    name: db-internal
