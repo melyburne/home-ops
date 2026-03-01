@@ -76,8 +76,10 @@ services:
 
     command:
       - "--log.level=INFO"
+      - "--ping=true"
       - "--accesslog=true"
       - "--api.dashboard=true"
+      - "--api.disabledashboardad=true"
 
       # Docker Provider (via Proxy)
       - "--providers.docker=true"
@@ -104,13 +106,15 @@ services:
       - "--certificatesresolvers.myresolver.acme.dnschallenge.provider=gandiv5"
       - "--certificatesresolvers.myresolver.acme.dnschallenge.resolvers=1.1.1.1:53,8.8.8.8:53"
       # Give Gandi DNS time to sync the TXT record before Let's Encrypt checks it
-      - "--certificatesresolvers.myresolver.acme.dnschallenge.delayBeforeCheck=10s" 
+      - "--certificatesresolvers.myresolver.acme.dnschallenge.propagation.delayBeforeChecks=10s"
 
     labels:
       - "traefik.enable=true"
       
       # Dashboard Router
       - "traefik.http.routers.dashboard.rule=${DASHBOARD_HOST_RULE}"
+      - "traefik.http.routers.dashboard.entrypoints=websecure"
+      - "traefik.http.routers.dashboard.tls=true"
       - "traefik.http.routers.dashboard.service=api@internal"
       - "traefik.http.routers.dashboard.middlewares=sec-public@file,dashboard-auth"
       - "traefik.http.middlewares.dashboard-auth.basicauth.users=${DASHBOARD_CREDENTIALS}"
