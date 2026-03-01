@@ -22,6 +22,7 @@ services:
   socket-proxy:
     image: tecnativa/docker-socket-proxy
     container_name: socket-proxy
+    user: "${PUID}:${SOCKET_GID}"
     restart: unless-stopped
     read_only: true
 
@@ -46,10 +47,12 @@ services:
   traefik:
     image: traefik:v3
     container_name: traefik
-    user: "${PUID}:${SOCKET_GID}"
+    user: "${PUID}:${GUID}"
     depends_on:
       init-acme:
         condition: service_completed_successfully
+    socket-proxy:
+        condition: service_started
     restart: unless-stopped
     
     env_file:
@@ -94,7 +97,6 @@ services:
 
       # --- Let's Encrypt Staging (DNS Challenge) ---
       # Remember to remove "-staging" from the caServer URL when moving to production!
-      - "--entrypoints.websecure.http.tls.certresolver=myresolver"
       - "--certificatesresolvers.myresolver.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory"
       - "--certificatesresolvers.myresolver.acme.email=${ACME_EMAIL}"
       - "--certificatesresolvers.myresolver.acme.storage=/data/acme.json"
@@ -102,7 +104,7 @@ services:
       - "--certificatesresolvers.myresolver.acme.dnschallenge.provider=gandiv5"
       - "--certificatesresolvers.myresolver.acme.dnschallenge.resolvers=1.1.1.1:53,8.8.8.8:53"
       # Give Gandi DNS time to sync the TXT record before Let's Encrypt checks it
-      - "--certificatesresolvers.myresolver.acme.dnschallenge.delayBeforeCheck=10" 
+      - "--certificatesresolvers.myresolver.acme.dnschallenge.delayBeforeCheck=10s" 
 
     labels:
       - "traefik.enable=true"
@@ -111,7 +113,7 @@ services:
       # Dashboard Router
       - "traefik.http.routers.dashboard.rule=${DASHBOARD_HOST_RULE}"
       - "traefik.http.routers.dashboard.service=api@internal"
-      - "traefik.http.routers.dashboard.middlewares=sec-public@file"
+      - "traefik.http.routers.dashboard.middlewares=sec-public@file,dashboard-auth"
       - "traefik.http.middlewares.dashboard-auth.basicauth.users=${DASHBOARD_CREDENTIALS}"
 
     volumes:
