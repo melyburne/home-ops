@@ -32,9 +32,8 @@ services:
       - GOOGLE_SECRET=${GOOGLE_CLIENT_SECRET}
 
     cap_drop: [ALL]
-    cap_add: [CHOWN, SETGID, SETUID, DAC_OVERRIDE] 
+    cap_add: [CHOWN, SETGID, SETUID, DAC_OVERRIDE, FOWNER]
     security_opt: [no-new-privileges:true]
-    read_only: true
 
     tmpfs:
       - /tmp
