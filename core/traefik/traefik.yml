@@ -3,7 +3,7 @@ services:
   init-acme:
     image: busybox:1.36
     container_name: init-acme
-    command: sh -c "touch /data/acme.json && chown ${PUID}:${SOCKET_GID} /data/acme.json && chmod 600 /data/acme.json && chown ${PUID}:${SOCKET_GID} /traefik_dynamic.yml"
+    command: sh -c "touch /data/acme.json && chown ${PUID}:${GUID} /data/acme.json && chmod 600 /data/acme.json && chown ${PUID}:${SOCKET_GID} /traefik_dynamic.yml"
     volumes:
       - ./data:/data
       - ./traefik_dynamic.yml:/traefik_dynamic.yml
@@ -22,7 +22,6 @@ services:
   socket-proxy:
     image: tecnativa/docker-socket-proxy
     container_name: socket-proxy
-    user: "${PUID}:${SOCKET_GID}"
     restart: unless-stopped
     read_only: true
 
@@ -84,6 +83,7 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.endpoint=tcp://socket-proxy:2375"
+      - "--providers.docker.network=traefik-public"
 
       # File Provider
       - "--providers.file.filename=/traefik_dynamic.yml"
@@ -108,7 +108,6 @@ services:
 
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=traefik-public"
       
       # Dashboard Router
       - "traefik.http.routers.dashboard.rule=${DASHBOARD_HOST_RULE}"
