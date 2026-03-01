@@ -56,12 +56,13 @@ services:
     
     env_file:
       - ../../.env
+      - ../.env
       - .env
 
     # Pass the DNS Provider API Key securely from your .env file
     environment:
       # If using Gandi.net (v5 API):
-      - GANDIV5_PERSONAL_ACCESS_TOKEN=${ACME_API_TOKEN}
+      - GANDIV5_PERSONAL_ACCESS_TOKEN=${GANDI_PERSONAL_ACCESS_TOKEN}
       - LEGO_DISABLE_CNAME_SUPPORT=true
 
     cap_drop: [ALL]
