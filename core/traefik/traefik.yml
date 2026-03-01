@@ -51,7 +51,7 @@ services:
     depends_on:
       init-acme:
         condition: service_completed_successfully
-    socket-proxy:
+      socket-proxy:
         condition: service_started
     restart: unless-stopped
     
