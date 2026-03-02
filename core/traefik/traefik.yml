@@ -76,13 +76,9 @@ services:
       - traefik-public
       - socket-internal
 
-    # Configuration: Global environment variables and DNS API keys
-    env_file:
-      - ../../.env
-      - ../.env
-      - .env
+    # Configuration: Global environment variables
     environment:
-      - GANDIV5_PERSONAL_ACCESS_TOKEN=${GANDI_PERSONAL_ACCESS_TOKEN}
+      - GANDIV5_PERSONAL_ACCESS_TOKEN=${GANDIV5_PERSONAL_ACCESS_TOKEN}
       - LEGO_DISABLE_CNAME_SUPPORT=true
 
     # Execution: Core Traefik configuration (Providers, Entrypoints, Let's Encrypt)
@@ -91,7 +87,6 @@ services:
       - "--ping=true"
       - "--accesslog=true"
       - "--api.dashboard=true"
-      - "--api.disabledashboardad=true"
 
       # Docker Provider (via Proxy)
       - "--providers.docker=true"
@@ -122,12 +117,12 @@ services:
     # Routing: Internal dashboard exposure configuration
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.dashboard.rule=${DASHBOARD_HOST_RULE}"
+      - "traefik.http.routers.dashboard.rule=${TRAEFIK_DASHBOARD_HOST_RULE}"
       - "traefik.http.routers.dashboard.entrypoints=websecure"
       - "traefik.http.routers.dashboard.tls=true"
       - "traefik.http.routers.dashboard.service=api@internal"
       - "traefik.http.routers.dashboard.middlewares=sec-public@file,dashboard-auth"
-      - "traefik.http.middlewares.dashboard-auth.basicauth.users=${DASHBOARD_CREDENTIALS}"
+      - "traefik.http.middlewares.dashboard-auth.basicauth.users=${TRAEFIK_DASHBOARD_CREDENTIALS}"
 
     # State: Persistent data and dynamic config mounts
     volumes:

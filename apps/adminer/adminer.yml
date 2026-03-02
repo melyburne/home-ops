@@ -10,17 +10,14 @@ services:
       - traefik-public
       - db-internal
 
-    # Configuration: Environment variables and design settings
-    env_file:
-      - ../../.env
-      - .env
+    # Configuration: Design settings
     environment:
       - ADMINER_DESIGN=lavender-light
 
     # Routing: Traefik configuration for secure external access
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.adminer.rule=${HOST_RULE}"
+      - "traefik.http.routers.adminer.rule=${ADMINER_HOST_RULE}"
       - "traefik.http.routers.adminer.entrypoints=websecure"
       - "traefik.http.routers.adminer.tls=true"
       - "traefik.http.routers.adminer.middlewares=sec-public@file"

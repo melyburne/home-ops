@@ -3,7 +3,7 @@ name: home-ops
 # Apps
 include:
   - core/ddns-updater/ddns-updater.yml
-  - core/database/database.yml
+  - core/mysql/mysql.yml
   - core/traefik/traefik.yml
   - apps/adminer/adminer.yml
   - apps/roundcube/roundcube.yml

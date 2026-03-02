@@ -9,15 +9,10 @@ services:
     networks:
       - traefik-public
 
-    # Configuration: Load environment variables recursively
-    env_file:
-      - ../../.env
-      - .env
-
     # Routing: Traefik dynamic configuration (HTTPS, middleware, internal port mapping)
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web-get-orga-niced.rule=${HOST_RULE}"
+      - "traefik.http.routers.web-get-orga-niced.rule=${WEB_GETORGANICED_HOST_RULE}"
       - "traefik.http.routers.web-get-orga-niced.entrypoints=websecure"
       - "traefik.http.routers.web-get-orga-niced.tls=true"
       - "traefik.http.routers.web-get-orga-niced.middlewares=sec-public@file"

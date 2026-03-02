@@ -18,18 +18,14 @@ services:
     depends_on:
       roundcube-init:
         condition: service_completed_successfully
-        
-    env_file:
-      - ../../.env
-      - .env
 
     environment:
-      - DB_USER=${MYSQL_USER}
-      - DB_PASS=${MYSQL_PASSWORD}
-      - DB_NAME=${MYSQL_DATABASE}
+      - DB_USER=${ROUNDCUBEMAIL_MYSQL_USER}
+      - DB_PASS=${ROUNDCUBEMAIL_MYSQL_PASSWORD}
+      - DB_NAME=${ROUNDCUBEMAIL_MYSQL_DATABASE}
       - DES_KEY=${ROUNDCUBEMAIL_DES_KEY}
-      - GOOGLE_ID=${GOOGLE_CLIENT_ID}
-      - GOOGLE_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_ID=${ROUNDCUBEMAIL_GOOGLE_CLIENT_ID}
+      - GOOGLE_SECRET=${ROUNDCUBEMAIL_GOOGLE_CLIENT_SECRET}
       - ROUNDCUBEMAIL_COMPOSER_PLUGINS=ashus/google-addressbook
 
     cap_drop: [ALL]
@@ -50,7 +46,7 @@ services:
 
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.roundcube.rule=${HOST_RULE}"
+      - "traefik.http.routers.roundcube.rule=${ROUNDCUBE_HOST_RULE}"
       - "traefik.http.routers.roundcube.entrypoints=websecure"
       - "traefik.http.routers.roundcube.tls=true"
       - "traefik.http.routers.roundcube.middlewares=sec-public@file"
