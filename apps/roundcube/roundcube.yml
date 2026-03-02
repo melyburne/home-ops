@@ -46,7 +46,7 @@ services:
 
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.roundcube.rule=${ROUNDCUBE_HOST_RULE}"
+      - "traefik.http.routers.roundcube.rule=${ROUNDCUBEMAIL_HOST_RULE}"
       - "traefik.http.routers.roundcube.entrypoints=websecure"
       - "traefik.http.routers.roundcube.tls=true"
       - "traefik.http.routers.roundcube.middlewares=sec-public@file"
