@@ -10,14 +10,12 @@ services:
 
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
-    read_only: true
 
     tmpfs:
       - /tmp
       - /var/lib/php/sessions
 
     environment:
-      - TZ=${TZ}
       - ADMINER_DESIGN=lavender-light
 
     labels:

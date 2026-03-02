@@ -30,24 +30,23 @@ services:
       - DES_KEY=${ROUNDCUBEMAIL_DES_KEY}
       - GOOGLE_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_SECRET=${GOOGLE_CLIENT_SECRET}
+      - ROUNDCUBEMAIL_COMPOSER_PLUGINS=ashus/google-addressbook
 
     cap_drop: [ALL]
     cap_add: [CHOWN, SETGID, SETUID, DAC_OVERRIDE, FOWNER]
     security_opt: [no-new-privileges:true]
 
     tmpfs:
+      - /var/www/html:exec
       - /tmp
       - /var/run/apache2
       - /var/log/apache2
       - /run/lock
-
+      
     volumes:
       - ./data/temp:/var/www/html/temp
       - ./data/logs:/var/www/html/logs
-      - ./config/config.inc.php:/var/www/html/config/config.inc.php:ro
-      - ./config/aaronsoft_config.inc.php:/var/www/html/config/aaronsoft_config.inc.php:ro
-      - ./config/get-orga-niced_config.inc.php:/var/www/html/config/get-orga-niced_config.inc.php:ro
-      - ./plugins/google_addressbook:/var/www/html/plugins/google_addressbook:ro
+      - ./config:/var/roundcube/config
 
     labels:
       - "traefik.enable=true"

@@ -1,55 +1,62 @@
 services:
-  # Fix file permissions at startup
+  # --- Init Service: Prepares the environment before the main application starts ---
   init-gandi-ddns:
     image: busybox:1.36
     container_name: init-gandi-ddns
-    command: sh -c "chown -R ${PUID}:${GUID} /data"
+    network_mode: none
+    
+    # Mounts the data directory to correct permissions for the non-root user
     volumes:
       - ./data:/data
-    network_mode: none
+    command: sh -c "chown -R ${PUID}:${GUID} /data"
+    
+    # Security: Isolated execution with the minimum capabilities required to change ownership
     read_only: true
+    security_opt:
+      - no-new-privileges:true
     cap_drop:
       - ALL
     cap_add:
       - CHOWN
       - FOWNER
       - DAC_OVERRIDE
-    security_opt:
-      - no-new-privileges:true
 
+  # --- Main Service: Handles the dynamic DNS updates ---
   ddns-updater:
     image: qmcgaw/ddns-updater
     container_name: ddns-updater
     restart: unless-stopped
     user: "${PUID}:${GUID}"
+    
+    # Ensures permissions are fixed before the updater attempts to write to the volume
     depends_on:
       init-gandi-ddns:
         condition: service_completed_successfully
 
-    # Security Hardening: Drop all capabilities & Read-only FS
-    cap_drop:
-      - ALL
-    security_opt:
-      - no-new-privileges:true
-    read_only: true
+    # Configuration mapped via external environment files
+    env_file:
+      - ../../.env
+      - ../.env
+    environment:
+      - SERVER_ENABLED=false
+      - CONFIG={"settings":[{"provider":"gandi","domain":"aaronsoft.de","ttl":10800,"ip_version":"ipv4","personal_access_token":"${GANDI_PERSONAL_ACCESS_TOKEN}"},{"provider":"gandi","domain":"get-orga-niced.de","ttl":10800,"ip_version":"ipv4","personal_access_token":"${GANDI_PERSONAL_ACCESS_TOKEN}"}]}
+
+    # State persistence to prevent API rate limiting from Gandi on container restart
+    volumes:
+      - ./data:/updater/data
     tmpfs:
       - /tmp
 
-    # Persist state to prevent API spam on container restarts
-    volumes:
-      - ./data:/updater/data
-    env_file:
-      - ../../.env
-    environment:
-      - LISTENING_ADDRESS=127.0.0.1
-      - UPDATE_PERIOD=5m
-      # Record 1: aaronsoft.de
-      - RECORD1=aaronsoft.de,@,gandi,ttl:10800,key=${GANDI_PERSONAL_ACCESS_TOKEN}
-      # Record 2: get-orga-niced.de
-      - RECORD2=get-orga-niced.de,@,gandi,ttl:10800,key=${GANDI_PERSONAL_ACCESS_TOKEN}
+    # Security: Hardened container dropping all root capabilities and locking the filesystem
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
 
+    # Application-level monitoring to ensure the internal service remains responsive
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:8000/"]
+      test: ["CMD", "wget", "--spider", "-q", "http://127.0.0.1:9999/"]
       interval: 5m
       timeout: 10s
       retries: 3
