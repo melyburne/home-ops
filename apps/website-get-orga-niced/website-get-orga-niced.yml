@@ -1,28 +1,20 @@
 services:
+  # --- Main Web Service ---
   website-get-orga-niced:
     image: ghcr.io/kartoffelbauer/web-get-orga-niced:latest
     container_name: website-get-orga-niced
     restart: unless-stopped
 
-    # Security Hardening: Drop all capabilities
-    cap_drop:
-      - ALL
-    # Security Hardening: Prevent privilege escalation
-    security_opt:
-      - no-new-privileges:true
-    # Security Hardening: Read-only root filesystem
-    read_only: true
+    # Connectivity: Attach to the shared reverse proxy network
+    networks:
+      - traefik-public
 
-    # Writable areas for Nginx (required when read_only is true)
-    tmpfs:
-      - /tmp
-      - /var/cache/nginx
-      - /var/run
-
+    # Configuration: Load environment variables recursively
     env_file:
       - ../../.env
       - .env
 
+    # Routing: Traefik dynamic configuration (HTTPS, middleware, internal port mapping)
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web-get-orga-niced.rule=${HOST_RULE}"
@@ -31,9 +23,20 @@ services:
       - "traefik.http.routers.web-get-orga-niced.middlewares=sec-public@file"
       - "traefik.http.services.web-get-orga-niced.loadbalancer.server.port=8080"
 
-    networks:
-      - traefik-public
+    # State: In-memory mounts explicitly required for Nginx to run on a read-only filesystem
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+      - /var/run
 
+    # Security: Hardened container dropping all root capabilities and locking the filesystem
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+    # Monitoring: Internal check to ensure the web server is actually responding
     healthcheck:
       test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:8080/ || exit 1"]
       interval: 30s
@@ -41,6 +44,7 @@ services:
       retries: 3
       start_period: 5s
 
+# --- Global Network Definitions ---
 networks:
   traefik-public:
     name: traefik-public

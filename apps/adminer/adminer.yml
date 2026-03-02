@@ -1,23 +1,23 @@
 services:
+  # --- Database Management Interface ---
   adminer:
     image: adminer
     container_name: adminer
     restart: unless-stopped
 
+    # Connectivity: Connects to both the public proxy and the internal database network
+    networks:
+      - traefik-public
+      - db-internal
+
+    # Configuration: Environment variables and design settings
     env_file:
       - ../../.env
       - .env
-
-    cap_drop: [ALL]
-    security_opt: [no-new-privileges:true]
-
-    tmpfs:
-      - /tmp
-      - /var/lib/php/sessions
-
     environment:
       - ADMINER_DESIGN=lavender-light
 
+    # Routing: Traefik configuration for secure external access
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.adminer.rule=${HOST_RULE}"
@@ -26,10 +26,16 @@ services:
       - "traefik.http.routers.adminer.middlewares=sec-public@file"
       - "traefik.http.services.adminer.loadbalancer.server.port=8080"
 
-    networks:
-      - traefik-public
-      - db-internal
+    # State: In-memory mounts for temp files and PHP sessions
+    tmpfs:
+      - /tmp
+      - /var/lib/php/sessions
 
+    # Security: Hardening by dropping capabilities and preventing privilege escalation
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+
+    # Monitoring: Ensure Adminer interface is responding
     healthcheck:
       test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:8080/ || exit 1"]
       interval: 30s
@@ -37,6 +43,7 @@ services:
       retries: 3
       start_period: 5s
 
+# --- Global Network Definitions ---
 networks:
   traefik-public:
     name: traefik-public

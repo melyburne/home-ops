@@ -1,80 +1,91 @@
 services:
-  # Fix file permissions at startup
+  # --- Init Service: Prepares ACME config permissions before Traefik starts ---
   init-acme:
     image: busybox:1.36
     container_name: init-acme
-    command: sh -c "touch /data/acme.json && chown ${PUID}:${GUID} /data/acme.json && chmod 600 /data/acme.json && chown ${PUID}:${SOCKET_GID} /traefik_dynamic.yml"
+    network_mode: none
+    
+    # State: Mounts the configuration to set strict permissions
     volumes:
       - ./data:/data
       - ./traefik_dynamic.yml:/traefik_dynamic.yml
-    network_mode: none
+    
+    # Execution: Creates the file, sets ownership, and enforces 600 permissions for Let's Encrypt
+    command: sh -c "touch /data/acme.json && chown ${PUID}:${GUID} /data/acme.json && chmod 600 /data/acme.json && chown ${PUID}:${SOCKET_GID} /traefik_dynamic.yml"
+    
+    # Security: Isolated execution with the minimum capabilities needed
     read_only: true
+    security_opt:
+      - no-new-privileges:true
     cap_drop:
       - ALL
     cap_add:
       - CHOWN
       - FOWNER
       - DAC_OVERRIDE
-    security_opt:
-      - no-new-privileges:true
 
-  # Security Proxy for Docker Socket
+  # --- Security Proxy: Shields the Docker socket from direct access by Traefik ---
   socket-proxy:
     image: tecnativa/docker-socket-proxy
     container_name: socket-proxy
     restart: unless-stopped
-    read_only: true
 
-    cap_drop:
-      - ALL
-    security_opt:
-      - no-new-privileges:true
+    # Connectivity: Internal network solely for Traefik to access the proxy
+    networks:
+      - socket-internal
 
+    # Configuration: Explicitly allow listing containers, block everything else
+    environment:
+      CONTAINERS: 1
+
+    # State: Read-only mount of the actual Docker socket, plus in-memory temp areas
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     tmpfs:
       - /run
       - /tmp
 
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+    # Security: Hardened container, drop all privileges
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
 
-    environment:
-      CONTAINERS: 1 # Allow listing containers
-
-    networks:
-      - socket-internal
-
+  # --- Main Reverse Proxy: Traefik ---
   traefik:
     image: traefik:v3
     container_name: traefik
+    restart: unless-stopped
+    
+    # Security: Run as non-root user
     user: "${PUID}:${GUID}"
+    
+    # Lifecycle: Wait for permissions to be fixed and socket proxy to start
     depends_on:
       init-acme:
         condition: service_completed_successfully
       socket-proxy:
         condition: service_started
-    restart: unless-stopped
-    
+        
+    # Connectivity: Public facing ports and internal network attachments
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - traefik-public
+      - socket-internal
+
+    # Configuration: Global environment variables and DNS API keys
     env_file:
       - ../../.env
       - ../.env
       - .env
-
-    # Pass the DNS Provider API Key securely from your .env file
     environment:
-      # If using Gandi.net (v5 API):
       - GANDIV5_PERSONAL_ACCESS_TOKEN=${GANDI_PERSONAL_ACCESS_TOKEN}
       - LEGO_DISABLE_CNAME_SUPPORT=true
 
-    cap_drop: [ALL]
-    cap_add: [NET_BIND_SERVICE]
-    security_opt: [no-new-privileges:true]
-    read_only: true
-    tmpfs: [/tmp]
-
-    ports:
-      - "80:80"
-      - "443:443"
-
+    # Execution: Core Traefik configuration (Providers, Entrypoints, Let's Encrypt)
     command:
       - "--log.level=INFO"
       - "--ping=true"
@@ -106,13 +117,11 @@ services:
       - "--certificatesresolvers.myresolver.acme.dnschallenge=true"
       - "--certificatesresolvers.myresolver.acme.dnschallenge.provider=gandiv5"
       - "--certificatesresolvers.myresolver.acme.dnschallenge.resolvers=1.1.1.1:53,8.8.8.8:53"
-      # Give Gandi DNS time to sync the TXT record before Let's Encrypt checks it
       - "--certificatesresolvers.myresolver.acme.dnschallenge.propagation.delayBeforeChecks=10s"
 
+    # Routing: Internal dashboard exposure configuration
     labels:
       - "traefik.enable=true"
-      
-      # Dashboard Router
       - "traefik.http.routers.dashboard.rule=${DASHBOARD_HOST_RULE}"
       - "traefik.http.routers.dashboard.entrypoints=websecure"
       - "traefik.http.routers.dashboard.tls=true"
@@ -120,20 +129,26 @@ services:
       - "traefik.http.routers.dashboard.middlewares=sec-public@file,dashboard-auth"
       - "traefik.http.middlewares.dashboard-auth.basicauth.users=${DASHBOARD_CREDENTIALS}"
 
+    # State: Persistent data and dynamic config mounts
     volumes:
       - ./data:/data
       - ./traefik_dynamic.yml:/traefik_dynamic.yml:ro
+    tmpfs: [/tmp]
 
-    networks:
-      - traefik-public
-      - socket-internal
+    # Security: Drop root capabilities except port binding, lock filesystem
+    read_only: true
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
     
+    # Monitoring: Internal Traefik ping check
     healthcheck:
       test: ["CMD", "traefik", "healthcheck", "--ping"]
       interval: 10s
       timeout: 5s
       retries: 3
 
+# --- Global Network Definitions ---
 networks:
   traefik-public:
     name: traefik-public
