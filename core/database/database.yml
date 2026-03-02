@@ -1,0 +1,48 @@
+services:
+  # --- Database Service ---
+  mariadb:
+    image: mariadb:12.3
+    container_name: mariadb
+    restart: unless-stopped
+
+    # Connectivity: Isolated internal network to prevent direct outside access
+    networks:
+      - db-internal
+
+    # Configuration: Load environment variables for database initialization and credentials
+    environment:
+      - MARIADB_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MARIADB_DATABASE=${ROUNDCUBEMAIL_MYSQL_DATABASE}
+      - MARIADB_USER=${ROUNDCUBEMAIL_MYSQL_USER}
+      - MARIADB_PASSWORD=${ROUNDCUBEMAIL_MYSQL_PASSWORD}
+      - MARIADB_AUTO_UPGRADE=true
+
+    # State: Persistent data mount and required in-memory directories for read-only filesystem
+    volumes:
+      - ./db_data:/var/lib/mysql
+    tmpfs:
+      - /tmp
+      - /run/mysqld
+
+    # Security: Hardened container dropping unnecessary privileges and locking the filesystem
+    read_only: true
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    cap_add:
+      - SETUID
+      - SETGID
+      - CHOWN
+      - DAC_OVERRIDE
+
+    # Monitoring: Built-in check to ensure the InnoDB engine is fully initialized and accepting connections
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+# --- Global Network Definitions ---
+networks:
+  db-internal:
+    name: db-internal
