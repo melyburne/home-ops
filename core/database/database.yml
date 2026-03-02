@@ -19,7 +19,7 @@ services:
 
     # State: Persistent data mount and required in-memory directories for read-only filesystem
     volumes:
-      - ./db_data:/var/lib/mysql
+      - ./data:/var/lib/mysql
     tmpfs:
       - /tmp
       - /run/mysqld
