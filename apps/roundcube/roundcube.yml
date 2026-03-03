@@ -22,6 +22,7 @@ services:
   roundcube:
     build: .
     image: roundcube-custom:latest-nonroot
+    pull_policy: build
     container_name: roundcube
     restart: unless-stopped
     user: ${PUID}:${GUID} 
@@ -40,20 +41,20 @@ services:
 
     # Configuration: Roundcube features, mail server bindings, database, and OAuth2
     environment:
-      - ROUNDCUBE_USERNAME_DOMAIN=%d
-      - ROUNDCUBE_PLUGINS=archive,attachment_reminder,emoticons, filesystem_attachments,managesieve,subscriptions_option,vcard_attachments,zipdownload,google_addressbook
-      - ROUNDCUBE_COMPOSER_PLUGINS=ashus/google-addressbook
-      - ROUNDCUBE_DEFAULT_HOST=ssl://mail.gandi.net
-      - ROUNDCUBE_DEFAULT_PORT=993
-      - ROUNDCUBE_SMTP_SERVER=ssl://mail.gandi.net
-      - ROUNDCUBE_SMTP_PORT=465
-      - ROUNDCUBE_DB_TYPE=mysql
-      - ROUNDCUBE_DB_HOST=mariadb
-      - ROUNDCUBE_DB_USER=${ROUNDCUBE_MYSQL_USER}
-      - ROUNDCUBE_DB_PASSWORD=${ROUNDCUBE_MYSQL_PASSWORD}
-      - ROUNDCUBE_DB_NAME=${ROUNDCUBE_MYSQL_DATABASE}
-      - ROUNDCUBE_GOOGLE_CLIENT_ID=${ROUNDCUBE_GOOGLE_CLIENT_ID}
-      - ROUNDCUBE_GOOGLE_CLIENT_SECRET=${ROUNDCUBE_GOOGLE_CLIENT_SECRET}
+      - ROUNDCUBEMAIL_USERNAME_DOMAIN=%d
+      - ROUNDCUBEMAIL_PLUGINS=archive,attachment_reminder,emoticons, filesystem_attachments,managesieve,subscriptions_option,vcard_attachments,zipdownload,google_addressbook
+      - ROUNDCUBEMAIL_COMPOSER_PLUGINS=ashus/google-addressbook
+      - ROUNDCUBEMAIL_DEFAULT_HOST=ssl://mail.gandi.net
+      - ROUNDCUBEMAIL_DEFAULT_PORT=993
+      - ROUNDCUBEMAIL_SMTP_SERVER=ssl://mail.gandi.net
+      - ROUNDCUBEMAIL_SMTP_PORT=465
+      - ROUNDCUBEMAIL_DB_TYPE=mysql
+      - ROUNDCUBEMAIL_DB_HOST=mariadb
+      - ROUNDCUBEMAIL_DB_USER=${ROUNDCUBE_MYSQL_USER}
+      - ROUNDCUBEMAIL_DB_PASSWORD=${ROUNDCUBE_MYSQL_PASSWORD}
+      - ROUNDCUBEMAIL_DB_NAME=${ROUNDCUBE_MYSQL_DATABASE}
+      - ROUNDCUBEMAIL_GOOGLE_CLIENT_ID=${ROUNDCUBE_GOOGLE_CLIENT_ID}
+      - ROUNDCUBEMAIL_GOOGLE_CLIENT_SECRET=${ROUNDCUBE_GOOGLE_CLIENT_SECRET}
 
     # State: Configuration mounts and in-memory temporary space
     volumes:

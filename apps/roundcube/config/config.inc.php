@@ -5,10 +5,10 @@
 // DOCKER RACE-CONDITION WORKAROUND
 // Inject DB credentials before plugins initialize
 // ----------------------------------
-$db_user = rawurlencode(getenv('ROUNDCUBE_DB_USER'));
-$db_pass = rawurlencode(getenv('ROUNDCUBE_DB_PASSWORD'));
-$db_name = rawurlencode(getenv('ROUNDCUBE_DB_NAME'));
-$db_host = getenv('ROUNDCUBE_DB_HOST') ?: 'mariadb';
+$db_user = rawurlencode(getenv('ROUNDCUBEMAIL_DB_USER'));
+$db_pass = rawurlencode(getenv('ROUNDCUBEMAIL_DB_PASSWORD'));
+$db_name = rawurlencode(getenv('ROUNDCUBEMAIL_DB_NAME'));
+$db_host = getenv('ROUNDCUBEMAIL_DB_HOST') ?: 'mariadb';
 
 if ($db_user && $db_pass && $db_name) {
     // Format: mysql://user:password@host/database
@@ -48,6 +48,6 @@ $config['managesieve_auth_type'] = 'plain';
 
 // Google Address Book Secrets (Injected from Environment)
 $config['google_addressbook_application_name'] = 'Roundcube Google Addressbook';
-$config['google_addressbook_client_id'] = rawurlencode(getenv('ROUNDCUBE_GOOGLE_CLIENT_ID'));
-$config['google_addressbook_client_secret'] = rawurlencode(getenv('ROUNDCUBE_GOOGLE_CLIENT_SECRET'));
+$config['google_addressbook_client_id'] = rawurlencode(getenv('ROUNDCUBEMAIL_GOOGLE_CLIENT_ID'));
+$config['google_addressbook_client_secret'] = rawurlencode(getenv('ROUNDCUBEMAIL_GOOGLE_CLIENT_SECRET'));
 $config['google_addressbook_client_redirect'] = true;
