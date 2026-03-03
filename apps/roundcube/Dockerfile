@@ -15,8 +15,9 @@ RUN apt-get update && \
 # Copy custom password driver alongside translation files into the image
 COPY ./drivers/password-gandi/gandi.php /usr/src/roundcubemail/plugins/password/drivers/gandi.php
 RUN chown 1000:1000 /usr/src/roundcubemail/plugins/password/drivers/gandi.php
-RUN cat ./drivers/password-gandi/de_DE.inc >> /usr/src/roundcubemail/plugins/password/localization/de_DE.inc
-RUN cat ./drivers/password-gandi/en_US.inc >> /usr/src/roundcubemail/plugins/password/localization/en_US.inc
+RUN --mount=type=bind,source=./drivers/password-gandi,target=/host_locales \
+    cat /host_locales/de_DE.inc >> /usr/src/roundcubemail/plugins/password/localization/de_DE.inc && \
+    cat /host_locales/en_US.inc >> /usr/src/roundcubemail/plugins/password/localization/en_US.inc
 
 # Copy custom Roundcube configuration files into the image
 # -----------------------------------------------------------------------------
