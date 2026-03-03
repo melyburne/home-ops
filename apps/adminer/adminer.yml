@@ -18,9 +18,6 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.adminer.rule=${ADMINER_HOST_RULE}"
-      - "traefik.http.routers.adminer.entrypoints=websecure"
-      - "traefik.http.routers.adminer.tls=true"
-      - "traefik.http.routers.adminer.middlewares=sec-public@file"
       - "traefik.http.services.adminer.loadbalancer.server.port=8080"
 
     # State: In-memory mounts for temp files and PHP sessions

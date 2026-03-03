@@ -1,15 +1,43 @@
 services:
+  # --- Init Service: Prepares permissions for MariaDB ---
+  init-mariadb:
+    image: busybox:1.36
+    container_name: init-mariadb
+    network_mode: none
+    
+    # Mount the data directory to set correct ownership
+    volumes:
+      - ./data:/var/lib/mysql
+    command: sh -c "mkdir -p /var/lib/mysql && chown -R ${PUID}:${GUID} /var/lib/mysql"
+    
+    # Security: Isolated execution with the minimum capabilities needed
+    read_only: true
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    cap_add:
+      - CHOWN
+      - FOWNER
+      - DAC_OVERRIDE
+
   # --- Database Service ---
   mariadb:
     image: mariadb:11.4
     container_name: mariadb
     restart: unless-stopped
+    
+    # Security: Run as non-root user
+    user: "${PUID}:${GUID}"
+
+    # Lifecycle: Wait for permissions to be fixed
+    depends_on:
+      init-mariadb:
+        condition: service_completed_successfully
 
     # Connectivity: Isolated internal network to prevent direct outside access
     networks:
       - db-internal
 
-    # Configuration: Load environment variables for database initialization and credentials
+    # Configuration: Natively auto-creates the Roundcube database and user on first startup
     environment:
       - MARIADB_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MARIADB_DATABASE=${ROUNDCUBEMAIL_MYSQL_DATABASE}
@@ -24,17 +52,12 @@ services:
       - /tmp
       - /run/mysqld
 
-    # Security: Hardened container dropping unnecessary privileges and locking the filesystem
+    # Security: Hardened container, fully locked down filesystem, ZERO capabilities
     read_only: true
     security_opt: [no-new-privileges:true]
     cap_drop: [ALL]
-    cap_add:
-      - SETUID
-      - SETGID
-      - CHOWN
-      - DAC_OVERRIDE
 
-    # Monitoring: Built-in check to ensure the InnoDB engine is fully initialized and accepting connections
+    # Monitoring: Built-in check to ensure the InnoDB engine is fully initialized
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 30s
