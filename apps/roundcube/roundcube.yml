@@ -57,7 +57,7 @@ services:
       - /run/lock
 
     labels:
-      - "traefik.enable=true
+      - "traefik.enable=true"
       - "traefik.http.routers.roundcube.rule=${ROUNDCUBEMAIL_HOST_RULE}"
       - "traefik.http.routers.adminer.entrypoints=websecure"
       - "traefik.http.services.roundcube.loadbalancer.server.port=8000"
