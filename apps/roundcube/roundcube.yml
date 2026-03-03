@@ -2,7 +2,7 @@ services:
   roundcube-init:
     image: busybox:1.36
     container_name: roundcube-init
-    command: sh -c "mkdir -p /data/temp /data/logs && chown -R 33:33 /data"
+    command: sh -c "mkdir -p /data/temp /data/logs && chown -R ${PUID}:${GUID} /data"
     volumes:
       - ./data:/data
     network_mode: none
@@ -11,9 +11,10 @@ services:
     cap_add: [CHOWN, FOWNER, DAC_OVERRIDE]
     security_opt: [no-new-privileges:true]
 
-  roundcube:
-    image: roundcube/roundcubemail:latest-apache
-    container_name: roundcube
+  roundcubemail:
+    image: roundcube/roundcubemail:latest-nonroot
+    container_name: roundcubemail
+    user: ${PUID}:${GUID} 
     restart: unless-stopped
     depends_on:
       roundcube-init:
@@ -21,35 +22,41 @@ services:
       mariadb:
         condition: service_healthy
 
+    volumes:
+      - ./config:/var/roundcube/config
+      - ./data/temp:/var/www/html/temp
+      - ./data/logs:/var/www/html/logs
+
     environment:
-      - DB_USER=${ROUNDCUBEMAIL_MYSQL_USER}
-      - DB_PASS=${ROUNDCUBEMAIL_MYSQL_PASSWORD}
-      - DB_NAME=${ROUNDCUBEMAIL_MYSQL_DATABASE}
-      - DES_KEY=${ROUNDCUBEMAIL_DES_KEY}
-      - GOOGLE_ID=${ROUNDCUBEMAIL_GOOGLE_CLIENT_ID}
-      - GOOGLE_SECRET=${ROUNDCUBEMAIL_GOOGLE_CLIENT_SECRET}
+      - ROUNDCUBEMAIL_USERNAME_DOMAIN=%d
+      - ROUNDCUBEMAIL_PLUGINS=archive,attachment_reminder,emoticons, filesystem_attachments,managesieve,password,subscriptions_option,vcard_attachments,zipdownload,google_addressbook
       - ROUNDCUBEMAIL_COMPOSER_PLUGINS=ashus/google-addressbook
+      - ROUNDCUBEMAIL_DEFAULT_HOST=ssl://mail.gandi.net
+      - ROUNDCUBEMAIL_DEFAULT_PORT=993
+      - ROUNDCUBEMAIL_SMTP_SERVER=ssl://mail.gandi.net
+      - ROUNDCUBEMAIL_SMTP_PORT=465
+      - ROUNDCUBEMAIL_DB_TYPE=mysql
+      - ROUNDCUBEMAIL_DB_HOST=mariadb
+      - ROUNDCUBEMAIL_DB_USER=${ROUNDCUBEMAIL_MYSQL_USER}
+      - ROUNDCUBEMAIL_DB_PASSWORD=${ROUNDCUBEMAIL_MYSQL_PASSWORD}
+      - ROUNDCUBEMAIL_DB_NAME=${ROUNDCUBEMAIL_MYSQL_DATABASE}
+      - ROUNDCUBEMAIL_GOOGLE_CLIENT_ID=${ROUNDCUBEMAIL_GOOGLE_CLIENT_ID}
+      - ROUNDCUBEMAIL_GOOGLE_CLIENT_SECRET=${ROUNDCUBEMAIL_GOOGLE_CLIENT_SECRET}
 
     cap_drop: [ALL]
-    cap_add: [CHOWN, SETGID, SETUID, DAC_OVERRIDE, FOWNER]
     security_opt: [no-new-privileges:true]
 
     tmpfs:
-      - /var/www/html:exec
       - /tmp
       - /var/run/apache2
       - /var/log/apache2
       - /run/lock
-      
-    volumes:
-      - ./data/temp:/var/www/html/temp
-      - ./data/logs:/var/www/html/logs
-      - ./config:/var/roundcube/config
 
     labels:
-      - "traefik.enable=true"
+      - "traefik.enable=true
       - "traefik.http.routers.roundcube.rule=${ROUNDCUBEMAIL_HOST_RULE}"
-      - "traefik.http.services.roundcube.loadbalancer.server.port=80"
+      - "traefik.http.routers.adminer.entrypoints=websecure"
+      - "traefik.http.services.roundcube.loadbalancer.server.port=8000"
 
     networks:
       - traefik-public
