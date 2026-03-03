@@ -5,12 +5,13 @@ services:
     container_name: roundcube-init
     network_mode: none
     
-    # Execution: Sets ownership for config directory
-    command: sh -c "chown -R ${PUID}:${GUID} /config"
+    # Execution: Sets ownership for config and drivers directory
+    command: sh -c "chown -R ${PUID}:${GUID} /config && chown -R ${PUID}:${GUID} /drivers"
     
-    # State: Mounts the configuration directory
+    # State: Mounts the config and drivers directory
     volumes:
       - ./config:/config
+      - ./drivers:/drivers
       
     # Security: Isolated execution with the minimum capabilities needed
     read_only: true
@@ -42,7 +43,7 @@ services:
     # Configuration: Roundcube features, mail server bindings, database, and OAuth2
     environment:
       - ROUNDCUBEMAIL_USERNAME_DOMAIN=%d
-      - ROUNDCUBEMAIL_PLUGINS=archive,attachment_reminder,emoticons, filesystem_attachments,managesieve,subscriptions_option,vcard_attachments,zipdownload,google_addressbook
+      - ROUNDCUBEMAIL_PLUGINS=archive,attachment_reminder,emoticons,filesystem_attachments,managesieve,password,subscriptions_option,vcard_attachments,zipdownload,google_addressbook
       - ROUNDCUBEMAIL_COMPOSER_PLUGINS=ashus/google-addressbook
       - ROUNDCUBEMAIL_DEFAULT_HOST=ssl://mail.gandi.net
       - ROUNDCUBEMAIL_DEFAULT_PORT=993
@@ -53,6 +54,7 @@ services:
       - ROUNDCUBEMAIL_DB_USER=${ROUNDCUBE_MYSQL_USER}
       - ROUNDCUBEMAIL_DB_PASSWORD=${ROUNDCUBE_MYSQL_PASSWORD}
       - ROUNDCUBEMAIL_DB_NAME=${ROUNDCUBE_MYSQL_DATABASE}
+      - GANDIV5_PERSONAL_ACCESS_TOKEN=${GANDIV5_PERSONAL_ACCESS_TOKEN}
       - ROUNDCUBEMAIL_GOOGLE_CLIENT_ID=${ROUNDCUBE_GOOGLE_CLIENT_ID}
       - ROUNDCUBEMAIL_GOOGLE_CLIENT_SECRET=${ROUNDCUBE_GOOGLE_CLIENT_SECRET}
 
@@ -80,7 +82,7 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 15s
+      start_period: 30s
 
 # --- Global Network Definitions ---
 networks:

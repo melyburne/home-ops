@@ -1,17 +1,24 @@
 FROM roundcube/roundcubemail:latest-nonroot
 
-# Switch to root to install the required system packages
+# Switch to the root user to install necessary system packages.
 USER root
 
-# Install the enchant library and the English/German hunspell dictionaries
+# Update package lists, install aspell and its language packs, then clean up.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    libenchant-2-dev \
-    hunspell-en-us \
-    hunspell-de-de \
-    && docker-php-ext-install enchant \
+    aspell \
+    aspell-en \
+    aspell-de \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Switch back to the default unprivileged user for image portability
+# Copy custom Roundcube configuration files into the image alongside custom password driver
+COPY ./config/config.inc.php /usr/src/roundcubemail/config/config.inc.php
+COPY ./drivers/gandi.php /usr/src/roundcubemail/plugins/password/drivers/gandi.php
+
+# Change ownership of the copied files to the unprivileged user (UID 1000).
+RUN chown 1000:1000 /usr/src/roundcubemail/config/config.inc.php
+RUN chown 1000:1000 /usr/src/roundcubemail/plugins/password/drivers/gandi.php
+
+# Switch back to the default unprivileged user for security and portability.
 USER 1000
