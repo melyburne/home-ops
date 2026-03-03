@@ -5,8 +5,8 @@
 // MULTI-DOMAIN SETUP
 // ----------------------------------
 $config['include_host_config'] = array(
-    'mail.aaronsoft.de' => 'aaronsoft_config.inc.php',
-    'mail.get-orga-niced.de' => 'get-orga-niced_config.inc.php',
+    'mail2.aaronsoft.de' => 'aaronsoft_config.inc.php',
+    'mail2.get-orga-niced.de' => 'get-orga-niced_config.inc.php',
 );
 
 // ----------------------------------

@@ -2,8 +2,9 @@ services:
   roundcube-init:
     image: busybox:1.36
     container_name: roundcube-init
-    command: sh -c "mkdir -p /data/temp /data/logs && chown -R ${PUID}:${GUID} /data"
+    command: sh -c "chown -R ${PUID}:${GUID} /config && mkdir -p /data/temp /data/logs && chown -R ${PUID}:${GUID} /data"
     volumes:
+      - ./config:/config
       - ./data:/data
     network_mode: none
     read_only: true
@@ -23,7 +24,10 @@ services:
         condition: service_healthy
 
     volumes:
-      - ./config:/var/roundcube/config
+      - ./config/nonroot-custom-php-config.ini:/usr/local/etc/php/conf.d/zzz-nonroot-custom-php-config.ini 
+      - ./config/config.inc.php:/var/roundcube/config/config.inc.php
+      - ./config/aaronsoft_config.inc.php:/var/roundcube/config/aaronsoft_config.inc.php
+      - ./config/get-orga-niced_config.inc.php:/var/roundcube/config/get-orga-niced_config.inc.php
       - ./data/temp:/var/www/html/temp
       - ./data/logs:/var/www/html/logs
 
