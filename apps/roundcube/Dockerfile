@@ -12,13 +12,19 @@ RUN apt-get update && \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy custom Roundcube configuration files into the image alongside custom password driver
-COPY ./config/config.inc.php /usr/src/roundcubemail/config/config.inc.php
-COPY ./drivers/gandi.php /usr/src/roundcubemail/plugins/password/drivers/gandi.php
-
-# Change ownership of the copied files to the unprivileged user (UID 1000).
-RUN chown 1000:1000 /usr/src/roundcubemail/config/config.inc.php
+# Copy custom password driver alongside translation files into the image
+COPY ./drivers/password-gandi/gandi.php /usr/src/roundcubemail/plugins/password/drivers/gandi.php
 RUN chown 1000:1000 /usr/src/roundcubemail/plugins/password/drivers/gandi.php
+RUN cat ./drivers/password-gandi/de_DE.inc >> /usr/src/roundcubemail/plugins/password/localization/de_DE.inc
+RUN cat ./drivers/password-gandi/en_US.inc >> /usr/src/roundcubemail/plugins/password/localization/en_US.inc
+
+# Copy custom Roundcube configuration files into the image
+# -----------------------------------------------------------------------------
+# Database Configuration (Docker Race-Condition Workaround)
+# Injects database credentials before plugins are initialized to prevent issues.
+# -----------------------------------------------------------------------------
+COPY ./config/config.inc.php /usr/src/roundcubemail/config/config.inc.php
+RUN chown 1000:1000 /usr/src/roundcubemail/config/config.inc.php
 
 # Switch back to the default unprivileged user for security and portability.
 USER 1000

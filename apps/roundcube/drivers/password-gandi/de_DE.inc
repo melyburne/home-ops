@@ -1,0 +1,1 @@
+$messages['gandi_strengthrules'] = 'Das Passwort muss zwischen $minlen und $maxlen Zeichen und mindestens $uppercase Großbuchstaben, $nums Zahl(en) und $specialchars Sonderzeichen enthalten.';

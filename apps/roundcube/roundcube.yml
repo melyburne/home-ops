@@ -5,13 +5,12 @@ services:
     container_name: roundcube-init
     network_mode: none
     
-    # Execution: Sets ownership for config and drivers directory
-    command: sh -c "chown -R ${PUID}:${GUID} /config && chown -R ${PUID}:${GUID} /drivers"
+    # Execution: Sets ownership for config directory
+    command: sh -c "chown -R ${PUID}:${GUID} /config"
     
-    # State: Mounts the config and drivers directory
+    # State: Mounts the config directory
     volumes:
       - ./config:/config
-      - ./drivers:/drivers
       
     # Security: Isolated execution with the minimum capabilities needed
     read_only: true
