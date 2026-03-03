@@ -77,7 +77,7 @@ services:
 
     # Monitoring: Internal check to ensure the webmail interface is responding
     healthcheck:
-      test: ["CMD-SHELL", "wget --quiet --spider http://127.0.0.1:8000/ || exit 1"]
+      test: ["CMD-SHELL", "curl -sfL http://127.0.0.1:8000/ || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
