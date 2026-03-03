@@ -2,14 +2,6 @@
 /* Local configuration for Roundcube Webmail (Dockerized) */
 
 // ----------------------------------
-// MULTI-DOMAIN SETUP
-// ----------------------------------
-$config['include_host_config'] = array(
-    'mail2.aaronsoft.de' => 'aaronsoft_config.inc.php',
-    'mail2.get-orga-niced.de' => 'get-orga-niced_config.inc.php',
-);
-
-// ----------------------------------
 // IDENTITIES & BEHAVIOR
 // ----------------------------------
 $config['username_domain_forced'] = true;
