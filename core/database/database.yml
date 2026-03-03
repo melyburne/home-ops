@@ -40,9 +40,9 @@ services:
     # Configuration: Natively auto-creates the Roundcube database and user on first startup
     environment:
       - MARIADB_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-      - MARIADB_DATABASE=${ROUNDCUBEMAIL_MYSQL_DATABASE}
-      - MARIADB_USER=${ROUNDCUBEMAIL_MYSQL_USER}
-      - MARIADB_PASSWORD=${ROUNDCUBEMAIL_MYSQL_PASSWORD}
+      - MARIADB_DATABASE=${ROUNDCUBE_MYSQL_DATABASE}
+      - MARIADB_USER=${ROUNDCUBE_MYSQL_USER}
+      - MARIADB_PASSWORD=${ROUNDCUBE_MYSQL_PASSWORD}
       - MARIADB_AUTO_UPGRADE=true
 
     # State: Persistent data mount and required in-memory directories for read-only filesystem
