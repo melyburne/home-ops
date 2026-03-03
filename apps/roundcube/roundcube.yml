@@ -26,8 +26,7 @@ services:
     volumes:
       - ./config/nonroot-custom-php-config.ini:/usr/local/etc/php/conf.d/zzz-nonroot-custom-php-config.ini 
       - ./config/config.inc.php:/var/roundcube/config/config.inc.php
-      - ./config/aaronsoft_config.inc.php:/var/roundcube/config/aaronsoft_config.inc.php
-      - ./config/get-orga-niced_config.inc.php:/var/roundcube/config/get-orga-niced_config.inc.php
+      - ./config/dynamic-branding.inc.php:/var/roundcube/config/dynamic-branding.inc.php
       - ./data/temp:/var/www/html/temp
       - ./data/logs:/var/www/html/logs
 
