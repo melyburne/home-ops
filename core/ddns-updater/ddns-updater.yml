@@ -27,6 +27,10 @@ services:
     container_name: ddns-updater
     restart: unless-stopped
     user: "${PUID}:${GUID}"
+
+    # Connectivity: Attach to the shared outbound traffic
+    networks:
+      - outbound-traffic
     
     # Ensures permissions are fixed before the updater attempts to write to the volume
     depends_on:
@@ -50,3 +54,8 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
+
+# --- Global Network Definitions ---
+networks:
+  outbound-traffic:
+    name: outbound-traffic

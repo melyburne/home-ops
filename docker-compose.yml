@@ -25,3 +25,8 @@ networks:
   db-internal:
     name: db-internal
     internal: true
+
+  # Outbound API traffic (e.g., DDNS Updater)
+  outbound-traffic:
+    name: outbound-traffic
+    driver: bridge
