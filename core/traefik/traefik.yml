@@ -11,7 +11,7 @@ services:
       - ./traefik_dynamic.yml:/traefik_dynamic.yml
     
     # Execution: Creates the file, sets ownership, and enforces 600 permissions for Let's Encrypt
-    command: sh -c "touch /data/acme.json && chown -R ${PUID}:${GUID} /data && chmod 600 /data/acme.json && chown ${PUID}:${GUID} /traefik_dynamic.yml"
+    command: sh -c "touch /data/acme.json && chown -R ${PUID}:${GUID} /data && chmod 600 /data/acme.json"
     
     # Security: Isolated execution with the minimum capabilities needed
     read_only: true

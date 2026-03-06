@@ -25,9 +25,8 @@ echo "   ✅ .env files secured (600)"
 SENSITIVE_FILES=(
     "core/traefik/data/acme.json"
     "core/traefik/traefik_dynamic.yml"
-    "apps/roundcube/config.inc.php"
-    "apps/roundcube/aaronsoft_config.inc.php"
-    "apps/roundcube/get-orga-niced_config.inc.php"
+    "apps/roundcube/config/config.inc.php"
+    "apps/roundcube/config/nonroot-custom-php-config.iniconfig.inc.php"
 )
 
 for file in "${SENSITIVE_FILES[@]}"; do

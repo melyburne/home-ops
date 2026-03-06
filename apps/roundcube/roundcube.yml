@@ -1,23 +1,4 @@
 services:
-  # --- Init Service: Prepares permissions for Roundcube ---
-  roundcube-init:
-    image: busybox:1.36
-    container_name: roundcube-init
-    network_mode: none
-    
-    # Execution: Sets ownership for config directory
-    command: sh -c "chown -R ${PUID}:${GUID} /config"
-    
-    # State: Mounts the config directory
-    volumes:
-      - ./config:/config
-      
-    # Security: Isolated execution with the minimum capabilities needed
-    read_only: true
-    security_opt: [no-new-privileges:true]
-    cap_drop: [ALL]
-    cap_add: [CHOWN, FOWNER, DAC_OVERRIDE]
-
   # --- Main Web Service: Roundcube Webmail ---
   roundcube:
     build: .
@@ -27,10 +8,8 @@ services:
     restart: unless-stopped
     user: ${PUID}:${GUID} 
 
-    # Lifecycle: Wait for permissions to be fixed and database to be ready
+    # Lifecycle: Wait for database to be ready
     depends_on:
-      roundcube-init:
-        condition: service_completed_successfully
       mariadb:
         condition: service_healthy
 
@@ -59,8 +38,8 @@ services:
 
     # State: Configuration mounts and in-memory temporary space
     volumes:
-      - ./config/nonroot-custom-php-config.ini:/usr/local/etc/php/conf.d/zzz-nonroot-custom-php-config.ini 
-      - ./config/config.inc.php:/var/roundcube/config/config.inc.php
+      - ./config/nonroot-custom-php-config.ini:/usr/local/etc/php/conf.d/zzz-nonroot-custom-php-config.ini:ro
+      - ./config/config.inc.php:/var/roundcube/config/config.inc.php:ro
     tmpfs:
       - /tmp
 
