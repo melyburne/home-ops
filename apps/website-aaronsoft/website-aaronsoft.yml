@@ -40,4 +40,3 @@ services:
 # --- Global Network Definitions ---
 networks:
   traefik-public:
-    name: traefik-public

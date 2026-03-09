@@ -39,4 +39,3 @@ services:
 # --- Global Network Definitions ---
 networks:
   outbound-traffic:
-    name: outbound-traffic

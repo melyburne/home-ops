@@ -68,4 +68,3 @@ services:
 # --- Global Network Definitions ---
 networks:
   db-internal:
-    name: db-internal

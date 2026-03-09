@@ -146,6 +146,4 @@ services:
 # --- Global Network Definitions ---
 networks:
   traefik-public:
-    name: traefik-public
   socket-internal:
-    name: socket-internal
