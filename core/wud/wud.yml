@@ -42,7 +42,7 @@ services:
     environment:
       - WUD_WATCHER_LOCAL_CRON=*/15 * * * *
       - WUD_TRIGGER_DOCKER_AUTOUPDATE_PRUNE=true
-      - WUD_SERVER_ENABLE=false
+      - WUD_SERVER_ENABLED=false
       - WUD_LOG_LEVEL=INFO
 
     # State: Direct socket mount required for triggering updates, plus persistent storage
