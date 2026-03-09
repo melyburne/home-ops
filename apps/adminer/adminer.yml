@@ -1,7 +1,7 @@
 services:
   # --- Database Management Interface ---
   adminer:
-    image: adminer
+    image: adminer:latest
     container_name: adminer
     restart: unless-stopped
 

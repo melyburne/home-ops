@@ -23,7 +23,7 @@ services:
 
   # --- Main Service: Handles the dynamic DNS updates ---
   ddns-updater:
-    image: qmcgaw/ddns-updater
+    image: qmcgaw/ddns-updater:latest
     container_name: ddns-updater
     restart: unless-stopped
     user: "${PUID}:${GUID}"
