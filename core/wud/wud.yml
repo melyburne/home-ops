@@ -1,0 +1,62 @@
+services:
+  # --- Init Service: Prepares permissions for WUD ---
+  wud-init:
+    image: busybox:1.36
+    container_name: wud-init
+    network_mode: none
+    
+    # Execution: Sets ownership for data directory
+    command: sh -c "chown -R ${PUID}:${GUID} /store"
+    
+    # State: Mounts the data directory
+    volumes:
+      - ./data:/store
+      
+    # Security: Isolated execution with the minimum capabilities needed
+    read_only: true
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    cap_add: [CHOWN, FOWNER, DAC_OVERRIDE]
+
+  # --- Main Service: What's Up Docker (WUD) ---
+  wud:
+    image: fmartinou/whats-up-docker:latest
+    container_name: wud
+    restart: unless-stopped
+
+    # Security: Run as non-root user
+    user: "${PUID}:${GUID}"
+    group_add:
+      - "${SOCKET_GID}"
+    
+    # Lifecycle: Wait for permissions to be fixed
+    depends_on:
+      wud-init:
+        condition: service_completed_successfully
+
+    # Connectivity: outbound to check registries for updates
+    networks:
+      - outbound-traffic
+
+    # Configuration: Barebones automatic updates
+    environment:
+      - WUD_WATCHER_LOCAL_CRON=*/15 * * * *
+      - WUD_TRIGGER_DOCKER_AUTOUPDATE_PRUNE=true
+      - WUD_SERVER_ENABLE=false
+      - WUD_LOG_LEVEL=INFO
+
+    # State: Direct socket mount required for triggering updates, plus persistent storage
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data:/store
+    tmpfs: [/tmp]
+
+    # Security: Hardened container dropping all root capabilities and locking the filesystem
+    read_only: true
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+
+# --- Global Network Definitions ---
+networks:
+  outbound-traffic:
+    name: outbound-traffic

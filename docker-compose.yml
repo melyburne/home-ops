@@ -5,6 +5,7 @@ include:
   - core/ddns-updater/ddns-updater.yml
   - core/database/database.yml
   - core/traefik/traefik.yml
+  - core/wud/wud.yml
   - apps/adminer/adminer.yml
   - apps/roundcube/roundcube.yml
   - apps/website-aaronsoft/website-aaronsoft.yml
