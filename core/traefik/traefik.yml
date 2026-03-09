@@ -87,6 +87,7 @@ services:
       - "--ping=true"
       - "--accesslog=true"
       - "--api.dashboard=true"
+      - "--api.disableDashboardAd=true
 
       # Docker Provider (via Proxy)
       - "--providers.docker=true"
