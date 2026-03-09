@@ -20,9 +20,7 @@ services:
 
   # --- Main Web Service: Roundcube Webmail ---
   roundcube:
-    build: .
-    image: roundcube-custom:latest-nonroot
-    pull_policy: build
+    image: ghcr.io/kartoffelbauer/docker-roundcube-custom:latest-nonroot
     container_name: roundcube
     restart: unless-stopped
 
@@ -75,7 +73,6 @@ services:
       - "traefik.http.routers.roundcube.rule=${ROUNDCUBE_HOST_RULE}"
       - "traefik.http.routers.roundcube.entrypoints=websecure"
       - "traefik.http.services.roundcube.loadbalancer.server.port=8000"
-      - "com.centurylinklabs.watchtower.enable=false" 
 
     # Security: Hardened container dropping all root capabilities
     security_opt: [no-new-privileges:true]
