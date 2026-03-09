@@ -69,12 +69,13 @@ services:
     tmpfs:
       - /tmp
 
-    # Routing: Traefik dynamic configuration
+    # Routing: Traefik dynamic and watchtower configuration
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.roundcube.rule=${ROUNDCUBE_HOST_RULE}"
       - "traefik.http.routers.roundcube.entrypoints=websecure"
       - "traefik.http.services.roundcube.loadbalancer.server.port=8000"
+      - "com.centurylinklabs.watchtower.enable=false" 
 
     # Security: Hardened container dropping all root capabilities
     security_opt: [no-new-privileges:true]
