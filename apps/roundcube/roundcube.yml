@@ -1,4 +1,23 @@
 services:
+  # --- Init Service: Prepares permissions for Roundcube ---
+  roundcube-init:
+    image: busybox:1.36
+    container_name: roundcube-init
+    network_mode: none
+    
+    # Execution: Sets ownership for config directory
+    command: sh -c "chgrp -R ${GUID} /config && chmod -R 640 /config/*"
+    
+    # State: Mounts the config directory
+    volumes:
+      - ./config:/config
+      
+    # Security: Isolated execution with the minimum capabilities needed
+    read_only: true
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    cap_add: [CHOWN, FOWNER, DAC_OVERRIDE]
+
   # --- Main Web Service: Roundcube Webmail ---
   roundcube:
     build: .
@@ -6,12 +25,19 @@ services:
     pull_policy: build
     container_name: roundcube
     restart: unless-stopped
-    user: ${PUID}:${GUID} 
+
+    # Security: Run as non-root user
+    user: "${PUID}:${GUID}"
 
     # Lifecycle: Wait for database to be ready
     depends_on:
       mariadb:
         condition: service_healthy
+      roundcube-init:
+        condition: service_completed_successfully
+
+    # Security: Run as non-root user
+
 
     # Connectivity: Public facing proxy and internal database network
     networks:
