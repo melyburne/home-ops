@@ -31,8 +31,8 @@ SENSITIVE_FILES=(
 
 for file in "${SENSITIVE_FILES[@]}"; do
     if [ -f "$file" ]; then
-        chmod 600 "$file"
-        echo "   ✅ $file secured (600)"
+        chmod 640 "$file"
+        echo "   ✅ $file secured (640)"
     fi
 done
 
