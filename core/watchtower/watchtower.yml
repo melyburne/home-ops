@@ -1,0 +1,47 @@
+services:
+  # --- Main Service: Watchtower Auto-Updater ---
+  watchtower:
+    image: nickfedor/watchtower:latest
+    container_name: watchtower
+    restart: unless-stopped
+
+    # Security: Run as non-root user, grant Docker socket group permissions
+    user: "${PUID}:${GUID}"
+    group_add:
+      - "${SOCKET_GID}"
+
+    # Connectivity: Needs outbound internet to check registries for updates
+    networks:
+      - outbound-traffic
+
+    # Configuration: Barebones automatic updates
+    environment:
+      # Check for updates every 15 minutes (900 seconds)
+      - WATCHTOWER_POLL_INTERVAL=900
+      
+      # Automatically remove old, dangling image layers after updating
+      - WATCHTOWER_CLEANUP=true
+      
+      # Only output infos, warnings, and errors to keep your logs clean
+      - WATCHTOWER_LOG_LEVEL=info
+
+    # State: Direct socket mount required for triggering updates
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      
+    # In-memory mounts explicitly required for a read-only filesystem
+    tmpfs:
+      - /tmp
+      - /etc/cron.d
+
+    # Security: Hardened container dropping all root capabilities and locking the filesystem
+    read_only: true
+    security_opt: 
+      - no-new-privileges:true
+    cap_drop: 
+      - ALL
+
+# --- Global Network Definitions ---
+networks:
+  outbound-traffic:
+    name: outbound-traffic
