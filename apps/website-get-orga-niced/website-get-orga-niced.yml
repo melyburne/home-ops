@@ -1,7 +1,7 @@
 services:
   # --- Main Web Service ---
   website-get-orga-niced:
-    image: ghcr.io/kartoffelbauer/web-get-orga-niced:latest
+    image: ghcr.io/kartoffelbauer/web-get-orga-niced:${WEB_GETORGANICED_VERSION_TAG}
     container_name: website-get-orga-niced
     restart: unless-stopped
 

@@ -1,7 +1,7 @@
 services:
   # --- Main Web Service ---
   website-aaronsoft:
-    image: ghcr.io/kartoffelbauer/web-aaronsoft:latest
+    image: ghcr.io/kartoffelbauer/web-aaronsoft:${WEB_AARONSOFT_VERSION_TAG}
     container_name: website-aaronsoft
     restart: unless-stopped
 

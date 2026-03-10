@@ -1,7 +1,7 @@
 services:
   # --- Init Service: Prepares permissions for MariaDB ---
   init-mariadb:
-    image: busybox:1.36
+    image: busybox:${BUSYBOX_VERSION_TAG}
     container_name: init-mariadb
     network_mode: none
     
@@ -21,7 +21,7 @@ services:
 
   # --- Database Service ---
   mariadb:
-    image: mariadb:11.4
+    image: mariadb:${MYSQL_VERSION_TAG}
     container_name: mariadb
     restart: unless-stopped
     

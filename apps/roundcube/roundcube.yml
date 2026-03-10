@@ -1,7 +1,7 @@
 services:
   # --- Init Service: Prepares permissions for Roundcube ---
   roundcube-init:
-    image: busybox:1.36
+    image: busybox:${BUSYBOX_VERSION_TAG}
     container_name: roundcube-init
     network_mode: none
     
@@ -20,7 +20,7 @@ services:
 
   # --- Main Web Service: Roundcube Webmail ---
   roundcube:
-    image: ghcr.io/kartoffelbauer/docker-roundcube-custom:latest-nonroot
+    image: ghcr.io/kartoffelbauer/docker-roundcube-custom:${ROUNDCUBE_VERSION_TAG}
     container_name: roundcube
     restart: unless-stopped
 

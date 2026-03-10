@@ -1,7 +1,7 @@
 services:
   # --- Init Service: Prepares ACME config permissions before Traefik starts ---
   init-acme:
-    image: busybox:1.36
+    image: busybox:${BUSYBOX_VERSION_TAG}
     container_name: init-acme
     network_mode: none
     
@@ -54,7 +54,7 @@ services:
 
   # --- Main Reverse Proxy: Traefik ---
   traefik:
-    image: traefik:v3
+    image: traefik:${TRAEFIK_VERSION_TAG}
     container_name: traefik
     restart: unless-stopped
     

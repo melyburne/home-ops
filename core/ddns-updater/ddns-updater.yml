@@ -1,7 +1,7 @@
 services:
   # --- Init Service: Prepares the environment before the main application starts ---
   init-gandi-ddns:
-    image: busybox:1.36
+    image: busybox:${BUSYBOX_VERSION_TAG}
     container_name: init-gandi-ddns
     network_mode: none
     
@@ -23,7 +23,7 @@ services:
 
   # --- Main Service: Handles the dynamic DNS updates ---
   ddns-updater:
-    image: qmcgaw/ddns-updater:latest
+    image: qmcgaw/ddns-updater:${DDNS_UPDATER_VERSION_TAG}
     container_name: ddns-updater
     restart: unless-stopped
     user: "${PUID}:${GUID}"
