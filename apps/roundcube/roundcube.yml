@@ -5,7 +5,7 @@ services:
     container_name: roundcube-init
     network_mode: none
     
-    # Execution: Sets ownership for config directory
+    # Execution: Sets ownership and permissions for config directory
     command: sh -c "chgrp -R ${GUID} /config && chmod -R 640 /config/*"
     
     # State: Mounts the config directory
