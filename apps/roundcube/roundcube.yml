@@ -45,8 +45,8 @@ services:
     # Configuration: Roundcube features, mail server bindings, database, and OAuth2
     environment:
       - ROUNDCUBEMAIL_USERNAME_DOMAIN=%d
-      - ROUNDCUBEMAIL_PLUGINS=archive,attachment_reminder,emoticons,filesystem_attachments,managesieve,password,subscriptions_option,vcard_attachments,zipdownload,google_addressbook
-      - ROUNDCUBEMAIL_COMPOSER_PLUGINS=ashus/google-addressbook
+      - ROUNDCUBEMAIL_PLUGINS=archive,attachment_reminder,emoticons,filesystem_attachments,managesieve,password,subscriptions_option,vcard_attachments,zipdownload,carddav
+      - ROUNDCUBEMAIL_COMPOSER_PLUGINS=mstilkerich/rcmcarddav
       - ROUNDCUBEMAIL_DEFAULT_HOST=ssl://mail.gandi.net
       - ROUNDCUBEMAIL_DEFAULT_PORT=993
       - ROUNDCUBEMAIL_SMTP_SERVER=ssl://mail.gandi.net
