@@ -1,0 +1,7 @@
+name: oCIS Docker Stack
+
+# Services
+include:
+  - ./ocis.yml
+  - ./tika.yml
+  - ./onlyoffice.yml

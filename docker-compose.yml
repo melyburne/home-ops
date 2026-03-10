@@ -8,6 +8,7 @@ include:
   - core/watchtower/watchtower.yml
   - apps/adminer/adminer.yml
   - apps/roundcube/roundcube.yml
+  - apps/ocis/app.yml
   - apps/website-aaronsoft/website-aaronsoft.yml
   - apps/website-get-orga-niced/website-get-orga-niced.yml
 
@@ -16,6 +17,8 @@ networks:
   traefik-public:
     name: traefik-public
     driver: bridge
+    aliases:
+      - ${OCIS_DOMAIN}
 
   # Secured Socket (Traefik <-> Socket Proxy)
   socket-internal:

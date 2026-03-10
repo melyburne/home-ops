@@ -107,6 +107,17 @@ services:
       - "--entrypoints.websecure.http.tls=true"
       - "--entrypoints.websecure.http.middlewares=sec-public@file"
 
+      # --- oCIS specific Configuration ---
+      # Change default timeouts for long-running requests
+      # This is needed for webdav clients that do not support the TUS protocol
+      - "--entryPoints.websecure.transport.respondingTimeouts.readTimeout=12h"
+      - "--entryPoints.websecure.transport.respondingTimeouts.writeTimeout=12h"
+      - "--entryPoints.websecure.transport.respondingTimeouts.idleTimeout=3m"
+      # Allow encoded characters which is required for collaboration/Collabora
+      - "--entryPoints.websecure.http.encodedCharacters.allowEncodedSlash=true"
+      - "--entryPoints.websecure.http.encodedCharacters.allowEncodedQuestionMark=true"
+      - "--entryPoints.websecure.http.encodedCharacters.allowEncodedPercent=true"
+
       # --- Let's Encrypt Staging (DNS Challenge) ---
       # Remember to remove "-staging" from the caServer URL when moving to production!
       - "--certificatesresolvers.myresolver.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory"
