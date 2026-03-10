@@ -67,12 +67,3 @@ $config['password_algorithm'] = 'sha512-crypt';
 $config['password_crypt_rounds'] = 50000;
 $config['password_username_format'] = '%u';
 $config['password_gandi_keys'] = rawurlencode(getenv('GANDIV5_PERSONAL_ACCESS_TOKEN'));
-
-// -----------------------------------------------------------------------------
-// Google Address Book Plugin Configuration
-// Client credentials for integrating with Google Address Book.
-// -----------------------------------------------------------------------------
-$config['google_addressbook_application_name'] = 'Roundcube Google Addressbook';
-$config['google_addressbook_client_id'] = rawurlencode(getenv('ROUNDCUBEMAIL_GOOGLE_CLIENT_ID'));
-$config['google_addressbook_client_secret'] = rawurlencode(getenv('ROUNDCUBEMAIL_GOOGLE_CLIENT_SECRET'));
-$config['google_addressbook_client_redirect'] = true;
