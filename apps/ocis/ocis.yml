@@ -4,84 +4,60 @@ services:
     image: busybox:${BUSYBOX_VERSION_TAG}
     container_name: ocis-init
     network_mode: none
-    
-    # Execution: Sets ownership and permissions for config and data directory
     command: sh -c "chgrp -R ${GUID} /docker-config && chmod -R 640 /docker-config/* && chmod +x /docker-config/onlyoffice/entrypoint-override.sh && chown -R ${PUID}:${GUID} /ocis-config /ocis-data"
-    
-    # State: Mounts the config and data directory
     volumes:
       - ./config:/docker-config
       - ${OCIS_CONFIG_DIR}:/ocis-config
       - ${OCIS_DATA_DIR}:/ocis-data
-      
-    # Security: Isolated execution with the minimum capabilities needed
     read_only: true
-    security_opt: [no-new-privileges:true]
+    security_opt: 
+      - no-new-privileges:true
     cap_drop: [ALL]
     cap_add: [CHOWN, FOWNER, DAC_OVERRIDE]
 
   ocis:
     image: owncloud/ocis:${OCIS_VERSION_TAG}
-    # changelog: https://github.com/owncloud/ocis/tree/master/changelog
-    # release notes: https://doc.owncloud.com/ocis_release_notes.html
     user: ${PUID}:${GUID}
     networks:
-      - ocis
       - traefik-public
+      - ocis
     entrypoint:
       - /bin/sh
-    # run ocis init to initialize a configuration file with random secrets
-    # it will fail on subsequent runs, because the config file already exists
-    # therefore we ignore the error and then start the ocis server
     command: ["-c", "ocis init || true; exec ocis server"]
     environment:
-      # enable services that are not started automatically
       OCIS_ADD_RUN_SERVICES: "notifications"
-      OCIS_URL: https://${OCIS_DOMAIN}
+      OCIS_URL: "https://${OCIS_DOMAIN}"
       OCIS_LOG_LEVEL: "info"
       OCIS_LOG_COLOR: "false"
       OCIS_LOG_PRETTY: "false"
-      # do not use SSL between Traefik and oCIS
       PROXY_TLS: "false"
-      # make the REVA gateway accessible to the app drivers
-      GATEWAY_GRPC_ADDR: 0.0.0.0:9142
-      # INSECURE: needed if oCIS / Traefik is using self generated certificates
+      GATEWAY_GRPC_ADDR: "0.0.0.0:9142"
       OCIS_INSECURE: "true"
-      # basic auth (not recommended, but needed for eg. WebDav clients that do not support OpenID Connect)
       PROXY_ENABLE_BASIC_AUTH: "true"
-      # admin user password
-      IDM_ADMIN_PASSWORD: "admin" # this overrides the admin password from the configuration file
-      # demo users
+      IDM_ADMIN_PASSWORD: "admin"
       IDM_CREATE_DEMO_USERS: "false"
-      # email server (if configured)
       NOTIFICATIONS_SMTP_HOST: "${OCIS_SMTP_HOST}"
       NOTIFICATIONS_SMTP_PORT: "${OCIS_SMTP_PORT}"
       NOTIFICATIONS_SMTP_SENDER: "${OCIS_SMTP_SENDER}"
       NOTIFICATIONS_SMTP_USERNAME: "${OCIS_SMTP_USERNAME}"
       NOTIFICATIONS_SMTP_INSECURE: "false"
-      # make the registry available to the app provider containers
-      MICRO_REGISTRY_ADDRESS: 127.0.0.1:9233
-      NATS_NATS_HOST: 0.0.0.0
-      NATS_NATS_PORT: 9233
-      PROXY_CSP_CONFIG_FILE_LOCATION: /etc/ocis/csp.yaml
-      # these three vars are needed to the csp config file to include the web office apps and the importer
-      COLLABORA_DOMAIN: ${COLLABORA_DOMAIN:-collabora.owncloud.test}
-      ONLYOFFICE_DOMAIN: ${OCIS_ONLYOFFICE_DOMAIN:-onlyoffice.owncloud.test}
-      COMPANION_DOMAIN: ${COMPANION_DOMAIN:-companion.owncloud.test}
-      # enable to allow using the banned passwords list
-      OCIS_PASSWORD_POLICY_BANNED_PASSWORDS_LIST: banned-password-list.txt
-      # fulltext search
-      SEARCH_EXTRACTOR_TYPE: tika
-      SEARCH_EXTRACTOR_TIKA_TIKA_URL: http://tika:9998
+      MICRO_REGISTRY_ADDRESS: "127.0.0.1:9233"
+      NATS_NATS_HOST: "0.0.0.0"
+      NATS_NATS_PORT: "9233"
+      PROXY_CSP_CONFIG_FILE_LOCATION: "/etc/ocis/csp.yaml"
+      COLLABORA_DOMAIN: "${COLLABORA_DOMAIN:-collabora.owncloud.test}"
+      ONLYOFFICE_DOMAIN: "${OCIS_ONLYOFFICE_DOMAIN:-onlyoffice.owncloud.test}"
+      COMPANION_DOMAIN: "${COMPANION_DOMAIN:-companion.owncloud.test}"
+      OCIS_PASSWORD_POLICY_BANNED_PASSWORDS_LIST: "banned-password-list.txt"
+      SEARCH_EXTRACTOR_TYPE: "tika"
+      SEARCH_EXTRACTOR_TIKA_TIKA_URL: "http://tika:9998"
       FRONTEND_FULL_TEXT_SEARCH_ENABLED: "true"
     depends_on:
       ocis-init:
-        condition: service_completed_successfully # Wait for init!
+        condition: service_completed_successfully
     volumes:
-      # configure the .env file to use own paths instead of docker internal volumes
       - ${OCIS_CONFIG_DIR}:/etc/ocis
       - ${OCIS_DATA_DIR}:/var/lib/ocis
-
       - ./config/ocis/app-registry.yaml:/etc/ocis/app-registry.yaml
       - ./config/ocis/csp.yaml:/etc/ocis/csp.yaml
       - ./config/ocis/banned-password-list.txt:/etc/ocis/banned-password-list.txt
@@ -102,8 +78,9 @@ services:
   collaboration-oo:
     image: owncloud/ocis:${OCIS_VERSION_TAG}
     user: ${PUID}:${GUID}
+    # Removed from traefik-public, isolated to backend
     networks:
-      - ocis
+      - ocis 
     depends_on:
       ocis:
         condition: service_started
@@ -111,21 +88,20 @@ services:
         condition: service_healthy
     command: ["collaboration", "server"]
     environment:
-      COLLABORATION_GRPC_ADDR: 0.0.0.0:9301
-      COLLABORATION_HTTP_ADDR: 0.0.0.0:9300
+      COLLABORATION_GRPC_ADDR: "0.0.0.0:9301"
+      COLLABORATION_HTTP_ADDR: "0.0.0.0:9300"
       MICRO_REGISTRY: "nats-js-kv"
       MICRO_REGISTRY_ADDRESS: "ocis:9233"
-      COLLABORATION_WOPI_SRC: http://collaboration-oo:9300
+      COLLABORATION_WOPI_SRC: "http://collaboration-oo:9300"
       COLLABORATION_APP_NAME: "OnlyOffice"
       COLLABORATION_APP_PRODUCT: "OnlyOffice"
-      COLLABORATION_APP_ADDR: https://${OCIS_ONLYOFFICE_DOMAIN:-onlyoffice.owncloud.test}
-      COLLABORATION_APP_ICON: https://${OCIS_ONLYOFFICE_DOMAIN:-onlyoffice.owncloud.test}/web-apps/apps/documenteditor/main/resources/img/favicon.ico
+      COLLABORATION_APP_ADDR: "https://${OCIS_ONLYOFFICE_DOMAIN:-onlyoffice.owncloud.test}"
+      COLLABORATION_APP_ICON: "https://${OCIS_ONLYOFFICE_DOMAIN:-onlyoffice.owncloud.test}/web-apps/apps/documenteditor/main/resources/img/favicon.ico"
       COLLABORATION_APP_INSECURE: "true"
       COLLABORATION_CS3API_DATAGATEWAY_INSECURE: "true"
-      COLLABORATION_LOG_LEVEL: info
-      OCIS_URL: https://${OCIS_DOMAIN}
+      COLLABORATION_LOG_LEVEL: "info"
+      OCIS_URL: "https://${OCIS_DOMAIN}"
     volumes:
-      # configure the .env file to use own paths instead of docker internal volumes
       - ${OCIS_CONFIG_DIR}:/etc/ocis
     security_opt:
       - no-new-privileges:true
@@ -136,23 +112,21 @@ services:
     restart: always
 
   onlyoffice:
-    # note, you also need to add a volume when using the enterprise version, see below
     image: onlyoffice/documentserver:${OCIS_ONLYOFFICE_VERSION_TAG}
+    # Needs to talk to Traefik AND the backend for the collaboration server
     networks:
-      - ocis
       - traefik-public
+      - ocis
     entrypoint:
       - /bin/sh
       - /entrypoint-override.sh
     environment:
       WOPI_ENABLED: "true"
-      # self-signed certificates
-      USE_UNAUTHORIZED_STORAGE: true
-      JWT_ENABLED: false
-      REDIS_SERVER_HOST: localhost
-      REDIS_SERVER_PORT: 6379
+      USE_UNAUTHORIZED_STORAGE: "true"
+      JWT_ENABLED: "false"
+      REDIS_SERVER_HOST: "localhost"
+      REDIS_SERVER_PORT: "6379"
     volumes:
-      # paths are relative to the main compose file
       - ./config/onlyoffice/entrypoint-override.sh:/entrypoint-override.sh
       - ./config/onlyoffice/local.json:/etc/onlyoffice/documentserver/local.dist.json
     labels:
@@ -161,7 +135,6 @@ services:
       - "traefik.http.routers.onlyoffice.rule=Host(`${OCIS_ONLYOFFICE_DOMAIN:-onlyoffice.owncloud.test}`)"
       - "traefik.http.routers.onlyoffice.service=onlyoffice"
       - "traefik.http.services.onlyoffice.loadbalancer.server.port=80"
-      # websockets can't be opened when this is omitted
       - "traefik.http.middlewares.onlyoffice.headers.customrequestheaders.X-Forwarded-Proto=https"
       - "traefik.http.routers.onlyoffice.middlewares=onlyoffice"
     logging:
@@ -173,7 +146,7 @@ services:
   tika:
     image: apache/tika:latest-full
     user: ${PUID}:${GUID}
-    # release notes: https://tika.apache.org
+    # Removed from traefik-public, isolated to backend
     networks:
       - ocis
     restart: always
@@ -186,6 +159,6 @@ services:
 
 # --- Global Network Definitions ---
 networks:
+  traefik-public:
   ocis:
     internal: true
-  traefik-public:
