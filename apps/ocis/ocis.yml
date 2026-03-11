@@ -26,10 +26,8 @@ services:
     # release notes: https://doc.owncloud.com/ocis_release_notes.html
     user: ${PUID}:${GUID}
     networks:
-      traefik-public:
-        aliases:
-          - ${OCIS_DOMAIN}
-          - ocis
+      - ocis
+      - traefik-public
     entrypoint:
       - /bin/sh
     # run ocis init to initialize a configuration file with random secrets
@@ -105,7 +103,7 @@ services:
     image: owncloud/ocis:${OCIS_VERSION_TAG}
     user: ${PUID}:${GUID}
     networks:
-      - traefik-public
+      - ocis
     depends_on:
       ocis:
         condition: service_started
@@ -141,6 +139,7 @@ services:
     # note, you also need to add a volume when using the enterprise version, see below
     image: onlyoffice/documentserver:${OCIS_ONLYOFFICE_VERSION_TAG}
     networks:
+      - ocis
       - traefik-public
     entrypoint:
       - /bin/sh
@@ -176,7 +175,7 @@ services:
     user: ${PUID}:${GUID}
     # release notes: https://tika.apache.org
     networks:
-      - traefik-public
+      - ocis
     restart: always
     security_opt:
       - no-new-privileges:true
@@ -187,4 +186,6 @@ services:
 
 # --- Global Network Definitions ---
 networks:
+  ocis:
+    internal: true
   traefik-public:

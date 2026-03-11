@@ -37,7 +37,7 @@ services:
     # Configuration: Explicitly allow listing containers, block everything else
     environment:
       CONTAINERS: 1
-LOG_LEVEL: notice
+      LOG_LEVEL: notice
 
     # State: Read-only mount of the actual Docker socket, plus in-memory temp areas
     volumes:
