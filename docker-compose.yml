@@ -17,8 +17,6 @@ networks:
   traefik-public:
     name: traefik-public
     driver: bridge
-    aliases:
-      - ${OCIS_DOMAIN}
 
   # Secured Socket (Traefik <-> Socket Proxy)
   socket-internal:

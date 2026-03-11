@@ -37,6 +37,7 @@ services:
     # Configuration: Explicitly allow listing containers, block everything else
     environment:
       CONTAINERS: 1
+LOG_LEVEL: notice
 
     # State: Read-only mount of the actual Docker socket, plus in-memory temp areas
     volumes:
@@ -85,7 +86,6 @@ services:
     command:
       - "--log.level=INFO"
       - "--ping=true"
-      - "--accesslog=true"
       - "--api.dashboard=true"
       - "--api.disableDashboardAd=true"
 
