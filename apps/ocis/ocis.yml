@@ -15,6 +15,20 @@ x-standard-service: &standard-service
     driver: local
   restart: always
 
+# Template for oCIS Web Extensions
+x-ocis-extension: &ocis-extension
+  user: ${PUID}:${GUID}
+  entrypoint: ["/bin/sh"]
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  depends_on:
+    init-ocis:
+      condition: service_completed_successfully
+  volumes:
+    - ocis-apps:/apps
+
 services:
   # --- Init Service: Prepares permissions for oCIS ---
   init-ocis:
@@ -22,10 +36,37 @@ services:
       file: ../../core/templates.yml
       service: init-base
     container_name: init-ocis
-    command: sh -c "chown -R ${PUID}:${GUID} /ocis-config /ocis-data"
+    command: sh -c "chown -R ${PUID}:${GUID} /ocis-config /ocis-data /ocis-apps"
     volumes:
       - ${OCIS_CONFIG_DIR}:/ocis-config
       - ${OCIS_DATA_DIR}:/ocis-data
+      - ocis-apps:ocis-apps
+
+  # --- Web Extensions ---
+  photo-addon-init:
+    <<: *ocis-extension
+    image: owncloud/web-extensions:photo-addon-latest
+    command: ["-c", "cp -R /var/lib/nginx/html/photo-addon/ /apps"]
+
+  jsonviewer-init:
+    <<: *ocis-extension
+    image: owncloud/web-extensions:json-viewer-latest
+    command: ["-c", "cp -R /var/lib/nginx/html/json-viewer/ /apps"]
+
+  advanced-search-init:
+    <<: *ocis-extension
+    image: owncloud/web-extensions:advanced-search-latest
+    command: ["-c", "cp -R /var/lib/nginx/html/advanced-search/ /apps"]
+
+  unzip-init:
+    <<: *ocis-extension
+    image: owncloud/web-extensions:unzip-latest
+    command: ["-c", "cp -R /var/lib/nginx/html/unzip/ /apps"]
+
+  drawio-init:
+    <<: *ocis-extension
+    image: owncloud/web-extensions:draw-io-latest
+    command: ["-c", "cp -R /var/lib/nginx/html/draw-io/ /apps"]
 
   # --- Main oCIS Server ---
   ocis:
@@ -74,6 +115,7 @@ services:
       - ./config/ocis/app-registry.yaml:/etc/ocis/app-registry.yaml
       - ./config/ocis/csp.yaml:/etc/ocis/csp.yaml
       - ./config/ocis/banned-password-list.txt:/etc/ocis/banned-password-list.txt
+      - ocis-apps:/var/lib/ocis/web/assets/apps
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.ocis.entrypoints=websecure"
@@ -113,7 +155,7 @@ services:
 
   # --- Document Server: OnlyOffice ---
   onlyoffice:
-    <<: *standard-service # Injects basic logging/restart, but skips capability dropping
+    <<: *standard-service
     image: onlyoffice/documentserver:${OCIS_ONLYOFFICE_VERSION_TAG}
     networks:
       - traefik-public
@@ -164,3 +206,7 @@ networks:
   outbound-traffic:
   ocis:
     internal: true
+
+# --- Global Volumes ---
+volumes:
+  ocis-apps:
