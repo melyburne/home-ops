@@ -18,6 +18,7 @@ x-standard-service: &standard-service
 # Template for oCIS Web Extensions
 x-ocis-extension: &ocis-extension
   user: ${PUID}:${GUID}
+  platform: linux/amd64
   entrypoint: ["/bin/sh"]
   security_opt:
     - no-new-privileges:true
