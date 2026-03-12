@@ -66,6 +66,8 @@ services:
     depends_on:
       init-ocis:
         condition: service_completed_successfully
+      tika:
+        condition: service_healthy
     volumes:
       - ${OCIS_CONFIG_DIR}:/etc/ocis
       - ${OCIS_DATA_DIR}:/var/lib/ocis
@@ -138,6 +140,10 @@ services:
       - "traefik.http.routers.onlyoffice.middlewares=onlyoffice"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/hosting/discovery"]
+      start_period: 120s
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   # --- Full Text Search Extractor ---
   tika:
@@ -145,6 +151,12 @@ services:
     image: apache/tika:latest-full
     networks:
       - ocis
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:9998/version || exit 1"]
+      start_period: 15s
+      interval: 5s
+      timeout: 3s
+      retries: 3
 
 # --- Global Network Definitions ---
 networks:
