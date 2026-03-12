@@ -4,9 +4,8 @@ services:
     image: busybox:${BUSYBOX_VERSION_TAG}
     container_name: ocis-init
     network_mode: none
-    command: sh -c "chgrp -R ${GUID} /docker-config && chmod -R 640 /docker-config/* && chmod +x /docker-config/onlyoffice/entrypoint-override.sh && chown -R ${PUID}:${GUID} /ocis-config /ocis-data"
+    command: sh -c "chown -R ${PUID}:${GUID} /ocis-config /ocis-data"
     volumes:
-      - ./config:/docker-config
       - ${OCIS_CONFIG_DIR}:/ocis-config
       - ${OCIS_DATA_DIR}:/ocis-data
     read_only: true
@@ -80,7 +79,8 @@ services:
     user: ${PUID}:${GUID}
     # Removed from traefik-public, isolated to backend
     networks:
-      - ocis 
+      - traefik-public
+      - ocis
     depends_on:
       ocis:
         condition: service_started
@@ -115,7 +115,7 @@ services:
     image: onlyoffice/documentserver:${OCIS_ONLYOFFICE_VERSION_TAG}
     # Needs to talk to Traefik AND the backend for the collaboration server
     networks:
-      - traefik-public
+      - outbound-traffic
       - ocis
     entrypoint:
       - /bin/sh
@@ -160,5 +160,6 @@ services:
 # --- Global Network Definitions ---
 networks:
   traefik-public:
+  outbound-traffic:
   ocis:
     internal: true
