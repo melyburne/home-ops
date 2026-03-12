@@ -1,3 +1,20 @@
+# --- DRY Templates ---
+# Define common settings here to reuse across services
+x-secure-service: &secure-service
+  user: ${PUID}:${GUID}
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  logging:
+    driver: local
+  restart: always
+
+x-standard-service: &standard-service
+  logging:
+    driver: local
+  restart: always
+
 services:
   # --- Init Service: Prepares permissions for oCIS ---
   ocis-init:
@@ -14,9 +31,10 @@ services:
     cap_drop: [ALL]
     cap_add: [CHOWN, FOWNER, DAC_OVERRIDE]
 
+  # --- Main oCIS Server ---
   ocis:
+    <<: *secure-service # Injects user, security, and logging config
     image: owncloud/ocis:${OCIS_VERSION_TAG}
-    user: ${PUID}:${GUID}
     networks:
       - traefik-public
       - ocis
@@ -44,9 +62,7 @@ services:
       NATS_NATS_HOST: "0.0.0.0"
       NATS_NATS_PORT: "9233"
       PROXY_CSP_CONFIG_FILE_LOCATION: "/etc/ocis/csp.yaml"
-      COLLABORA_DOMAIN: "${COLLABORA_DOMAIN:-collabora.owncloud.test}"
-      ONLYOFFICE_DOMAIN: "${OCIS_ONLYOFFICE_DOMAIN:-onlyoffice.owncloud.test}"
-      COMPANION_DOMAIN: "${COMPANION_DOMAIN:-companion.owncloud.test}"
+      ONLYOFFICE_DOMAIN: "${OCIS_ONLYOFFICE_DOMAIN}"
       OCIS_PASSWORD_POLICY_BANNED_PASSWORDS_LIST: "banned-password-list.txt"
       SEARCH_EXTRACTOR_TYPE: "tika"
       SEARCH_EXTRACTOR_TIKA_TIKA_URL: "http://tika:9998"
@@ -66,20 +82,13 @@ services:
       - "traefik.http.routers.ocis.rule=Host(`${OCIS_DOMAIN}`)"
       - "traefik.http.routers.ocis.service=ocis"
       - "traefik.http.services.ocis.loadbalancer.server.port=9200"
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    logging:
-      driver: local
-    restart: always
 
+  # --- Connector: oCIS to OnlyOffice ---
   collaboration-oo:
+    <<: *secure-service 
     image: owncloud/ocis:${OCIS_VERSION_TAG}
-    user: ${PUID}:${GUID}
-    # Removed from traefik-public, isolated to backend
     networks:
-      - traefik-public
+      - outbound-traffic
       - ocis
     depends_on:
       ocis:
@@ -95,27 +104,21 @@ services:
       COLLABORATION_WOPI_SRC: "http://collaboration-oo:9300"
       COLLABORATION_APP_NAME: "OnlyOffice"
       COLLABORATION_APP_PRODUCT: "OnlyOffice"
-      COLLABORATION_APP_ADDR: "https://${OCIS_ONLYOFFICE_DOMAIN:-onlyoffice.owncloud.test}"
-      COLLABORATION_APP_ICON: "https://${OCIS_ONLYOFFICE_DOMAIN:-onlyoffice.owncloud.test}/web-apps/apps/documenteditor/main/resources/img/favicon.ico"
+      COLLABORATION_APP_ADDR: "https://${OCIS_ONLYOFFICE_DOMAIN}"
+      COLLABORATION_APP_ICON: "https://${OCIS_ONLYOFFICE_DOMAIN}/web-apps/apps/documenteditor/main/resources/img/favicon.ico"
       COLLABORATION_APP_INSECURE: "true"
       COLLABORATION_CS3API_DATAGATEWAY_INSECURE: "true"
       COLLABORATION_LOG_LEVEL: "info"
       OCIS_URL: "https://${OCIS_DOMAIN}"
     volumes:
       - ${OCIS_CONFIG_DIR}:/etc/ocis
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    logging:
-      driver: local
-    restart: always
 
+  # --- Document Server: OnlyOffice ---
   onlyoffice:
+    <<: *standard-service # Injects basic logging/restart, but skips capability dropping
     image: onlyoffice/documentserver:${OCIS_ONLYOFFICE_VERSION_TAG}
-    # Needs to talk to Traefik AND the backend for the collaboration server
     networks:
-      - outbound-traffic
+      - traefik-public
       - ocis
     entrypoint:
       - /bin/sh
@@ -137,25 +140,15 @@ services:
       - "traefik.http.services.onlyoffice.loadbalancer.server.port=80"
       - "traefik.http.middlewares.onlyoffice.headers.customrequestheaders.X-Forwarded-Proto=https"
       - "traefik.http.routers.onlyoffice.middlewares=onlyoffice"
-    logging:
-      driver: local
-    restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/hosting/discovery"]
 
+  # --- Full Text Search Extractor ---
   tika:
+    <<: *secure-service 
     image: apache/tika:latest-full
-    user: ${PUID}:${GUID}
-    # Removed from traefik-public, isolated to backend
     networks:
       - ocis
-    restart: always
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    logging:
-      driver: local
 
 # --- Global Network Definitions ---
 networks:
