@@ -40,7 +40,7 @@ services:
     volumes:
       - ${OCIS_CONFIG_DIR}:/ocis-config
       - ${OCIS_DATA_DIR}:/ocis-data
-      - ocis-apps:ocis-apps
+      - ocis-apps:/ocis-apps
 
   # --- Web Extensions ---
   photo-addon-init:
