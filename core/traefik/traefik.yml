@@ -1,28 +1,13 @@
 services:
   # --- Init Service: Prepares ACME config permissions before Traefik starts ---
-  init-acme:
-    image: busybox:${BUSYBOX_VERSION_TAG}
-    container_name: init-acme
-    network_mode: none
-    
-    # State: Mounts the configuration to set strict permissions
+  acme-init:
+    extends:
+      file: ../templates.yml
+      service: base-init
+    container_name: acme-init
+    command: sh -c "touch /data/acme.json && chown -R ${PUID}:${GUID} /data && chmod 600 /data/acme.json"
     volumes:
       - ./data:/data
-      - ./traefik_dynamic.yml:/traefik_dynamic.yml
-    
-    # Execution: Creates the file, sets ownership, and enforces 600 permissions for Let's Encrypt
-    command: sh -c "touch /data/acme.json && chown -R ${PUID}:${GUID} /data && chmod 600 /data/acme.json"
-    
-    # Security: Isolated execution with the minimum capabilities needed
-    read_only: true
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    cap_add:
-      - CHOWN
-      - FOWNER
-      - DAC_OVERRIDE
 
   # --- Security Proxy: Shields the Docker socket from direct access by Traefik ---
   socket-proxy:

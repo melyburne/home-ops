@@ -1,23 +1,13 @@
 services:
   # --- Init Service: Prepares permissions for MariaDB ---
-  init-mariadb:
-    image: busybox:${BUSYBOX_VERSION_TAG}
-    container_name: init-mariadb
-    network_mode: none
-    
-    # Mount the data directory to set correct ownership
+  mariadb-init:
+    extends:
+      file: ../templates.yml
+      service: base-init
+    container_name: mariadb-init
+    command: sh -c "mkdir -p /var/lib/mysql && chown -R ${PUID}:${GUID} /var/lib/mysql"
     volumes:
       - ./data:/var/lib/mysql
-    command: sh -c "mkdir -p /var/lib/mysql && chown -R ${PUID}:${GUID} /var/lib/mysql"
-    
-    # Security: Isolated execution with the minimum capabilities needed
-    read_only: true
-    security_opt: [no-new-privileges:true]
-    cap_drop: [ALL]
-    cap_add:
-      - CHOWN
-      - FOWNER
-      - DAC_OVERRIDE
 
   # --- Database Service ---
   mariadb:

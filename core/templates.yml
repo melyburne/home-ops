@@ -1,0 +1,15 @@
+
+ # --- Init Service: Templates for preparing permissions ---
+services:
+  base-init:
+    image: busybox:${BUSYBOX_VERSION_TAG}
+    network_mode: none
+    read_only: true
+    security_opt: 
+      - no-new-privileges:true
+    cap_drop: 
+      - ALL
+    cap_add: 
+      - CHOWN
+      - FOWNER
+      - DAC_OVERRIDE

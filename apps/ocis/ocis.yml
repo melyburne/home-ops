@@ -18,18 +18,14 @@ x-standard-service: &standard-service
 services:
   # --- Init Service: Prepares permissions for oCIS ---
   ocis-init:
-    image: busybox:${BUSYBOX_VERSION_TAG}
+    extends:
+      file: ../../core/templates.yml
+      service: base-init
     container_name: ocis-init
-    network_mode: none
     command: sh -c "chown -R ${PUID}:${GUID} /ocis-config /ocis-data"
     volumes:
       - ${OCIS_CONFIG_DIR}:/ocis-config
       - ${OCIS_DATA_DIR}:/ocis-data
-    read_only: true
-    security_opt: 
-      - no-new-privileges:true
-    cap_drop: [ALL]
-    cap_add: [CHOWN, FOWNER, DAC_OVERRIDE]
 
   # --- Main oCIS Server ---
   ocis:

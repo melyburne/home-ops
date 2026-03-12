@@ -1,25 +1,13 @@
 services:
   # --- Init Service: Prepares the environment before the main application starts ---
   init-gandi-ddns:
-    image: busybox:${BUSYBOX_VERSION_TAG}
+    extends:
+      file: ../templates.yml
+      service: base-init
     container_name: init-gandi-ddns
-    network_mode: none
-    
-    # Mounts the data directory to correct permissions for the non-root user
+    command: sh -c "chown -R ${PUID}:${GUID} /data"
     volumes:
       - ./data:/data
-    command: sh -c "chown -R ${PUID}:${GUID} /data"
-    
-    # Security: Isolated execution with the minimum capabilities required to change ownership
-    read_only: true
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
-    cap_add:
-      - CHOWN
-      - FOWNER
-      - DAC_OVERRIDE
 
   # --- Main Service: Handles the dynamic DNS updates ---
   ddns-updater:
