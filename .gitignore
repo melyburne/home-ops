@@ -21,7 +21,6 @@ traefik/acme.json
 **/data/
 **/db_data/
 **/mysql/
-**/mariadb/
 **/redis/
 **/html/uploads/
 

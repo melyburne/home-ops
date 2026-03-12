@@ -11,7 +11,7 @@ services:
 
   # --- Database Service ---
   mariadb:
-    image: mariadb:${MYSQL_VERSION_TAG}
+    image: mariadb:${MARIADB_VERSION_TAG}
     container_name: mariadb
     restart: unless-stopped
     
@@ -29,7 +29,7 @@ services:
 
     # Configuration: Natively auto-creates the Roundcube database and user on first startup
     environment:
-      - MARIADB_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
       - MARIADB_DATABASE=${ROUNDCUBE_MYSQL_DATABASE}
       - MARIADB_USER=${ROUNDCUBE_MYSQL_USER}
       - MARIADB_PASSWORD=${ROUNDCUBE_MYSQL_PASSWORD}
