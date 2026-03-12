@@ -1,10 +1,10 @@
 services:
   # --- Init Service: Prepares permissions for MariaDB ---
-  mariadb-init:
+  init-mariadb:
     extends:
       file: ../templates.yml
-      service: base-init
-    container_name: mariadb-init
+      service: init-base
+    container_name: init-mariadb
     command: sh -c "mkdir -p /var/lib/mysql && chown -R ${PUID}:${GUID} /var/lib/mysql"
     volumes:
       - ./data:/var/lib/mysql

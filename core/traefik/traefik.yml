@@ -1,10 +1,10 @@
 services:
   # --- Init Service: Prepares ACME config permissions before Traefik starts ---
-  acme-init:
+  init-acme:
     extends:
       file: ../templates.yml
-      service: base-init
-    container_name: acme-init
+      service: init-base
+    container_name: init-acme
     command: sh -c "touch /data/acme.json && chown -R ${PUID}:${GUID} /data && chmod 600 /data/acme.json"
     volumes:
       - ./data:/data

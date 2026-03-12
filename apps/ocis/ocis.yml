@@ -17,11 +17,11 @@ x-standard-service: &standard-service
 
 services:
   # --- Init Service: Prepares permissions for oCIS ---
-  ocis-init:
+  init-ocis:
     extends:
       file: ../../core/templates.yml
-      service: base-init
-    container_name: ocis-init
+      service: init-base
+    container_name: init-ocis
     command: sh -c "chown -R ${PUID}:${GUID} /ocis-config /ocis-data"
     volumes:
       - ${OCIS_CONFIG_DIR}:/ocis-config
@@ -64,7 +64,7 @@ services:
       SEARCH_EXTRACTOR_TIKA_TIKA_URL: "http://tika:9998"
       FRONTEND_FULL_TEXT_SEARCH_ENABLED: "true"
     depends_on:
-      ocis-init:
+      init-ocis:
         condition: service_completed_successfully
     volumes:
       - ${OCIS_CONFIG_DIR}:/etc/ocis

@@ -3,7 +3,7 @@ services:
   init-gandi-ddns:
     extends:
       file: ../templates.yml
-      service: base-init
+      service: init-base
     container_name: init-gandi-ddns
     command: sh -c "chown -R ${PUID}:${GUID} /data"
     volumes:
