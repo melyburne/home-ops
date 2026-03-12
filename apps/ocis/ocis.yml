@@ -17,12 +17,18 @@ x-standard-service: &standard-service
 
 # Template for oCIS Web Extensions
 x-ocis-extension: &ocis-extension
+  user: root
   platform: linux/amd64
   entrypoint: ["/bin/sh"]
   security_opt:
     - no-new-privileges:true
   cap_drop:
     - ALL
+  cap_add:
+    - CHOWN
+    - FOWNER
+    - FSETID
+    - DAC_OVERRIDE
   depends_on:
     init-ocis:
       condition: service_completed_successfully
