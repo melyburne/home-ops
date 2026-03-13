@@ -74,6 +74,7 @@ services:
     command: ['-c', 'cp -R /app/* /apps']
 
   excalidraw-init:
+    <<: *ocis-extension
     image: alpine:latest
     container_name: ocis-excalidraw-init
 
