@@ -80,6 +80,12 @@ services:
     container_name: drawio-init
     command: ["-c", "cp -R /var/lib/nginx/html/draw-io/ /apps"]
 
+  3dviewer-init:
+    <<: *ocis-extension
+    image: sawjan/3dviewer:latest
+    container_name: 3dviewer-init
+    command: ['-c', 'cp -R /app/* /apps']
+
   # --- Main oCIS Server ---
   ocis:
     <<: *secure-service # Injects user, security, and logging config
