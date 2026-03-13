@@ -136,7 +136,7 @@ services:
     image: owncloud/ocis:${OCIS_VERSION_TAG}
     networks:
       - ocis-internal
-      - outbound-traffic
+      - outbound-public
     depends_on:
       ocis:
         condition: service_started
@@ -210,7 +210,7 @@ services:
 # --- Global Network Definitions ---
 networks:
   traefik-public:
-  outbound-traffic:
+  outbound-public:
   ocis-internal:
     name: ocis-internal
 

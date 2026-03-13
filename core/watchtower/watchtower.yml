@@ -12,7 +12,7 @@ services:
 
     # Connectivity: Needs outbound internet to check registries for updates
     networks:
-      - outbound-traffic
+      - outbound-public
 
     # Configuration: Barebones automatic updates
     environment:
@@ -38,4 +38,4 @@ services:
 
 # --- Global Network Definitions ---
 networks:
-  outbound-traffic:
+  outbound-public:

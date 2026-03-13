@@ -26,5 +26,5 @@ networks:
     internal: true
 
   # Outbound API traffic (e.g., DDNS Updater)
-  outbound-traffic:
+  outbound-public:
     driver: bridge
