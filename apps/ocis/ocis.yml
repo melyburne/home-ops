@@ -269,7 +269,7 @@ services:
 
     # Lifecycle: Wait for database to be ready
     depends_on:
-      maraidb:
+      mariadb:
         condition: service_healthy
 
     # Connectivity: Internal communication and public proxy exposure
@@ -327,7 +327,7 @@ services:
 networks:
   traefik-public:
   outbound-public:
-  maraidb-internal:
+  mariadb-internal:
   ocis-internal:
     name: ocis-internal
     internal: true
