@@ -1,7 +1,7 @@
 
  # --- Init Service: Templates for preparing permissions ---
 services:
-  init-base:
+  base-init:
     image: busybox:${BUSYBOX_VERSION_TAG}
     network_mode: none
     read_only: true
