@@ -26,7 +26,7 @@ SENSITIVE_FILES=(
     "core/traefik/data/acme.json"
     "core/traefik/traefik_dynamic.yml"
     "apps/roundcube/config/config.inc.php"
-    "apps/roundcube/config/nonroot-custom-php-config.iniconfig.inc.php"
+    "apps/roundcube/config/nonroot-custom-php-config.ini"
 )
 
 for file in "${SENSITIVE_FILES[@]}"; do

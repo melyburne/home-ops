@@ -11,9 +11,11 @@ services:
 
   # --- Database Service ---
   mariadb:
+    extends:
+      file: ../templates.yml
+      service: base-secure
     image: mariadb:${MARIADB_VERSION_TAG}
     container_name: mariadb
-    restart: unless-stopped
     
     # Security: Run as non-root user
     user: "${PUID}:${GUID}"
@@ -42,10 +44,8 @@ services:
       - /tmp
       - /run/mysqld
 
-    # Security: Hardened container, fully locked down filesystem, ZERO capabilities
+    # Security: Lock filesystem
     read_only: true
-    security_opt: [no-new-privileges:true]
-    cap_drop: [ALL]
 
     # Monitoring: Built-in check to ensure the InnoDB engine is fully initialized
     healthcheck:

@@ -11,9 +11,11 @@ services:
 
   # --- Security Proxy: Shields the Docker socket from direct access by Traefik ---
   socket-proxy:
+    extends:
+      file: ../templates.yml
+      service: base-secure
     image: tecnativa/docker-socket-proxy:latest
     container_name: socket-proxy
-    restart: unless-stopped
 
     # Connectivity: Internal network solely for Traefik to access the proxy
     networks:
@@ -33,16 +35,14 @@ services:
 
     # Security: Hardened container, drop all privileges
     read_only: true
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
 
   # --- Main Reverse Proxy: Traefik ---
   traefik:
+    extends:
+      file: ../templates.yml
+      service: base-secure
     image: traefik:${TRAEFIK_VERSION_TAG}
     container_name: traefik
-    restart: unless-stopped
     
     # Security: Run as non-root user
     user: "${PUID}:${GUID}"
@@ -127,10 +127,8 @@ services:
       - ./traefik_dynamic.yml:/traefik_dynamic.yml:ro
     tmpfs: [/tmp]
 
-    # Security: Drop root capabilities except port binding, lock filesystem
+    # Security: Lock filesystem and add capabilities for port binding
     read_only: true
-    security_opt: [no-new-privileges:true]
-    cap_drop: [ALL]
     cap_add: [NET_BIND_SERVICE]
     
     # Monitoring: Internal Traefik ping check
@@ -140,6 +138,7 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+
 
 # --- Global Network Definitions ---
 networks:

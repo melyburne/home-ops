@@ -2,13 +2,8 @@
 # Define common settings here to reuse across services
 x-secure-service: &secure-service
   user: ${PUID}:${GUID}
-  security_opt:
-    - no-new-privileges:true
-  cap_drop:
-    - ALL
   logging:
     driver: local
-  restart: always
 
 # Template for oCIS Web Extensions
 x-ocis-extension: &ocis-extension
@@ -47,42 +42,36 @@ services:
     <<: *ocis-extension
     image: owncloud/web-extensions:photo-addon-${OCIS_EXT_PHOTO_ADDON_VERSION_TAG}
     container_name: photo-addon-init
-    # Execution: Copy extension assets to shared volume
     command: ["-c", "cp -R /var/lib/nginx/html/photo-addon/ /apps"]
 
   jsonviewer-init:
     <<: *ocis-extension
     image: owncloud/web-extensions:json-viewer-${OCIS_EXT_JSON_VIEWER_VERSION_TAG}
     container_name: jsonviewer-init
-    # Execution: Copy extension assets to shared volume
     command: ["-c", "cp -R /var/lib/nginx/html/json-viewer/ /apps"]
 
   advanced-search-init:
     <<: *ocis-extension
     image: owncloud/web-extensions:advanced-search-${OCIS_EXT_ADV_SEARCH_VERSION_TAG}
     container_name: advanced-search-init
-    # Execution: Copy extension assets to shared volume
     command: ["-c", "cp -R /var/lib/nginx/html/advanced-search/ /apps"]
 
   unzip-init:
     <<: *ocis-extension
     image: owncloud/web-extensions:unzip-${OCIS_EXT_UNZIP_VERSION_TAG}
     container_name: unzip-init
-    # Execution: Copy extension assets to shared volume
     command: ["-c", "cp -R /var/lib/nginx/html/unzip/ /apps"]
 
   drawio-init:
     <<: *ocis-extension
     image: owncloud/web-extensions:draw-io-${OCIS_EXT_DRAWIO_VERSION_TAG}
     container_name: drawio-init
-    # Execution: Copy extension assets to shared volume
     command: ["-c", "cp -R /var/lib/nginx/html/draw-io/ /apps"]
 
   3dviewer-init:
     <<: *ocis-extension
     image: sawjan/3dviewer:${OCIS_EXT_3D_VIEWER_VERSION_TAG}
     container_name: 3dviewer-init
-    # Execution: Copy extension assets to shared volume
     command: ['-c', 'cp -R /app/* /apps']
 
   # --- Full Text Search Extractor ---
@@ -105,6 +94,9 @@ services:
   # --- Main oCIS Server ---
   ocis:
     <<: *secure-service # Injects user, security, and logging config
+    extends:
+      file: ../../core/templates.yml
+      service: base-secure
     image: owncloud/ocis:${OCIS_VERSION_TAG}
 
     # Lifecycle: Wait for initialization and text extraction service
@@ -171,7 +163,10 @@ services:
 
   # --- Connector: oCIS to OnlyOffice ---
   collaboration-oo:
-    <<: *secure-service 
+    <<: *secure-service
+    extends:
+      file: ../../core/templates.yml
+      service: base-secure
     image: owncloud/ocis:${OCIS_VERSION_TAG}
 
     # Lifecycle: Wait for oCIS core and OnlyOffice to be ready

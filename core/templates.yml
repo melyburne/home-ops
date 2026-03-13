@@ -13,3 +13,11 @@ services:
       - CHOWN
       - FOWNER
       - DAC_OVERRIDE
+
+# --- Secure Service Base ---
+  base-secure:
+    restart: unless-stopped
+    security_opt: 
+      - no-new-privileges:true
+    cap_drop: 
+      - ALL

@@ -11,9 +11,11 @@ services:
 
   # --- Main Web Service: Roundcube Webmail ---
   roundcube:
+    extends:
+      file: ../../core/templates.yml
+      service: base-secure
     image: ghcr.io/kartoffelbauer/docker-roundcube-custom:${ROUNDCUBE_VERSION_TAG}
     container_name: roundcube
-    restart: unless-stopped
 
     # Security: Run as non-root user
     user: "${PUID}:${GUID}"
@@ -24,9 +26,6 @@ services:
         condition: service_healthy
       roundcube-init:
         condition: service_completed_successfully
-
-    # Security: Run as non-root user
-
 
     # Connectivity: Public facing proxy and internal database network
     networks:
@@ -62,10 +61,6 @@ services:
       - "traefik.http.routers.roundcube.rule=${ROUNDCUBE_HOST_RULE}"
       - "traefik.http.routers.roundcube.entrypoints=websecure"
       - "traefik.http.services.roundcube.loadbalancer.server.port=8000"
-
-    # Security: Hardened container dropping all root capabilities
-    security_opt: [no-new-privileges:true]
-    cap_drop: [ALL]
 
     # Monitoring: Internal check to ensure the webmail interface is responding
     healthcheck:

@@ -1,9 +1,11 @@
 services:
   # --- Database Management Interface ---
   adminer:
+    extends:
+      file: ../../core/templates.yml
+      service: base-secure
     image: adminer:${ADMINER_VERSION_TAG}
     container_name: adminer
-    restart: unless-stopped
 
     # Connectivity: Connects to both the public proxy and the internal database network
     networks:
@@ -25,10 +27,6 @@ services:
     tmpfs:
       - /tmp
       - /var/lib/php/sessions
-
-    # Security: Hardening by dropping capabilities and preventing privilege escalation
-    security_opt: [no-new-privileges:true]
-    cap_drop: [ALL]
 
     # Monitoring: Ensure Adminer interface is responding
     healthcheck:

@@ -1,9 +1,11 @@
 services:
   # --- Main Web Service ---
   website-aaronsoft:
+    extends:
+      file: ../../core/templates.yml
+      service: base-secure
     image: ghcr.io/kartoffelbauer/web-aaronsoft:${WEB_AARONSOFT_VERSION_TAG}
     container_name: website-aaronsoft
-    restart: unless-stopped
 
     # Connectivity: Attach to the shared reverse proxy network
     networks:
@@ -22,12 +24,8 @@ services:
       - /var/cache/nginx
       - /var/run
 
-    # Security: Hardened container dropping all root capabilities and locking the filesystem
+    # Security: Lock the filesystem
     read_only: true
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
 
     # Monitoring: Internal check to ensure the web server is actually responding
     healthcheck:

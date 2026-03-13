@@ -11,9 +11,11 @@ services:
 
   # --- Main Service: Handles the dynamic DNS updates ---
   ddns-updater:
+    extends:
+      file: ../templates.yml
+      service: base-secure
     image: qmcgaw/ddns-updater:${DDNS_UPDATER_VERSION_TAG}
     container_name: ddns-updater
-    restart: unless-stopped
     user: "${PUID}:${GUID}"
 
     # Connectivity: Attach to the shared outbound traffic
@@ -36,12 +38,9 @@ services:
     tmpfs:
       - /tmp
 
-    # Security: Hardened container dropping all root capabilities and locking the filesystem
+    # Security: Lock the filesystem
     read_only: true
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
+
 
 # --- Global Network Definitions ---
 networks:
