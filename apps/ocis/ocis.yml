@@ -68,6 +68,27 @@ services:
     container_name: ocis-3dviewer-init
     command: ['-c', 'cp -R /app/* /apps']
 
+  excalidraw-init:
+    <<: *ocis-extension
+    image: alpine:latest
+    container_name: ocis-excalidraw-init
+    # Installs required tools, downloads the release, extracts it, and cleans up
+    command:
+      - |
+        apk add --no-cache curl tar unzip
+        mkdir -p /apps/excalidraw
+        echo "Downloading Excalidraw extension..."
+        
+        # Download the release artifact
+        curl -sL "${OCIS_EXT_EXCALIDRAW_URL}" -o /tmp/excalidraw-release.tar.gz
+        
+        # Extract the files (Change 'tar -xzf' to 'unzip -q -o' if the release is a .zip)
+        tar -xzf /tmp/excalidraw-release.tar.gz -C /apps/excalidraw
+        
+        # Clean up
+        rm /tmp/excalidraw-release.tar.gz
+        echo "Excalidraw extension successfully copied to /apps."
+
   # --- Full Text Search Extractor ---
   tika:
     extends:
