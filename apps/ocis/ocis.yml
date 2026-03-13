@@ -267,6 +267,11 @@ services:
     container_name: ocis-onlyoffice
     restart: always
 
+    # Lifecycle: Wait for database to be ready
+    depends_on:
+      maraidb:
+        condition: service_healthy
+
     # Connectivity: Internal communication and public proxy exposure
     networks:
       - ocis-internal
