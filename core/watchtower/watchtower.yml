@@ -19,6 +19,7 @@ services:
     # Configuration: Barebones automatic updates
     environment:
       - WATCHTOWER_POLL_INTERVAL=${WATCHTOWER_POLL_INTERVAL}
+      - WATCHTOWER_INCLUDE_STOPPED=true
       - WATCHTOWER_CLEANUP=true
       - WATCHTOWER_LOG_LEVEL=info
 

@@ -317,7 +317,7 @@ services:
       driver: local
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/hosting/discovery"]
-      start_period: 120s
+      start_period: 300s
       interval: 10s
       timeout: 5s
       retries: 3
