@@ -165,7 +165,7 @@ services:
     <<: *standard-service
     image: onlyoffice/documentserver:${OCIS_ONLYOFFICE_VERSION_TAG}
     networks:
-      - ocis
+      - ocis-internal
       - traefik-public
     entrypoint:
       - /bin/sh
