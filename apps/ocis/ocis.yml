@@ -70,6 +70,9 @@ services:
 
   # --- Full Text Search Extractor ---
   tika:
+    extends:
+      file: ../../core/templates.yml
+      service: base-secure
     image: apache/tika:latest-full
 
     # Security: Run as non-root user
@@ -79,15 +82,11 @@ services:
     networks:
       - ocis-internal
 
-    # Monitoring: Healthcheck and local logging driver
+    # Monitoring: Local logging driver and healthcheck
     logging:
       driver: local
     healthcheck:
       test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:9998/version || exit 1"]
-      start_period: 60s
-      interval: 30s
-      timeout: 5s
-      retries: 3
 
   # --- Main oCIS Server ---
   ocis:

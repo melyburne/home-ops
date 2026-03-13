@@ -3,8 +3,14 @@
 services:
   base-init:
     image: busybox:${BUSYBOX_VERSION_TAG}
+
+    # Connectivity: Attach to no network
     network_mode: none
+
+    # Security: Lock the filesystem
     read_only: true
+
+    # Security: Drop all privileges and add only required ones back
     security_opt: 
       - no-new-privileges:true
     cap_drop: 
@@ -14,10 +20,19 @@ services:
       - FOWNER
       - DAC_OVERRIDE
 
-# --- Secure Service Base ---
+  # --- Secure Service Base ---
   base-secure:
     restart: unless-stopped
+
+    # Security: Drop all privileges by default
     security_opt: 
       - no-new-privileges:true
     cap_drop: 
       - ALL
+
+    # Healtcheck: Standardized Defaults
+    healthcheck:
+      start_period: 60s
+      interval: 30s
+      timeout: 5s
+      retries: 3
