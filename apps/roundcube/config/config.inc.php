@@ -5,20 +5,6 @@
  */
 
 // -----------------------------------------------------------------------------
-// Database Configuration (Docker Race-Condition Workaround)
-// Injects database credentials before plugins are initialized to prevent issues.
-// -----------------------------------------------------------------------------
-$db_user = rawurlencode(getenv('ROUNDCUBEMAIL_DB_USER'));
-$db_pass = rawurlencode(getenv('ROUNDCUBEMAIL_DB_PASSWORD'));
-$db_name = rawurlencode(getenv('ROUNDCUBEMAIL_DB_NAME'));
-$db_host = getenv('ROUNDCUBEMAIL_DB_HOST') ?: 'mariadb';
-
-if ($db_user && $db_pass && $db_name) {
-    // Database connection string format: mysql://user:password@host/database
-    $config['db_dsnw'] = "mysql://{$db_user}:{$db_pass}@{$db_host}/{$db_name}";
-}
-
-// -----------------------------------------------------------------------------
 // Dynamic Multi-Domain Branding
 // Adjusts product name and Google Address Book redirect URL based on the domain.
 // -----------------------------------------------------------------------------
