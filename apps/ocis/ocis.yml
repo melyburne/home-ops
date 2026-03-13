@@ -82,7 +82,7 @@ services:
 
   3dviewer-init:
     <<: *ocis-extension
-    image: sawjan/3dviewer:latest
+    image: sawjan/3dviewer:0.1.0
     container_name: 3dviewer-init
     command: ['-c', 'cp -R /app/* /apps']
 
@@ -213,9 +213,9 @@ services:
       - ocis-internal
     healthcheck:
       test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:9998/version || exit 1"]
-      start_period: 15s
+      start_period: 60s
       interval: 5s
-      timeout: 3s
+      timeout: 5s
       retries: 3
 
 # --- Global Network Definitions ---
