@@ -31,7 +31,7 @@ x-ocis-extension: &ocis-extension
     - FSETID
     - DAC_OVERRIDE
   depends_on:
-    init-ocis:
+    ocis-init:
       condition: service_completed_successfully
   volumes:
     - ocis-apps:/apps
