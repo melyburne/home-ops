@@ -277,6 +277,12 @@ services:
       WOPI_ENABLED: "true"
       USE_UNAUTHORIZED_STORAGE: "true"
       JWT_ENABLED: "false"
+      DB_TYPE: "mariadb"
+      DB_HOST: "mariadb" 
+      DB_PORT: "3306"
+      DB_NAME: ${OCIS_ONLYOFFICE_DB_NAME}
+      DB_USER: ${OCIS_ONLYOFFICE_DB_USER}
+      DB_PWD: ${OCIS_ONLYOFFICE_DB_PASSWORD}
       REDIS_SERVER_HOST: "localhost"
       REDIS_SERVER_PORT: "6379"
 
