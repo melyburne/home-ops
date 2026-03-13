@@ -35,37 +35,37 @@ services:
   photo-addon-init:
     <<: *ocis-extension
     image: owncloud/web-extensions:photo-addon-${OCIS_EXT_PHOTO_ADDON_VERSION_TAG}
-    container_name: photo-addon-init
+    container_name: ocis-photo-addon-init
     command: ["-c", "cp -R /var/lib/nginx/html/photo-addon/ /apps"]
 
   jsonviewer-init:
     <<: *ocis-extension
     image: owncloud/web-extensions:json-viewer-${OCIS_EXT_JSON_VIEWER_VERSION_TAG}
-    container_name: jsonviewer-init
+    container_name: ocis-jsonviewer-init
     command: ["-c", "cp -R /var/lib/nginx/html/json-viewer/ /apps"]
 
   advanced-search-init:
     <<: *ocis-extension
     image: owncloud/web-extensions:advanced-search-${OCIS_EXT_ADV_SEARCH_VERSION_TAG}
-    container_name: advanced-search-init
+    container_name: ocis-advanced-search-init
     command: ["-c", "cp -R /var/lib/nginx/html/advanced-search/ /apps"]
 
   unzip-init:
     <<: *ocis-extension
     image: owncloud/web-extensions:unzip-${OCIS_EXT_UNZIP_VERSION_TAG}
-    container_name: unzip-init
+    container_name: ocis-unzip-init
     command: ["-c", "cp -R /var/lib/nginx/html/unzip/ /apps"]
 
   drawio-init:
     <<: *ocis-extension
     image: owncloud/web-extensions:draw-io-${OCIS_EXT_DRAWIO_VERSION_TAG}
-    container_name: drawio-init
+    container_name: ocis-drawio-init
     command: ["-c", "cp -R /var/lib/nginx/html/draw-io/ /apps"]
 
   3dviewer-init:
     <<: *ocis-extension
     image: sawjan/3dviewer:${OCIS_EXT_3D_VIEWER_VERSION_TAG}
-    container_name: 3dviewer-init
+    container_name: ocis-3dviewer-init
     command: ['-c', 'cp -R /app/* /apps']
 
   # --- Full Text Search Extractor ---
@@ -74,6 +74,7 @@ services:
       file: ../../core/templates.yml
       service: base-secure
     image: apache/tika:latest-full
+    container_name: ocis-tika
 
     # Security: Run as non-root user
     user: "${PUID}:${GUID}"
@@ -94,6 +95,7 @@ services:
       file: ../../core/templates.yml
       service: base-secure
     image: owncloud/ocis:${OCIS_VERSION_TAG}
+    container_name: ocis
 
     # Security: Run as non-root user
     user: "${PUID}:${GUID}"
@@ -170,6 +172,7 @@ services:
       file: ../../core/templates.yml
       service: base-secure
     image: owncloud/ocis:${OCIS_VERSION_TAG}
+    container_name: ocis-collaboration-oo
 
     # Security: Run as non-root user
     user: "${PUID}:${GUID}"
@@ -216,6 +219,7 @@ services:
   # --- Document Server: OnlyOffice ---
   onlyoffice:
     image: onlyoffice/documentserver:${OCIS_ONLYOFFICE_VERSION_TAG}
+    container_name: ocis-onlyoffice
     restart: always
 
     # Connectivity: Internal communication and public proxy exposure
