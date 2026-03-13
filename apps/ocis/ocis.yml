@@ -53,26 +53,31 @@ services:
   photo-addon-init:
     <<: *ocis-extension
     image: owncloud/web-extensions:photo-addon-latest
+    name: photo-addon-init
     command: ["-c", "cp -R /var/lib/nginx/html/photo-addon/ /apps"]
 
   jsonviewer-init:
     <<: *ocis-extension
     image: owncloud/web-extensions:json-viewer-latest
+    name: jsonviewer-init
     command: ["-c", "cp -R /var/lib/nginx/html/json-viewer/ /apps"]
 
   advanced-search-init:
     <<: *ocis-extension
     image: owncloud/web-extensions:advanced-search-latest
+    name: advanced-search-init
     command: ["-c", "cp -R /var/lib/nginx/html/advanced-search/ /apps"]
 
   unzip-init:
     <<: *ocis-extension
     image: owncloud/web-extensions:unzip-latest
+    name: unzip-init
     command: ["-c", "cp -R /var/lib/nginx/html/unzip/ /apps"]
 
   drawio-init:
     <<: *ocis-extension
     image: owncloud/web-extensions:draw-io-latest
+    name: drawio-init
     command: ["-c", "cp -R /var/lib/nginx/html/draw-io/ /apps"]
 
   # --- Main oCIS Server ---

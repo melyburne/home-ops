@@ -13,18 +13,22 @@ include:
   - apps/website-get-orga-niced/website-get-orga-niced.yml
 
 networks:
-  # Public traffic (Traefik <-> Apps)
+  # Traffic Network (Traefik <-> Apps)
   traefik-public:
+    name: traefik-public
     driver: bridge
 
   # Secured Socket (Traefik <-> Socket Proxy)
   socket-internal:
+    name: socket-internal
     internal: true
 
   # Database traffic (Apps <-> DBs) - Not exposed to Traefik
   mariadb-internal:
+    name: mariadb-internal
     internal: true
 
   # Outbound API traffic (e.g., DDNS Updater)
   outbound-public:
+    name: outbound-public
     driver: bridge
