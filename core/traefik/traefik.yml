@@ -136,7 +136,8 @@ services:
     # Monitoring: Internal Traefik ping check
     healthcheck:
       test: ["CMD", "traefik", "healthcheck", "--ping"]
-      interval: 10s
+      start_period: 60s
+      interval: 30s
       timeout: 5s
       retries: 3
 

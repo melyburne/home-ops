@@ -10,31 +10,20 @@ x-secure-service: &secure-service
     driver: local
   restart: always
 
-x-standard-service: &standard-service
-  logging:
-    driver: local
-  restart: always
-
 # Template for oCIS Web Extensions
 x-ocis-extension: &ocis-extension
   user: root
   platform: linux/amd64
-  entrypoint: ["/bin/sh"]
   network_mode: none
-  security_opt:
-    - no-new-privileges:true
-  cap_drop:
-    - ALL
-  cap_add:
-    - CHOWN
-    - FOWNER
-    - FSETID
-    - DAC_OVERRIDE
+  security_opt: ["no-new-privileges:true"]
+  cap_drop: [ALL]
+  cap_add: [CHOWN, FOWNER, FSETID, DAC_OVERRIDE]
   depends_on:
-    ocis-init:
-      condition: service_completed_successfully
+    ocis-init: { condition: service_completed_successfully }
+  entrypoint: ["/bin/sh", "-c"]
   volumes:
     - ocis-apps:/apps
+
 
 services:
   # --- Init Service: Prepares permissions for oCIS ---
@@ -43,7 +32,11 @@ services:
       file: ../../core/templates.yml
       service: base-init
     container_name: ocis-init
+
+    # Execution: Set correct ownership for oCIS directories
     command: sh -c "chown -R ${PUID}:${GUID} /ocis-config /ocis-data /ocis-apps"
+
+    # State: Mount configuration and data directories
     volumes:
       - ${OCIS_CONFIG_DIR}:/ocis-config
       - ${OCIS_DATA_DIR}:/ocis-data
@@ -54,48 +47,79 @@ services:
     <<: *ocis-extension
     image: owncloud/web-extensions:photo-addon-${OCIS_EXT_PHOTO_ADDON_VERSION_TAG}
     container_name: photo-addon-init
+    # Execution: Copy extension assets to shared volume
     command: ["-c", "cp -R /var/lib/nginx/html/photo-addon/ /apps"]
 
   jsonviewer-init:
     <<: *ocis-extension
     image: owncloud/web-extensions:json-viewer-${OCIS_EXT_JSON_VIEWER_VERSION_TAG}
     container_name: jsonviewer-init
+    # Execution: Copy extension assets to shared volume
     command: ["-c", "cp -R /var/lib/nginx/html/json-viewer/ /apps"]
 
   advanced-search-init:
     <<: *ocis-extension
     image: owncloud/web-extensions:advanced-search-${OCIS_EXT_ADV_SEARCH_VERSION_TAG}
     container_name: advanced-search-init
+    # Execution: Copy extension assets to shared volume
     command: ["-c", "cp -R /var/lib/nginx/html/advanced-search/ /apps"]
 
   unzip-init:
     <<: *ocis-extension
     image: owncloud/web-extensions:unzip-${OCIS_EXT_UNZIP_VERSION_TAG}
     container_name: unzip-init
+    # Execution: Copy extension assets to shared volume
     command: ["-c", "cp -R /var/lib/nginx/html/unzip/ /apps"]
 
   drawio-init:
     <<: *ocis-extension
     image: owncloud/web-extensions:draw-io-${OCIS_EXT_DRAWIO_VERSION_TAG}
     container_name: drawio-init
+    # Execution: Copy extension assets to shared volume
     command: ["-c", "cp -R /var/lib/nginx/html/draw-io/ /apps"]
 
   3dviewer-init:
     <<: *ocis-extension
     image: sawjan/3dviewer:${OCIS_EXT_3D_VIEWER_VERSION_TAG}
     container_name: 3dviewer-init
+    # Execution: Copy extension assets to shared volume
     command: ['-c', 'cp -R /app/* /apps']
+
+  # --- Full Text Search Extractor ---
+  tika:
+    <<: *secure-service 
+    image: apache/tika:latest-full
+
+    # Connectivity: Internal network for oCIS communication
+    networks:
+      - ocis-internal
+
+    # Monitoring: Ensure Tika API is responsive
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:9998/version || exit 1"]
+      start_period: 60s
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
   # --- Main oCIS Server ---
   ocis:
     <<: *secure-service # Injects user, security, and logging config
     image: owncloud/ocis:${OCIS_VERSION_TAG}
+
+    # Lifecycle: Wait for initialization and text extraction service
+    depends_on:
+      ocis-init:
+        condition: service_completed_successfully
+      tika:
+        condition: service_healthy
+
+    # Connectivity: Internal communication and public proxy exposure
     networks:
       - ocis-internal
       - traefik-public
-    entrypoint:
-      - /bin/sh
-    command: ["-c", "ocis init || true; exec ocis server"]
+
+    # Configuration: Core oCIS environment variables and features
     environment:
       OCIS_ADD_RUN_SERVICES: "notifications"
       OCIS_URL: "https://${OCIS_DOMAIN}"
@@ -122,18 +146,13 @@ services:
       SEARCH_EXTRACTOR_TYPE: "tika"
       SEARCH_EXTRACTOR_TIKA_TIKA_URL: "http://tika:9998"
       FRONTEND_FULL_TEXT_SEARCH_ENABLED: "true"
-    depends_on:
-      ocis-init:
-        condition: service_completed_successfully
-      tika:
-        condition: service_healthy
-    volumes:
-      - ${OCIS_CONFIG_DIR}:/etc/ocis
-      - ${OCIS_DATA_DIR}:/var/lib/ocis
-      - ./config/ocis/app-registry.yaml:/etc/ocis/app-registry.yaml
-      - ./config/ocis/csp.yaml:/etc/ocis/csp.yaml
-      - ./config/ocis/banned-password-list.txt:/etc/ocis/banned-password-list.txt
-      - ocis-apps:/var/lib/ocis/web/assets/apps
+
+    # Execution: Initialize if needed, then start server
+    entrypoint:
+      - /bin/sh
+    command: ["-c", "ocis init || true; exec ocis server"]
+
+    # Routing: Traefik reverse proxy configuration
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.ocis.entrypoints=websecure"
@@ -141,24 +160,38 @@ services:
       - "traefik.http.routers.ocis.service=ocis"
       - "traefik.http.services.ocis.loadbalancer.server.port=9200"
 
+    # State: Persistent data, config overrides, and web apps
+    volumes:
+      - ${OCIS_CONFIG_DIR}:/etc/ocis
+      - ${OCIS_DATA_DIR}:/var/lib/ocis
+      - ./config/ocis/app-registry.yaml:/etc/ocis/app-registry.yaml
+      - ./config/ocis/csp.yaml:/etc/ocis/csp.yaml
+      - ./config/ocis/banned-password-list.txt:/etc/ocis/banned-password-list.txt
+      - ocis-apps:/var/lib/ocis/web/assets/apps
+
   # --- Connector: oCIS to OnlyOffice ---
   collaboration-oo:
     <<: *secure-service 
     image: owncloud/ocis:${OCIS_VERSION_TAG}
-    networks:
-      - ocis-internal
-      - outbound-public
+
+    # Lifecycle: Wait for oCIS core and OnlyOffice to be ready
     depends_on:
       ocis:
         condition: service_started
       onlyoffice:
         condition: service_healthy
-    command: ["collaboration", "server"]
+
+    # Connectivity: Internal communication and outbound requests
+    networks:
+      - ocis-internal
+      - outbound-public
+
+    # Configuration: Connector connection details
     environment:
       COLLABORATION_GRPC_ADDR: "0.0.0.0:9301"
       COLLABORATION_HTTP_ADDR: "0.0.0.0:9300"
       MICRO_REGISTRY: "nats-js-kv"
-      MICRO_REGISTRY_ADDRESS: "ocis:9233"
+      MICRO_REGISTRY_ADDRESS: "ocis-internal:9233"
       COLLABORATION_WOPI_SRC: "http://collaboration-oo:9300"
       COLLABORATION_APP_NAME: "OnlyOffice"
       COLLABORATION_APP_PRODUCT: "OnlyOffice"
@@ -168,28 +201,38 @@ services:
       COLLABORATION_CS3API_DATAGATEWAY_INSECURE: "true"
       COLLABORATION_LOG_LEVEL: "info"
       OCIS_URL: "https://${OCIS_DOMAIN}"
+
+    # Execution: Start the collaboration service
+    command: ["collaboration", "server"]
+
+    # State: Shared oCIS configuration
     volumes:
       - ${OCIS_CONFIG_DIR}:/etc/ocis
 
   # --- Document Server: OnlyOffice ---
   onlyoffice:
-    <<: *standard-service
     image: onlyoffice/documentserver:${OCIS_ONLYOFFICE_VERSION_TAG}
+    restart: always
+
+    # Connectivity: Internal communication and public proxy exposure
     networks:
       - ocis-internal
       - traefik-public
-    entrypoint:
-      - /bin/sh
-      - /entrypoint-override.sh
+
+    # Configuration: Document server core settings
     environment:
       WOPI_ENABLED: "true"
       USE_UNAUTHORIZED_STORAGE: "true"
       JWT_ENABLED: "false"
       REDIS_SERVER_HOST: "localhost"
       REDIS_SERVER_PORT: "6379"
-    volumes:
-      - ./config/onlyoffice/entrypoint-override.sh:/entrypoint-override.sh
-      - ./config/onlyoffice/local.json:/etc/onlyoffice/documentserver/local.dist.json
+
+    # Execution: Run custom entrypoint script
+    entrypoint:
+      - /bin/sh
+      - /entrypoint-override.sh
+
+    # Routing: Traefik reverse proxy configuration with middleware
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.onlyoffice.entrypoints=websecure"
@@ -198,6 +241,15 @@ services:
       - "traefik.http.services.onlyoffice.loadbalancer.server.port=80"
       - "traefik.http.middlewares.onlyoffice.headers.customrequestheaders.X-Forwarded-Proto=https"
       - "traefik.http.routers.onlyoffice.middlewares=onlyoffice"
+
+    # State: Mount custom scripts and local configuration
+    volumes:
+      - ./config/onlyoffice/entrypoint-override.sh:/entrypoint-override.sh
+      - ./config/onlyoffice/local.json:/etc/onlyoffice/documentserver/local.dist.json
+
+    # Monitoring: Healthcheck and local logging driver
+    logging:
+      driver: local
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/hosting/discovery"]
       start_period: 120s
@@ -205,18 +257,6 @@ services:
       timeout: 5s
       retries: 3
 
-  # --- Full Text Search Extractor ---
-  tika:
-    <<: *secure-service 
-    image: apache/tika:latest-full
-    networks:
-      - ocis-internal
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:9998/version || exit 1"]
-      start_period: 60s
-      interval: 5s
-      timeout: 5s
-      retries: 3
 
 # --- Global Network Definitions ---
 networks:

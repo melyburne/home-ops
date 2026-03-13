@@ -70,10 +70,11 @@ services:
     # Monitoring: Internal check to ensure the webmail interface is responding
     healthcheck:
       test: ["CMD-SHELL", "curl -sfL http://127.0.0.1:8000/ || exit 1"]
+      start_period: 60s
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 45s
+
 
 # --- Global Network Definitions ---
 networks:
