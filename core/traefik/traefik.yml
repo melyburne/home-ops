@@ -1,10 +1,10 @@
 services:
   # --- Init Service: Prepares ACME config permissions before Traefik starts ---
-  acme-init:
+  traefik-init:
     extends:
       file: ../templates.yml
       service: base-init
-    container_name: acme-init
+    container_name: traefik-init
     command: sh -c "touch /data/acme.json && chown -R ${PUID}:${GUID} /data && chmod 600 /data/acme.json"
     volumes:
       - ./data:/data
@@ -15,7 +15,7 @@ services:
       file: ../templates.yml
       service: base-secure
     image: tecnativa/docker-socket-proxy:latest
-    container_name: socket-proxy
+    container_name: traefik-socket-proxy
 
     # Connectivity: Internal network solely for Traefik to access the proxy
     networks:
@@ -49,7 +49,7 @@ services:
     
     # Lifecycle: Wait for permissions to be fixed and socket proxy to start
     depends_on:
-      acme-init:
+      traefik-init:
         condition: service_completed_successfully
       socket-proxy:
         condition: service_started
