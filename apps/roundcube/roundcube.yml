@@ -31,7 +31,7 @@ services:
     # Connectivity: Public facing proxy and internal database network
     networks:
       - traefik-public
-      - db-internal
+      - mariadb-internal
 
     # Configuration: Roundcube features, mail server bindings, database, and OAuth2
     environment:
@@ -78,4 +78,4 @@ services:
 # --- Global Network Definitions ---
 networks:
   traefik-public:
-  db-internal:
+  mariadb-internal:
