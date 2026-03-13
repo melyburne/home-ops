@@ -3,7 +3,6 @@
 x-ocis-extension: &ocis-extension
   user: root
   platform: linux/amd64
-  network_mode: none
   security_opt: ["no-new-privileges:true"]
   cap_drop: [ALL]
   cap_add: [CHOWN, FOWNER, FSETID, DAC_OVERRIDE]
@@ -36,42 +35,52 @@ services:
     <<: *ocis-extension
     image: owncloud/web-extensions:photo-addon-${OCIS_EXT_PHOTO_ADDON_VERSION_TAG}
     container_name: ocis-photo-addon-init
+    network_mode: none
     command: ["-c", "cp -R /var/lib/nginx/html/photo-addon/ /apps"]
 
   jsonviewer-init:
     <<: *ocis-extension
     image: owncloud/web-extensions:json-viewer-${OCIS_EXT_JSON_VIEWER_VERSION_TAG}
     container_name: ocis-jsonviewer-init
+    network_mode: none
     command: ["-c", "cp -R /var/lib/nginx/html/json-viewer/ /apps"]
 
   advanced-search-init:
     <<: *ocis-extension
     image: owncloud/web-extensions:advanced-search-${OCIS_EXT_ADV_SEARCH_VERSION_TAG}
     container_name: ocis-advanced-search-init
+    network_mode: none
     command: ["-c", "cp -R /var/lib/nginx/html/advanced-search/ /apps"]
 
   unzip-init:
     <<: *ocis-extension
     image: owncloud/web-extensions:unzip-${OCIS_EXT_UNZIP_VERSION_TAG}
     container_name: ocis-unzip-init
+    network_mode: none
     command: ["-c", "cp -R /var/lib/nginx/html/unzip/ /apps"]
 
   drawio-init:
     <<: *ocis-extension
     image: owncloud/web-extensions:draw-io-${OCIS_EXT_DRAWIO_VERSION_TAG}
     container_name: ocis-drawio-init
+    network_mode: none
     command: ["-c", "cp -R /var/lib/nginx/html/draw-io/ /apps"]
 
   3dviewer-init:
     <<: *ocis-extension
     image: sawjan/3dviewer:${OCIS_EXT_3D_VIEWER_VERSION_TAG}
     container_name: ocis-3dviewer-init
+    network_mode: none
     command: ['-c', 'cp -R /app/* /apps']
 
   excalidraw-init:
-    <<: *ocis-extension
     image: alpine:latest
     container_name: ocis-excalidraw-init
+
+    # Override connectivity to allow outbound internet access
+    networks:
+      - outbound-public
+
     # Installs required tools, downloads the release, extracts it, and cleans up
     command:
       - |
@@ -127,6 +136,20 @@ services:
         condition: service_completed_successfully
       tika:
         condition: service_healthy
+      photo-addon-init:
+        condition: service_completed_successfully
+      jsonviewer-init:
+        condition: service_completed_successfully
+      advanced-search-init:
+        condition: service_completed_successfully
+      unzip-init:
+        condition: service_completed_successfully
+      drawio-init:
+        condition: service_completed_successfully
+      3dviewer-init:
+        condition: service_completed_successfully
+      excalidraw-init:
+        condition: service_completed_successfully
 
     # Connectivity: Internal communication and public proxy exposure
     networks:
