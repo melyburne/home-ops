@@ -8,7 +8,7 @@ services:
     # Connectivity: Connects to both the public proxy and the internal database network
     networks:
       - traefik-public
-      - db-internal
+      - mariadb-internal
 
     # Configuration: Design settings
     environment:
@@ -41,4 +41,4 @@ services:
 # --- Global Network Definitions ---
 networks:
   traefik-public:
-  db-internal:
+  mariadb-internal:

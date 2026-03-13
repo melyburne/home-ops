@@ -25,7 +25,7 @@ services:
 
     # Connectivity: Isolated internal network to prevent direct outside access
     networks:
-      - db-internal
+      - mariadb-internal
 
     # Configuration: Natively auto-creates the Roundcube database and user on first startup
     environment:
@@ -57,4 +57,4 @@ services:
 
 # --- Global Network Definitions ---
 networks:
-  db-internal:
+  mariadb-internal:

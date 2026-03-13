@@ -15,20 +15,16 @@ include:
 networks:
   # Public traffic (Traefik <-> Apps)
   traefik-public:
-    name: traefik-public
     driver: bridge
 
   # Secured Socket (Traefik <-> Socket Proxy)
   socket-internal:
-    name: socket-internal
     internal: true
 
   # Database traffic (Apps <-> DBs) - Not exposed to Traefik
-  db-internal:
-    name: db-internal
+  mariadb-internal:
     internal: true
 
   # Outbound API traffic (e.g., DDNS Updater)
   outbound-traffic:
-    name: outbound-traffic
     driver: bridge

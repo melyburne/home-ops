@@ -80,7 +80,7 @@ services:
     <<: *secure-service # Injects user, security, and logging config
     image: owncloud/ocis:${OCIS_VERSION_TAG}
     networks:
-      - ocis
+      - ocis-internal
       - traefik-public
     entrypoint:
       - /bin/sh
@@ -135,7 +135,7 @@ services:
     <<: *secure-service 
     image: owncloud/ocis:${OCIS_VERSION_TAG}
     networks:
-      - ocis
+      - ocis-internal
       - outbound-traffic
     depends_on:
       ocis:
@@ -199,7 +199,7 @@ services:
     <<: *secure-service 
     image: apache/tika:latest-full
     networks:
-      - ocis
+      - ocis-internal
     healthcheck:
       test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:9998/version || exit 1"]
       start_period: 15s
@@ -211,9 +211,8 @@ services:
 networks:
   traefik-public:
   outbound-traffic:
-  ocis:
-    name: ocis
-    internal: true
+  ocis-internal:
+    name: ocis-internal
 
 # --- Global Volumes ---
 volumes:
