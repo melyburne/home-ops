@@ -20,6 +20,7 @@ x-ocis-extension: &ocis-extension
   user: root
   platform: linux/amd64
   entrypoint: ["/bin/sh"]
+  network_mode: none
   security_opt:
     - no-new-privileges:true
   cap_drop:
@@ -79,8 +80,8 @@ services:
     <<: *secure-service # Injects user, security, and logging config
     image: owncloud/ocis:${OCIS_VERSION_TAG}
     networks:
-      - traefik-public
       - ocis
+      - traefik-public
     entrypoint:
       - /bin/sh
     command: ["-c", "ocis init || true; exec ocis server"]
@@ -134,8 +135,8 @@ services:
     <<: *secure-service 
     image: owncloud/ocis:${OCIS_VERSION_TAG}
     networks:
-      - outbound-traffic
       - ocis
+      - outbound-traffic
     depends_on:
       ocis:
         condition: service_started
@@ -164,8 +165,8 @@ services:
     <<: *standard-service
     image: onlyoffice/documentserver:${OCIS_ONLYOFFICE_VERSION_TAG}
     networks:
-      - traefik-public
       - ocis
+      - traefik-public
     entrypoint:
       - /bin/sh
       - /entrypoint-override.sh
@@ -211,6 +212,7 @@ networks:
   traefik-public:
   outbound-traffic:
   ocis:
+    name: ocis
     internal: true
 
 # --- Global Volumes ---
