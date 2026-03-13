@@ -1,10 +1,4 @@
 # --- DRY Templates ---
-# Define common settings here to reuse across services
-x-secure-service: &secure-service
-  user: ${PUID}:${GUID}
-  logging:
-    driver: local
-
 # Template for oCIS Web Extensions
 x-ocis-extension: &ocis-extension
   user: root
@@ -76,14 +70,18 @@ services:
 
   # --- Full Text Search Extractor ---
   tika:
-    <<: *secure-service 
     image: apache/tika:latest-full
+
+    # Security: Run as non-root user
+    user: "${PUID}:${GUID}"
 
     # Connectivity: Internal network for oCIS communication
     networks:
       - ocis-internal
 
-    # Monitoring: Ensure Tika API is responsive
+    # Monitoring: Healthcheck and local logging driver
+    logging:
+      driver: local
     healthcheck:
       test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:9998/version || exit 1"]
       start_period: 60s
@@ -93,11 +91,13 @@ services:
 
   # --- Main oCIS Server ---
   ocis:
-    <<: *secure-service # Injects user, security, and logging config
     extends:
       file: ../../core/templates.yml
       service: base-secure
     image: owncloud/ocis:${OCIS_VERSION_TAG}
+
+    # Security: Run as non-root user
+    user: "${PUID}:${GUID}"
 
     # Lifecycle: Wait for initialization and text extraction service
     depends_on:
@@ -161,13 +161,19 @@ services:
       - ./config/ocis/banned-password-list.txt:/etc/ocis/banned-password-list.txt
       - ocis-apps:/var/lib/ocis/web/assets/apps
 
+    # Monitoring: Local logging driver
+    logging:
+      driver: local
+
   # --- Connector: oCIS to OnlyOffice ---
   collaboration-oo:
-    <<: *secure-service
     extends:
       file: ../../core/templates.yml
       service: base-secure
     image: owncloud/ocis:${OCIS_VERSION_TAG}
+
+    # Security: Run as non-root user
+    user: "${PUID}:${GUID}"
 
     # Lifecycle: Wait for oCIS core and OnlyOffice to be ready
     depends_on:
@@ -203,6 +209,10 @@ services:
     # State: Shared oCIS configuration
     volumes:
       - ${OCIS_CONFIG_DIR}:/etc/ocis
+
+    # Monitoring: Local logging driver
+    logging:
+      driver: local
 
   # --- Document Server: OnlyOffice ---
   onlyoffice:
