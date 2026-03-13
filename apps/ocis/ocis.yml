@@ -194,7 +194,7 @@ services:
       COLLABORATION_GRPC_ADDR: "0.0.0.0:9301"
       COLLABORATION_HTTP_ADDR: "0.0.0.0:9300"
       MICRO_REGISTRY: "nats-js-kv"
-      MICRO_REGISTRY_ADDRESS: "ocis-internal:9233"
+      MICRO_REGISTRY_ADDRESS: "ocis:9233"
       COLLABORATION_WOPI_SRC: "http://collaboration-oo:9300"
       COLLABORATION_APP_NAME: "OnlyOffice"
       COLLABORATION_APP_PRODUCT: "OnlyOffice"
