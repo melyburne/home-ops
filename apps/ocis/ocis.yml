@@ -90,7 +90,7 @@ services:
         echo "Downloading Excalidraw extension..."
         
         # Download the release artifact
-        curl -sL "${OCIS_EXT_EXCALIDRAW_URL}" -o /tmp/excalidraw-release.tar.gz
+        curl -sL "https://github.com/LukasHirt/web-app-excalidraw/releases/download/${OCIS_EXT_EXCALIDRAW_VERSION_TAG}/excalidraw-${OCIS_EXT_EXCALIDRAW_VERSION_TAG}.tar.gz" -o /tmp/excalidraw-release.tar.gz
         
         # Extract the files (Change 'tar -xzf' to 'unzip -q -o' if the release is a .zip)
         tar -xzf /tmp/excalidraw-release.tar.gz -C /apps/excalidraw
