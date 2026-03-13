@@ -275,6 +275,7 @@ services:
     # Connectivity: Internal communication and public proxy exposure
     networks:
       - ocis-internal
+      - mariadb-internal
       - traefik-public
 
     # Configuration: Document server core settings
@@ -326,8 +327,10 @@ services:
 networks:
   traefik-public:
   outbound-public:
+  maraidb-internal:
   ocis-internal:
     name: ocis-internal
+    internal: true
 
 # --- Global Volumes ---
 volumes:
