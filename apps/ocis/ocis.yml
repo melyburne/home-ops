@@ -1,6 +1,6 @@
 # --- DRY Templates ---
 # Template for oCIS Web Extensions
-x-ocis-extension: &ocis-extension
+x-ocis-extension-base: &ocis-extension-base
   user: root
   platform: linux/amd64
   security_opt: ["no-new-privileges:true"]
@@ -11,6 +11,17 @@ x-ocis-extension: &ocis-extension
   entrypoint: ["/bin/sh", "-c"]
   volumes:
     - ocis-apps:/apps
+
+# Template for oCIS Web Extensions
+x-ocis-extension-basic: &ocis-extension-basic
+  <<: *ocis-extension-base
+  networks: [ocis-internal]
+
+# Template for oCIS Web Extensions with custom logic
+x-ocis-extension-custom: &ocis-extension-custom
+  <<: *ocis-extension-base
+  image: alpine:latest
+  network_mode: none
 
 
 services:
@@ -32,55 +43,44 @@ services:
 
   # --- Web Extensions ---
   photo-addon-init:
-    <<: *ocis-extension
+    <<: *ocis-extension-basic
     image: owncloud/web-extensions:photo-addon-${OCIS_EXT_PHOTO_ADDON_VERSION_TAG}
     container_name: ocis-photo-addon-init
-    network_mode: none
     command: ["-c", "cp -R /var/lib/nginx/html/photo-addon/ /apps"]
 
   jsonviewer-init:
-    <<: *ocis-extension
+    <<: *ocis-extension-basic
     image: owncloud/web-extensions:json-viewer-${OCIS_EXT_JSON_VIEWER_VERSION_TAG}
     container_name: ocis-jsonviewer-init
-    network_mode: none
     command: ["-c", "cp -R /var/lib/nginx/html/json-viewer/ /apps"]
 
   advanced-search-init:
-    <<: *ocis-extension
+    <<: *ocis-extension-basic
     image: owncloud/web-extensions:advanced-search-${OCIS_EXT_ADV_SEARCH_VERSION_TAG}
     container_name: ocis-advanced-search-init
-    network_mode: none
     command: ["-c", "cp -R /var/lib/nginx/html/advanced-search/ /apps"]
 
   unzip-init:
-    <<: *ocis-extension
+    <<: *ocis-extension-basic
     image: owncloud/web-extensions:unzip-${OCIS_EXT_UNZIP_VERSION_TAG}
     container_name: ocis-unzip-init
-    network_mode: none
     command: ["-c", "cp -R /var/lib/nginx/html/unzip/ /apps"]
 
   drawio-init:
-    <<: *ocis-extension
+    <<: *ocis-extension-basic
     image: owncloud/web-extensions:draw-io-${OCIS_EXT_DRAWIO_VERSION_TAG}
     container_name: ocis-drawio-init
-    network_mode: none
     command: ["-c", "cp -R /var/lib/nginx/html/draw-io/ /apps"]
 
   3dviewer-init:
-    <<: *ocis-extension
+    <<: *ocis-extension-basic
     image: sawjan/3dviewer:${OCIS_EXT_3D_VIEWER_VERSION_TAG}
     container_name: ocis-3dviewer-init
-    network_mode: none
     command: ['-c', 'cp -R /app/* /apps']
 
   excalidraw-init:
-    <<: *ocis-extension
-    image: alpine:latest
+    <<: *ocis-extension-custom
     container_name: ocis-excalidraw-init
-
-    # Connectivity: Allow outbound internet access
-    networks:
-      - outbound-public
 
     # Execution: Installs required tools, downloads the release, extracts it, and cleans up
     command:
