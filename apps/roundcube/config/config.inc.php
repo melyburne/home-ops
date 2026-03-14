@@ -28,7 +28,7 @@ $config['login_autocomplete'] = 1;
 $config['message_sort_col'] = 'arrival';
 $config['create_default_folders'] = true;
 $config['enable_spellcheck'] = true;
-$config['spellcheck_engine'] = 'pspell'; 
+$config['spellcheck_engine'] = 'pspell';
 $config['spellcheck_languages'] = ['en' => 'English', 'de' => 'Deutsch'];
 $config['spellcheck_dictionary'] = 'shared';
 

@@ -16,7 +16,7 @@ services:
       service: base-secure
     image: mariadb:${MARIADB_VERSION_TAG}
     container_name: mariadb
-    
+
     # Security: Run as non-root user
     user: "${PUID}:${GUID}"
 
@@ -34,12 +34,12 @@ services:
       # Core Database Settings
       - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD}
       - MARIADB_AUTO_UPGRADE=true
-      
+
       # App 1: Roundcube Variables (Read by 01-init-roundcube.sh)
       - ROUNDCUBE_DB_NAME=${ROUNDCUBE_DB_NAME}
       - ROUNDCUBE_DB_USER=${ROUNDCUBE_DB_USER}
       - ROUNDCUBE_DB_PASSWORD=${ROUNDCUBE_DB_PASSWORD}
-      
+
       # App 2: OnlyOffice Variables (Read by 02-init-onlyoffice.sh)
       - ONLYOFFICE_DB_NAME=${OCIS_ONLYOFFICE_DB_NAME}
       - ONLYOFFICE_DB_USER=${OCIS_ONLYOFFICE_DB_USER}

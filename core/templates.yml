@@ -15,11 +15,11 @@ services:
     read_only: true
 
     # Security: Drop all privileges and add only required ones back
-    security_opt: 
+    security_opt:
       - no-new-privileges:true
-    cap_drop: 
+    cap_drop:
       - ALL
-    cap_add: 
+    cap_add:
       - CHOWN
       - FOWNER
       - DAC_OVERRIDE
@@ -29,9 +29,9 @@ services:
     restart: unless-stopped
 
     # Security: Drop all privileges by default
-    security_opt: 
+    security_opt:
       - no-new-privileges:true
-    cap_drop: 
+    cap_drop:
       - ALL
 
     # Healtcheck: Standardized Defaults

@@ -88,13 +88,13 @@ services:
         apk add --no-cache curl tar unzip
         mkdir -p /apps/excalidraw
         echo "Downloading Excalidraw extension..."
-        
+
         # Download the release artifact
         curl -sL "https://github.com/LukasHirt/web-app-excalidraw/releases/download/${OCIS_EXT_EXCALIDRAW_VERSION_TAG}/excalidraw-${OCIS_EXT_EXCALIDRAW_VERSION_TAG}.tar.gz" -o /tmp/excalidraw-release.tar.gz
-        
+
         # Extract the files (Change 'tar -xzf' to 'unzip -q -o' if the release is a .zip)
         tar -xzf /tmp/excalidraw-release.tar.gz -C /apps/
-        
+
         # Clean up
         rm /tmp/excalidraw-release.tar.gz
         echo "Excalidraw extension successfully copied to /apps."
@@ -284,7 +284,7 @@ services:
       USE_UNAUTHORIZED_STORAGE: "true"
       JWT_ENABLED: "false"
       DB_TYPE: "mariadb"
-      DB_HOST: "mariadb" 
+      DB_HOST: "mariadb"
       DB_PORT: "3306"
       DB_NAME: ${OCIS_ONLYOFFICE_DB_NAME}
       DB_USER: ${OCIS_ONLYOFFICE_DB_USER}

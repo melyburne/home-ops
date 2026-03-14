@@ -21,7 +21,7 @@ services:
     # Connectivity: Attach to the shared outbound traffic
     networks:
       - outbound-public
-    
+
     # Ensures permissions are fixed before the updater attempts to write to the volume
     depends_on:
       gandi-ddns-init:

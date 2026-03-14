@@ -18,10 +18,10 @@ services:
 
     # Configuration: Barebones automatic updates
     environment:
+      - WATCHTOWER_LOG_LEVEL=info
       - WATCHTOWER_POLL_INTERVAL=${WATCHTOWER_POLL_INTERVAL}
       - WATCHTOWER_INCLUDE_STOPPED=true
       - WATCHTOWER_CLEANUP=true
-      - WATCHTOWER_LOG_LEVEL=info
 
     # State: Direct socket mount required for triggering updates
     volumes:
