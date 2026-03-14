@@ -4,6 +4,10 @@ services:
   base-init:
     image: busybox:${BUSYBOX_VERSION_TAG}
 
+    # Labels: Tell Watchtower to ignore all containers using this template
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+
     # Connectivity: Attach to no network
     network_mode: none
 
@@ -20,7 +24,7 @@ services:
       - FOWNER
       - DAC_OVERRIDE
 
-  # --- Secure Service Base ---
+  # --- Secure Service Base: Template for secure containers ---
   base-secure:
     restart: unless-stopped
 

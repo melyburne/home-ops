@@ -78,11 +78,11 @@ services:
     image: alpine:latest
     container_name: ocis-excalidraw-init
 
-    # Override connectivity to allow outbound internet access
+    # Connectivity: Allow outbound internet access
     networks:
       - outbound-public
 
-    # Installs required tools, downloads the release, extracts it, and cleans up
+    # Execution: Installs required tools, downloads the release, extracts it, and cleans up
     command:
       - |
         apk add --no-cache curl tar unzip
@@ -311,6 +311,17 @@ services:
     volumes:
       - ./config/onlyoffice/entrypoint-override.sh:/entrypoint-override.sh
       - ./config/onlyoffice/local.json:/etc/onlyoffice/documentserver/local.dist.json
+
+    # Security Hardening: Remove all kernel privileges, add back only what's strictly needed
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+      - NET_BIND_SERVICE
+      - KILL
 
     # Monitoring: Healthcheck and local logging driver
     logging:
