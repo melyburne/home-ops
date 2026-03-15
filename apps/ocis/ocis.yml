@@ -6,7 +6,8 @@ x-ocis-ext-base: &ocis-ext-base
   security_opt: ["no-new-privileges:true"]
   cap_drop: [ALL]
   cap_add: [CHOWN, FOWNER, FSETID, DAC_OVERRIDE]
-  depends_on: [ocis-init: { condition: service_completed_successfully }]
+  depends_on:
+    ocis-init: { condition: service_completed_successfully }
   entrypoint: ["/bin/sh", "-c"]
   volumes: [ocis-apps:/apps]
 
@@ -14,7 +15,7 @@ x-ocis-ext-base: &ocis-ext-base
 x-ocis-ext-default: &ocis-ext-default
   <<: *ocis-ext-base
   network_mode: none
-  
+
 # Template for oCIS Web Extensions with custom logic
 x-ocis-ext-custom: &ocis-ext-custom
   <<: *ocis-ext-base
