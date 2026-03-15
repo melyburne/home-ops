@@ -13,7 +13,7 @@ services:
   socket-proxy:
     extends:
       file: ../templates.yml
-      service: base-secure
+      service: base-service-secure
     image: tecnativa/docker-socket-proxy:latest
     container_name: traefik-socket-proxy
 
@@ -40,7 +40,7 @@ services:
   traefik:
     extends:
       file: ../templates.yml
-      service: base-secure
+      service: base-service-secure
     image: traefik:${TRAEFIK_VERSION_TAG}
     container_name: traefik
 

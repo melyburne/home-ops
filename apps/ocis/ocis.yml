@@ -103,7 +103,7 @@ services:
   tika:
     extends:
       file: ../../core/templates.yml
-      service: base-secure
+      service: base-service-secure
     image: apache/tika:latest-full
     container_name: ocis-tika
 
@@ -124,7 +124,7 @@ services:
   ocis:
     extends:
       file: ../../core/templates.yml
-      service: base-secure
+      service: base-service-secure
     image: owncloud/ocis:${OCIS_VERSION_TAG}
     container_name: ocis
 
@@ -215,7 +215,7 @@ services:
   collaboration-oo:
     extends:
       file: ../../core/templates.yml
-      service: base-secure
+      service: base-service-secure
     image: owncloud/ocis:${OCIS_VERSION_TAG}
     container_name: ocis-collaboration-oo
 
@@ -263,9 +263,11 @@ services:
 
   # --- Document Server: OnlyOffice ---
   onlyoffice:
+    extends:
+      file: ../../core/templates.yml
+      service: base-service-basic
     image: onlyoffice/documentserver:${OCIS_ONLYOFFICE_VERSION_TAG}
     container_name: ocis-onlyoffice
-    restart: always
 
     # Lifecycle: Wait for database to be ready
     depends_on:
@@ -329,9 +331,6 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/hosting/discovery"]
       start_period: 300s
-      interval: 10s
-      timeout: 5s
-      retries: 3
 
 
 # --- Global Network Definitions ---

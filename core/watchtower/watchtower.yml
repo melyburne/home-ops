@@ -3,7 +3,7 @@ services:
   watchtower:
     extends:
       file: ../templates.yml
-      service: base-secure
+      service: base-service-secure
     image: nickfedor/watchtower:${WATCHTOWER_VERSION_TAG}
     container_name: watchtower
 

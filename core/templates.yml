@@ -1,3 +1,10 @@
+# --- Healthcheck: Default values ---
+x-healthcheck-defaults: &healthcheck-defaults
+  start_period: 120s
+  interval: 15s
+  timeout: 10s
+  retries: 3
+
 
  # --- Init Service: Templates for preparing permissions ---
 services:
@@ -24,8 +31,16 @@ services:
       - FOWNER
       - DAC_OVERRIDE
 
+  # --- Basic Service Base: Template for basic containers ---
+  base-service-basic:
+    restart: unless-stopped
+
+    # Healtcheck: Inject the anchor locally
+    healthcheck:
+      <<: *healthcheck-defaults
+
   # --- Secure Service Base: Template for secure containers ---
-  base-secure:
+  base-service-secure:
     restart: unless-stopped
 
     # Security: Drop all privileges by default
@@ -34,9 +49,6 @@ services:
     cap_drop:
       - ALL
 
-    # Healtcheck: Standardized Defaults
+    # Healtcheck: Inject the anchor locally
     healthcheck:
-      start_period: 60s
-      interval: 30s
-      timeout: 5s
-      retries: 3
+      <<: *healthcheck-defaults

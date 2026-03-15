@@ -3,7 +3,7 @@ services:
   website-get-orga-niced:
     extends:
       file: ../../core/templates.yml
-      service: base-secure
+      service: base-service-secure
     image: ghcr.io/kartoffelbauer/web-get-orga-niced:${WEB_GETORGANICED_VERSION_TAG}
     container_name: website-get-orga-niced
 

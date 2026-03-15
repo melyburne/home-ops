@@ -3,7 +3,7 @@ services:
   adminer:
     extends:
       file: ../../core/templates.yml
-      service: base-secure
+      service: base-service-secure
     image: adminer:${ADMINER_VERSION_TAG}
     container_name: adminer
 

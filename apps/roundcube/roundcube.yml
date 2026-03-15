@@ -13,7 +13,7 @@ services:
   roundcube:
     extends:
       file: ../../core/templates.yml
-      service: base-secure
+      service: base-service-secure
     image: ghcr.io/kartoffelbauer/docker-roundcube-custom:${ROUNDCUBE_VERSION_TAG}
     container_name: roundcube
 
