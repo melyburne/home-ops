@@ -37,8 +37,8 @@ services:
       - ROUNDCUBEMAIL_USERNAME_DOMAIN=%d
       - ROUNDCUBEMAIL_PLUGINS=archive,attachment_reminder,emoticons,filesystem_attachments,managesieve,password,subscriptions_option,vcard_attachments,zipdownload,carddav
       - ROUNDCUBEMAIL_COMPOSER_PLUGINS=roundcube/carddav
-      - ROUNDCUBEMAIL_DEFAULT_HOST=ssl://mail.gandi.net
-      - ROUNDCUBEMAIL_DEFAULT_PORT=993
+      - ROUNDCUBEMAIL_IMAP_HOST=ssl://mail.gandi.net
+      - ROUNDCUBEMAIL_IMAP_PORT=993
       - ROUNDCUBEMAIL_SMTP_SERVER=ssl://mail.gandi.net
       - ROUNDCUBEMAIL_SMTP_PORT=465
       - ROUNDCUBEMAIL_DB_TYPE=mysql

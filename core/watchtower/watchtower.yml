@@ -10,7 +10,7 @@ services:
     # Security: Run as non-root user, grant Docker socket group permissions
     user: "${PUID}:${GUID}"
     group_add:
-      - "${SOCKET_GID}"
+      - "${DOCKER_SOCKET_GID}"
 
     # Connectivity: Needs outbound internet to check registries for updates
     networks:
