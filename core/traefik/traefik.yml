@@ -81,7 +81,7 @@ services:
       - "--providers.docker.network=traefik-public"
 
       # File Provider
-      - "--providers.file.filename=/traefik_dynamic.yml"
+      - "--providers.file.filename=/config/dynamic.yml"
       - "--providers.file.watch=true"
 
       # Entrypoints (HTTP automatically redirects to HTTPS)
@@ -124,7 +124,7 @@ services:
     # State: Persistent data and dynamic config mounts
     volumes:
       - ./data:/data
-      - ./traefik_dynamic.yml:/traefik_dynamic.yml:ro
+      - ./config/dynamic.yml:/config/dynamic.yml:ro
     tmpfs: [/tmp]
 
     # Security: Lock filesystem and add capabilities for port binding
