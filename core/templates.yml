@@ -32,7 +32,7 @@ services:
       - DAC_OVERRIDE
 
   # --- Basic Service Base: Template for basic containers ---
-  base-basic:
+  base-default:
     restart: unless-stopped
 
     # Healtcheck: Inject the anchor locally
