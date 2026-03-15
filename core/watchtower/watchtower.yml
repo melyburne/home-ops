@@ -4,7 +4,7 @@ services:
     extends:
       file: ../templates.yml
       service: base-secure
-    image: nickfedor/watchtower:${WATCHTOWER_VERSION_TAG}
+    image: nickfedor/watchtower:${WATCHTOWER_DOCKER_TAG}
     container_name: watchtower
 
     # Security: Run as non-root user, grant Docker socket group permissions

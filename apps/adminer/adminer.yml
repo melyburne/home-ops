@@ -4,7 +4,7 @@ services:
     extends:
       file: ../../core/templates.yml
       service: base-secure
-    image: adminer:${ADMINER_VERSION_TAG}
+    image: adminer:${ADMINER_DOCKER_TAG}
     container_name: adminer
 
     # Connectivity: Connects to both the public proxy and the internal database network

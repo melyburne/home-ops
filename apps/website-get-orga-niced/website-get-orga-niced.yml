@@ -4,7 +4,7 @@ services:
     extends:
       file: ../../core/templates.yml
       service: base-secure
-    image: ghcr.io/kartoffelbauer/web-get-orga-niced:${WEB_GETORGANICED_VERSION_TAG}
+    image: ghcr.io/kartoffelbauer/web-get-orga-niced:${WEB_GETORGANICED_DOCKER_TAG}
     container_name: website-get-orga-niced
 
     # Connectivity: Attach to the shared reverse proxy network

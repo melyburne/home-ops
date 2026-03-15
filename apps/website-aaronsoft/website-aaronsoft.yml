@@ -4,7 +4,7 @@ services:
     extends:
       file: ../../core/templates.yml
       service: base-secure
-    image: ghcr.io/kartoffelbauer/web-aaronsoft:${WEB_AARONSOFT_VERSION_TAG}
+    image: ghcr.io/kartoffelbauer/web-aaronsoft:${WEB_AARONSOFT_DOCKER_TAG}
     container_name: website-aaronsoft
 
     # Connectivity: Attach to the shared reverse proxy network
