@@ -5,7 +5,7 @@ services:
       file: ../../core/templates.yml
       service: base-init
     container_name: roundcube-init
-    command: sh -c "chgrp -R ${GUID} /config && chmod -R 640 /config/*"
+    command: sh -c "chgrp -R ${GUID:-1000} /config && chmod -R 640 /config/*"
     volumes:
       - ./config:/config
 
@@ -14,11 +14,11 @@ services:
     extends:
       file: ../../core/templates.yml
       service: base-secure
-    image: ghcr.io/kartoffelbauer/docker-roundcube-custom:${ROUNDCUBE_DOCKER_TAG}
+    image: ghcr.io/kartoffelbauer/docker-roundcube-custom:${ROUNDCUBE_DOCKER_TAG:-latest-nonroot}
     container_name: roundcube
 
     # Security: Run as non-root user
-    user: "${PUID}:${GUID}"
+    user: "${PUID:-1000}:${GUID:-1000}"
 
     # Lifecycle: Wait for database to be ready
     depends_on:
@@ -37,16 +37,16 @@ services:
       - ROUNDCUBEMAIL_USERNAME_DOMAIN=%d
       - ROUNDCUBEMAIL_PLUGINS=archive,attachment_reminder,emoticons,filesystem_attachments,managesieve,password,subscriptions_option,vcard_attachments,zipdownload,carddav
       - ROUNDCUBEMAIL_COMPOSER_PLUGINS=roundcube/carddav
-      - ROUNDCUBEMAIL_IMAP_HOST=ssl://mail.gandi.net
-      - ROUNDCUBEMAIL_IMAP_PORT=993
-      - ROUNDCUBEMAIL_SMTP_SERVER=ssl://mail.gandi.net
-      - ROUNDCUBEMAIL_SMTP_PORT=465
+      - ROUNDCUBEMAIL_DEFAULT_HOST=${ROUNDCUBE_IMAP_HOST:?}
+      - ROUNDCUBEMAIL_DEFAULT_PORT=${ROUNDCUBE_IMAP_PORT:-993}
+      - ROUNDCUBEMAIL_SMTP_SERVER=${ROUNDCUBE_SMTP_SERVER:?}
+      - ROUNDCUBEMAIL_SMTP_PORT=${ROUNDCUBE_SMTP_PORT:-465}
       - ROUNDCUBEMAIL_DB_TYPE=mysql
       - ROUNDCUBEMAIL_DB_HOST=mariadb
-      - ROUNDCUBEMAIL_DB_USER=${ROUNDCUBE_DB_USER}
-      - ROUNDCUBEMAIL_DB_PASSWORD=${ROUNDCUBE_DB_PASSWORD}
-      - ROUNDCUBEMAIL_DB_NAME=${ROUNDCUBE_DB_NAME}
-      - GANDIV5_PERSONAL_ACCESS_TOKEN=${GANDIV5_PERSONAL_ACCESS_TOKEN}
+      - ROUNDCUBEMAIL_DB_USER=${ROUNDCUBE_DB_USER:-roundcube}
+      - ROUNDCUBEMAIL_DB_PASSWORD=${ROUNDCUBE_DB_PASSWORD:?}
+      - ROUNDCUBEMAIL_DB_NAME=${ROUNDCUBE_DB_NAME:-roundcubemail}
+      - GANDIV5_PERSONAL_ACCESS_TOKEN=${GANDIV5_PERSONAL_ACCESS_TOKEN:?}
 
     # State: Configuration mounts and in-memory temporary space
     volumes:
@@ -58,7 +58,7 @@ services:
     # Routing: Traefik dynamic and watchtower configuration
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.roundcube.rule=${ROUNDCUBE_HOST_RULE}"
+      - "traefik.http.routers.roundcube.rule=${ROUNDCUBE_HOST_RULE:-Host(`mail.localhost`)}"
       - "traefik.http.routers.roundcube.entrypoints=websecure"
       - "traefik.http.services.roundcube.loadbalancer.server.port=8000"
 

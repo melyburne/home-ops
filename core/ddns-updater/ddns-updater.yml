@@ -5,7 +5,7 @@ services:
       file: ../templates.yml
       service: base-init
     container_name: gandi-ddns-init
-    command: sh -c "chown -R ${PUID}:${GUID} /data"
+    command: sh -c "chown -R ${PUID}:${GUID:-1000} /data"
     volumes:
       - ./data:/data
 
@@ -14,9 +14,9 @@ services:
     extends:
       file: ../templates.yml
       service: base-secure
-    image: qmcgaw/ddns-updater:${DDNS_UPDATER_DOCKER_TAG}
+    image: qmcgaw/ddns-updater:${DDNS_UPDATER_DOCKER_TAG:-latest}
     container_name: ddns-updater
-    user: "${PUID}:${GUID}"
+    user: "${PUID:-1000}:${GUID:-1000}"
 
     # Connectivity: Attach to the shared outbound traffic
     networks:
@@ -31,7 +31,7 @@ services:
     environment:
       - LOG_LEVEL=info
       - SERVER_ENABLED=false
-      - CONFIG={"settings":[{"provider":"gandi","domain":"aaronsoft.de","ttl":10800,"ip_version":"ipv4","personal_access_token":"${GANDIV5_PERSONAL_ACCESS_TOKEN}"},{"provider":"gandi","domain":"get-orga-niced.de","ttl":10800,"ip_version":"ipv4","personal_access_token":"${GANDIV5_PERSONAL_ACCESS_TOKEN}"}]}
+      - CONFIG={"settings":[{"provider":"gandi","domain":"aaronsoft.de","ttl":10800,"ip_version":"ipv4","personal_access_token":"${GANDIV5_PERSONAL_ACCESS_TOKEN:?}"},{"provider":"gandi","domain":"get-orga-niced.de","ttl":10800,"ip_version":"ipv4","personal_access_token":"${GANDIV5_PERSONAL_ACCESS_TOKEN:?}"}]}
 
     # State persistence to prevent API rate limiting from Gandi on container restart
     volumes:

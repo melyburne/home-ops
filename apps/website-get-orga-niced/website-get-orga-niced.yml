@@ -4,7 +4,7 @@ services:
     extends:
       file: ../../core/templates.yml
       service: base-secure
-    image: ghcr.io/kartoffelbauer/web-get-orga-niced:${WEB_GETORGANICED_DOCKER_TAG}
+    image: ghcr.io/kartoffelbauer/web-get-orga-niced:${WEB_GETORGANICED_DOCKER_TAG:-latest}
     container_name: website-get-orga-niced
 
     # Connectivity: Attach to the shared reverse proxy network
@@ -14,7 +14,7 @@ services:
     # Routing: Traefik dynamic configuration (HTTPS, middleware, internal port mapping)
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web-get-orga-niced.rule=${WEB_GETORGANICED_HOST_RULE}"
+      - "traefik.http.routers.web-get-orga-niced.rule=${WEB_GETORGANICED_HOST_RULE:-Host(`organiced.localhost`)}"
       - "traefik.http.routers.web-get-orga-niced.entrypoints=websecure"
       - "traefik.http.services.web-get-orga-niced.loadbalancer.server.port=8080"
 

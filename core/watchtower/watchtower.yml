@@ -4,13 +4,13 @@ services:
     extends:
       file: ../templates.yml
       service: base-secure
-    image: nickfedor/watchtower:${WATCHTOWER_DOCKER_TAG}
+    image: nickfedor/watchtower:${WATCHTOWER_DOCKER_TAG:-latest}
     container_name: watchtower
 
     # Security: Run as non-root user, grant Docker socket group permissions
-    user: "${PUID}:${GUID}"
+    user: "${PUID:-1000}:${GUID:-1000}"
     group_add:
-      - "${DOCKER_SOCKET_GID}"
+      - "${DOCKER_SOCKET_GID:-987}"
 
     # Connectivity: Needs outbound internet to check registries for updates
     networks:
@@ -19,7 +19,7 @@ services:
     # Configuration: Barebones automatic updates
     environment:
       - WATCHTOWER_LOG_LEVEL=info
-      - WATCHTOWER_POLL_INTERVAL=${WATCHTOWER_POLL_INTERVAL}
+      - WATCHTOWER_POLL_INTERVAL=${WATCHTOWER_POLL_INTERVAL:-900}
       - WATCHTOWER_INCLUDE_STOPPED=true
       - WATCHTOWER_CLEANUP=true
 

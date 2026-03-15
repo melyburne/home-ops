@@ -5,7 +5,7 @@ services:
       file: ../templates.yml
       service: base-init
     container_name: traefik-init
-    command: sh -c "touch /data/acme.json && chown -R ${PUID}:${GUID} /data && chmod 600 /data/acme.json"
+    command: sh -c "touch /data/acme.json && chown -R ${PUID:-1000}:${GUID:-1000} /data && chmod 600 /data/acme.json"
     volumes:
       - ./data:/data
 
@@ -41,11 +41,11 @@ services:
     extends:
       file: ../templates.yml
       service: base-secure
-    image: traefik:${TRAEFIK_DOCKER_TAG}
+    image: traefik:${TRAEFIK_DOCKER_TAG:-latest}
     container_name: traefik
 
     # Security: Run as non-root user
-    user: "${PUID}:${GUID}"
+    user: "${PUID:-1000}:${GUID:-1000}"
 
     # Lifecycle: Wait for permissions to be fixed and socket proxy to start
     depends_on:
@@ -64,7 +64,7 @@ services:
 
     # Configuration: Global environment variables
     environment:
-      - GANDIV5_PERSONAL_ACCESS_TOKEN=${GANDIV5_PERSONAL_ACCESS_TOKEN}
+      - GANDIV5_PERSONAL_ACCESS_TOKEN=${GANDIV5_PERSONAL_ACCESS_TOKEN:?}
       - LEGO_DISABLE_CNAME_SUPPORT=true
 
     # Execution: Core Traefik configuration (Providers, Entrypoints, Let's Encrypt)
@@ -106,7 +106,7 @@ services:
       # --- Let's Encrypt Staging (DNS Challenge) ---
       # Remember to remove "-staging" from the caServer URL when moving to production!
       - "--certificatesresolvers.myresolver.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory"
-      - "--certificatesresolvers.myresolver.acme.email=${TRAEFIK_ACME_EMAIL}"
+      - "--certificatesresolvers.myresolver.acme.email=${TRAEFIK_ACME_EMAIL:?}"
       - "--certificatesresolvers.myresolver.acme.storage=/data/acme.json"
       - "--certificatesresolvers.myresolver.acme.dnschallenge=true"
       - "--certificatesresolvers.myresolver.acme.dnschallenge.provider=gandiv5"
@@ -116,10 +116,10 @@ services:
     # Routing: Internal dashboard exposure configuration
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.dashboard.rule=${TRAEFIK_DASHBOARD_HOST_RULE}"
+      - "traefik.http.routers.dashboard.rule=${TRAEFIK_DASHBOARD_HOST_RULE:-Host(`traefik.localhost`)}"
       - "traefik.http.routers.dashboard.service=api@internal"
       - "traefik.http.routers.dashboard.middlewares=dashboard-auth"
-      - "traefik.http.middlewares.dashboard-auth.basicauth.users=${TRAEFIK_DASHBOARD_CREDENTIALS}"
+      - "traefik.http.middlewares.dashboard-auth.basicauth.users=${TRAEFIK_DASHBOARD_CREDENTIALS:?}"
 
     # State: Persistent data and dynamic config mounts
     volumes:

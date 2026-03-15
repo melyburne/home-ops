@@ -4,7 +4,7 @@ services:
     extends:
       file: ../../core/templates.yml
       service: base-secure
-    image: adminer:${ADMINER_DOCKER_TAG}
+    image: adminer:${ADMINER_DOCKER_TAG:-latest}
     container_name: adminer
 
     # Connectivity: Connects to both the public proxy and the internal database network
@@ -19,7 +19,7 @@ services:
     # Routing: Traefik configuration for secure external access
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.adminer.rule=${ADMINER_HOST_RULE}"
+      - "traefik.http.routers.adminer.rule=${ADMINER_HOST_RULE:-Host(`adminer.localhost`)}"
       - "traefik.http.routers.adminer.entrypoints=websecure"
       - "traefik.http.services.adminer.loadbalancer.server.port=8080"
 
