@@ -24,7 +24,7 @@ echo "   ✅ .env files secured (600)"
 # here to ensure they are secure "at rest" on the host filesystem.
 SENSITIVE_FILES=(
     "core/traefik/data/acme.json"
-    "core/traefik/traefik_dynamic.yml"
+    "core/traefik/config/dynamic.yml"
     "apps/roundcube/config/config.inc.php"
     "apps/roundcube/config/nonroot-custom-php-config.ini"
 )

@@ -5,7 +5,7 @@ services:
       file: ../templates.yml
       service: base-init
     container_name: gandi-ddns-init
-    command: sh -c "chown -R ${PUID}:${GUID:-1000} /data"
+    command: sh -c "chown -R ${PUID:-1000}:${GUID:-1000} /data"
     volumes:
       - ./data:/data
 
