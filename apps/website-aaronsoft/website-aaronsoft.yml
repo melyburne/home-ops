@@ -3,7 +3,7 @@ services:
   website-aaronsoft:
     extends:
       file: ../../core/templates.yml
-      service: base-service-secure
+      service: base-secure
     image: ghcr.io/kartoffelbauer/web-aaronsoft:${WEB_AARONSOFT_VERSION_TAG}
     container_name: website-aaronsoft
 

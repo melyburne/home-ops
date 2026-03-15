@@ -13,7 +13,7 @@ services:
   mariadb:
     extends:
       file: ../templates.yml
-      service: base-service-secure
+      service: base-secure
     image: mariadb:${MARIADB_VERSION_TAG}
     container_name: mariadb
 

@@ -13,7 +13,7 @@ services:
   ddns-updater:
     extends:
       file: ../templates.yml
-      service: base-service-secure
+      service: base-secure
     image: qmcgaw/ddns-updater:${DDNS_UPDATER_VERSION_TAG}
     container_name: ddns-updater
     user: "${PUID}:${GUID}"

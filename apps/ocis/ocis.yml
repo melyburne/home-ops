@@ -103,7 +103,7 @@ services:
   tika:
     extends:
       file: ../../core/templates.yml
-      service: base-service-secure
+      service: base-secure
     image: apache/tika:latest-full
     container_name: ocis-tika
 
@@ -124,7 +124,7 @@ services:
   ocis:
     extends:
       file: ../../core/templates.yml
-      service: base-service-secure
+      service: base-secure
     image: owncloud/ocis:${OCIS_VERSION_TAG}
     container_name: ocis
 
@@ -215,7 +215,7 @@ services:
   collaboration-oo:
     extends:
       file: ../../core/templates.yml
-      service: base-service-secure
+      service: base-secure
     image: owncloud/ocis:${OCIS_VERSION_TAG}
     container_name: ocis-collaboration-oo
 
@@ -265,7 +265,7 @@ services:
   onlyoffice:
     extends:
       file: ../../core/templates.yml
-      service: base-service-basic
+      service: base-basic
     image: onlyoffice/documentserver:${OCIS_ONLYOFFICE_VERSION_TAG}
     container_name: ocis-onlyoffice
 
