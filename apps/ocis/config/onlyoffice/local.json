@@ -14,22 +14,6 @@
         ],
         "useforrequest": false,
         "errorcode": 403
-      },
-
-      "token": {
-        "enable": {
-          "request": {
-            "inbox": true,
-            "outbox": true
-          },
-          "browser": true
-        },
-        "inbox": {
-          "header": "Authorization"
-        },
-        "outbox": {
-          "header": "Authorization"
-        }
       }
     }
   },
