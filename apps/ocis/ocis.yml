@@ -248,6 +248,7 @@ services:
       COLLABORATION_APP_ICON: "https://${OCIS_ONLYOFFICE_DOMAIN:-onlyoffice.localhost}/web-apps/apps/documenteditor/main/resources/img/favicon.ico"
       COLLABORATION_APP_INSECURE: "true"
       COLLABORATION_CS3API_DATAGATEWAY_INSECURE: "true"
+      COLLABORATION_WOPI_SECRET: "${OCIS_ONLYOFFICE_JWT_SECRET:?}"
       COLLABORATION_LOG_LEVEL: "info"
       OCIS_URL: "https://${OCIS_DOMAIN:-ocis.localhost}"
 
@@ -291,9 +292,9 @@ services:
       DB_TYPE: "mariadb"
       DB_HOST: "mariadb"
       DB_PORT: "3306"
-      DB_NAME: ${OCIS_ONLYOFFICE_DB_NAME:-onlyoffice}
-      DB_USER: ${OCIS_ONLYOFFICE_DB_USER:-onlyoffice}
-      DB_PWD: ${OCIS_ONLYOFFICE_DB_PASSWORD:?}
+      DB_NAME: "${OCIS_ONLYOFFICE_DB_NAME:-onlyoffice}"
+      DB_USER: "${OCIS_ONLYOFFICE_DB_USER:-onlyoffice}"
+      DB_PWD: "${OCIS_ONLYOFFICE_DB_PASSWORD:?}"
       REDIS_SERVER_HOST: "localhost"
       REDIS_SERVER_PORT: "6379"
 
