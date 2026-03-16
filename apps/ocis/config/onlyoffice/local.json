@@ -14,6 +14,20 @@
         ],
         "useforrequest": false,
         "errorcode": 403
+      },
+      "sql": {},
+      "token": {
+        "enable": {
+          "request": {}
+        },
+        "inbox": {},
+        "outbox": {}
+      },
+      "secret": {
+        "inbox": {},
+        "outbox": {},
+        "session": {},
+        "browser": {}
       }
     }
   },
