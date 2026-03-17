@@ -23,8 +23,9 @@ services:
 
     # Configuration: Explicitly allow listing containers, block everything else
     environment:
-      CONTAINERS: 1
       LOG_LEVEL: notice
+      PING: 1
+      CONTAINERS: 1
 
     # State: Read-only mount of the actual Docker socket, plus in-memory temp areas
     volumes:
@@ -35,6 +36,10 @@ services:
 
     # Security: Hardened container, drop all privileges
     read_only: true
+
+    # Monitoring: Native internal HTTP ping check
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:2375/_ping || exit 1"]
 
   # --- Main Reverse Proxy: Traefik ---
   traefik:
@@ -52,7 +57,7 @@ services:
       traefik-init:
         condition: service_completed_successfully
       socket-proxy:
-        condition: service_started
+        condition: service_healthy
 
     # Connectivity: Public facing ports and internal network attachments
     ports:
@@ -131,9 +136,9 @@ services:
     read_only: true
     cap_add: [NET_BIND_SERVICE]
 
-    # Monitoring: Internal Traefik ping check
+    # Monitoring: Native internal HTTP ping check
     healthcheck:
-      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:8080/ping || exit 1"]
 
 
 # --- Global Network Definitions ---

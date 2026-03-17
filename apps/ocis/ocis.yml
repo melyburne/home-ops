@@ -103,7 +103,7 @@ services:
         curl -sL "https://github.com/LukasHirt/web-app-excalidraw/releases/download/$$VERSION/excalidraw-$$VERSION.tar.gz" -o /tmp/excalidraw-release.tar.gz
 
         # 4. Extract the files
-        tar -xzf /tmp/excalidraw-release.tar.gz -C /apps/
+        tar -xz --warning=no-unknown-keyword -f /tmp/excalidraw-release.tar.gz -C /apps/
 
         # 5. Clean up
         rm /tmp/excalidraw-release.tar.gz
@@ -141,12 +141,8 @@ services:
     # Security: Run as non-root user
     user: "${PUID:-1000}:${GUID:-1000}"
 
-    # Lifecycle: Wait for initialization and text extraction service
+    # Lifecycle: Wait for extensions and tika
     depends_on:
-      ocis-init:
-        condition: service_completed_successfully
-      tika:
-        condition: service_healthy
       photo-addon-init:
         condition: service_completed_successfully
       jsonviewer-init:
@@ -161,6 +157,8 @@ services:
         condition: service_completed_successfully
       excalidraw-init:
         condition: service_completed_successfully
+      tika:
+        condition: service_healthy
 
     # Connectivity: Internal communication and public proxy exposure
     networks:
@@ -219,9 +217,11 @@ services:
       - ./config/ocis/banned-password-list.txt:/etc/ocis/banned-password-list.txt
       - ocis-apps:/var/lib/ocis/web/assets/apps
 
-    # Monitoring: Local logging driver
+    # Monitoring: Local logging driver and healthcheck
     logging:
       driver: local
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:9200/healthz || exit 1"]
 
   # --- Connector: oCIS to OnlyOffice ---
   collaboration-oo:
@@ -237,7 +237,7 @@ services:
     # Lifecycle: Wait for oCIS core and OnlyOffice to be ready
     depends_on:
       ocis:
-        condition: service_started
+        condition: service_healthy
       onlyoffice:
         condition: service_healthy
 
@@ -270,9 +270,11 @@ services:
     volumes:
       - ${OCIS_CONFIG_DIR:-./data/config/}:/etc/ocis
 
-    # Monitoring: Local logging driver
+    # Monitoring: Local logging driver and healthcheck
     logging:
       driver: local
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:9300/healthz || exit 1"]
 
   # --- Document Server: OnlyOffice ---
   onlyoffice:
@@ -343,7 +345,7 @@ services:
       - NET_BIND_SERVICE
       - KILL
 
-    # Monitoring: Healthcheck and local logging driver
+    # Monitoring: Local logging driver and healthcheck
     logging:
       driver: local
     healthcheck:
