@@ -275,6 +275,7 @@ services:
       driver: local
     healthcheck:
       test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:9300/healthz || exit 1"]
+      start_period: 300s
 
   # --- Document Server: OnlyOffice ---
   onlyoffice:
