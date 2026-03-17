@@ -340,14 +340,14 @@ services:
       - FOWNER
       - AUDIT_WRITE
       - DAC_OVERRIDE
-      - NET_BIND_SERVICE
+      - NET_BIND_SERVICE^
       - KILL
 
     # Monitoring: Healthcheck and local logging driver
     logging:
       driver: local
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/hosting/discovery"]
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1/healthcheck || exit 1"]
       start_period: 300s
 
 
