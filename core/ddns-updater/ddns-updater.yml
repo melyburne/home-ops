@@ -42,6 +42,11 @@ services:
     # Security: Lock the filesystem
     read_only: true
 
+    # Monitoring: Override default healthcheck values
+    healthcheck:
+      interval: 5m
+      timeout: 20s
+
 
 # --- Global Network Definitions ---
 networks:
