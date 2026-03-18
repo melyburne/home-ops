@@ -29,14 +29,13 @@ x-ocis-ext-default: &ocis-ext-default
 # Template for oCIS Web Extensions with custom logic
 x-ocis-ext-custom: &ocis-ext-custom
   <<: *ocis-ext-base
-  image: busybox:${BUSYBOX_DOCKER_TAG:-latest}
+  image: alpine:${ALPINE_DOCKER_TAG:-latest}
   entrypoint:
     - /bin/sh
     - /init.sh
   networks:
     - outbound-public
   volumes:
-    # Note: YAML overriding means we MUST repeat the base volume here
     - ocis-apps:/apps
     - ./init/init-extensions.sh:/init.sh:ro
 

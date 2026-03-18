@@ -3,7 +3,7 @@ set -e
 
 # ==============================================================================
 # Script: init-extensions.sh
-# Environment: BusyBox / Alpine (POSIX sh)
+# Environment: Alpine (POSIX sh)
 # Description: Automatically downloads and installs oCIS web extensions from
 #              GitHub releases. Extracts archives and places valid extensions
 #              (identified by manifest.json) into the /apps directory.
