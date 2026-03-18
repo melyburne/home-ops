@@ -19,7 +19,7 @@ x-ocis-ext-default: &ocis-ext-default
 # Template for oCIS Web Extensions with custom logic
 x-ocis-ext-custom: &ocis-ext-custom
   <<: *ocis-ext-base
-  image: alpine:latest
+  image: alpine:${ALPINE_DOCKER_TAG:-latest}
   networks: [outbound-public]
 
 
@@ -41,73 +41,53 @@ services:
       - ocis-apps:/ocis-apps
 
   # --- Web Extensions ---
-  photo-addon-init:
+  ocis-ext-photo-addon-init:
     <<: *ocis-ext-default
     image: owncloud/web-extensions:photo-addon-${OCIS_EXT_PHOTO_ADDON_DOCKER_TAG:-latest}
-    container_name: ocis-photo-addon-init
+    container_name: ocis-ext-photo-addon-init
     command: ["-c", "cp -R /var/lib/nginx/html/photo-addon/ /apps"]
 
-  jsonviewer-init:
+  ocis-ext-jsonviewer-init:
     <<: *ocis-ext-default
     image: owncloud/web-extensions:json-viewer-${OCIS_EXT_JSON_VIEWER_DOCKER_TAG:-latest}
-    container_name: ocis-jsonviewer-init
+    container_name: ocis-ext-jsonviewer-init
     command: ["-c", "cp -R /var/lib/nginx/html/json-viewer/ /apps"]
 
-  advanced-search-init:
+  ocis-ext-advanced-search-init:
     <<: *ocis-ext-default
     image: owncloud/web-extensions:advanced-search-${OCIS_EXT_ADV_SEARCH_DOCKER_TAG:-latest}
-    container_name: ocis-advanced-search-init
+    container_name: ocis-ext-advanced-search-init
     command: ["-c", "cp -R /var/lib/nginx/html/advanced-search/ /apps"]
 
-  unzip-init:
+  ocis-ext-unzip-init:
     <<: *ocis-ext-default
     image: owncloud/web-extensions:unzip-${OCIS_EXT_UNZIP_DOCKER_TAG:-latest}
-    container_name: ocis-unzip-init
+    container_name: ocis-ext-unzip-init
     command: ["-c", "cp -R /var/lib/nginx/html/unzip/ /apps"]
 
-  drawio-init:
+  ocis-ext-drawio-init:
     <<: *ocis-ext-default
     image: owncloud/web-extensions:draw-io-${OCIS_EXT_DRAWIO_DOCKER_TAG:-latest}
-    container_name: ocis-drawio-init
+    container_name: ocis-ext-drawio-init
     command: ["-c", "cp -R /var/lib/nginx/html/draw-io/ /apps"]
 
-  3dviewer-init:
+  ocis-ext-3dviewer-init:
     <<: *ocis-ext-default
     image: sawjan/3dviewer:${OCIS_EXT_3D_VIEWER_DOCKER_TAG:-0.1.0}
-    container_name: ocis-3dviewer-init
+    container_name: ocis-ext-3dviewer-init
     command: ['-c', 'cp -R /app/* /apps']
 
-  excalidraw-init:
+  ocis-ext-custom-init:
     <<: *ocis-ext-custom
-    container_name: ocis-excalidraw-init
-
-    # Execution: Installs required tools, fetches latest tag if needed, downloads, and extracts
-    command:
-      - |
-        apk add --no-cache curl tar unzip
-        mkdir -p /apps/excalidraw
-        
-        # 1. Grab the version from your .env file
-        VERSION="${OCIS_EXT_EXCALIDRAW_DOCKER_TAG:-latest}"
-        
-        # 2. If the version is set to "latest", dynamically fetch the real tag from GitHub
-        if [ "$$VERSION" = "latest" ]; then
-          echo "Fetching latest version tag from GitHub..."
-          # Queries the GitHub API, finds the "tag_name" line, and extracts the value (e.g., "v0.1.0")
-          VERSION=$$(curl -s https://api.github.com/repos/LukasHirt/web-app-excalidraw/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-        fi
-        
-        echo "Downloading Excalidraw extension version: $$VERSION..."
-
-        # 3. Download the release artifact using the dynamic version
-        curl -sL "https://github.com/LukasHirt/web-app-excalidraw/releases/download/$$VERSION/excalidraw-$$VERSION.tar.gz" -o /tmp/excalidraw-release.tar.gz
-
-        # 4. Extract the files
-        tar -xz --warning=no-unknown-keyword -f /tmp/excalidraw-release.tar.gz -C /apps/
-
-        # 5. Clean up
-        rm /tmp/excalidraw-release.tar.gz
-        echo "Excalidraw extension successfully copied to /apps."
+    container_name: ocis-ext-custom-init
+    command: 
+      - /bin/sh
+      - /init.sh
+      - "LukasHirt/web-app-excalidraw:${OCIS_EXT_EXCALIDRAW_DOCKER_TAG:-latest}"
+      - "mschlachter/ocis-app-tokens:${OCIS_EXT_APP_TOKENS_DOCKER_TAG:-latest}"
+    volumes:
+      - ./init/init-extensions.sh:/init.sh:ro
+      - ocis-apps:/apps
 
   # --- Full Text Search Extractor ---
   tika:
@@ -143,19 +123,19 @@ services:
 
     # Lifecycle: Wait for extensions and tika
     depends_on:
-      photo-addon-init:
+      ocis-ext-photo-addon-init:
         condition: service_completed_successfully
-      jsonviewer-init:
+      ocis-ext-jsonviewer-init:
         condition: service_completed_successfully
-      advanced-search-init:
+      ocis-ext-advanced-search-init:
         condition: service_completed_successfully
-      unzip-init:
+      ocis-ext-unzip-init:
         condition: service_completed_successfully
-      drawio-init:
+      ocis-ext-drawio-init:
         condition: service_completed_successfully
-      3dviewer-init:
+      ocis-ext-3dviewer-init:
         condition: service_completed_successfully
-      excalidraw-init:
+      ocis-ext-ocis-custom-init:
         condition: service_completed_successfully
       tika:
         condition: service_healthy
