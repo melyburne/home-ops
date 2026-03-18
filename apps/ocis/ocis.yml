@@ -3,24 +3,42 @@
 x-ocis-ext-base: &ocis-ext-base
   user: root
   platform: linux/amd64
-  security_opt: ["no-new-privileges:true"]
-  cap_drop: [ALL]
-  cap_add: [CHOWN, FOWNER, FSETID, DAC_OVERRIDE]
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  cap_add:
+    - CHOWN
+    - FOWNER
+    - FSETID
+    - DAC_OVERRIDE
   depends_on:
-    ocis-init: { condition: service_completed_successfully }
-  entrypoint: ["/bin/sh", "-c"]
-  volumes: [ocis-apps:/apps]
+    ocis-init:
+      condition: service_completed_successfully
+  volumes:
+    - ocis-apps:/apps
 
 # Template for oCIS Web Extensions
 x-ocis-ext-default: &ocis-ext-default
   <<: *ocis-ext-base
+  entrypoint:
+    - /bin/sh
+    - -c
   network_mode: none
 
 # Template for oCIS Web Extensions with custom logic
 x-ocis-ext-custom: &ocis-ext-custom
   <<: *ocis-ext-base
-  image: alpine:${ALPINE_DOCKER_TAG:-latest}
-  networks: [outbound-public]
+  image: busybox:${BUSYBOX_DOCKER_TAG:-latest}
+  entrypoint:
+    - /bin/sh
+    - /init.sh
+  networks:
+    - outbound-public
+  volumes:
+    # Note: YAML overriding means we MUST repeat the base volume here
+    - ocis-apps:/apps
+    - ./init/init-extensions.sh:/init.sh:ro
 
 
 services:
@@ -32,7 +50,10 @@ services:
     container_name: ocis-init
 
     # Execution: Set correct ownership for oCIS directories
-    command: sh -c "chown -R ${PUID:-1000}:${GUID:-1000} /ocis-config /ocis-data /ocis-apps"
+    command:
+      - sh
+      - -c
+      - "chown -R ${PUID:-1000}:${GUID:-1000} /ocis-config /ocis-data /ocis-apps"
 
     # State: Mount configuration and data directories
     volumes:
@@ -45,49 +66,56 @@ services:
     <<: *ocis-ext-default
     image: owncloud/web-extensions:photo-addon-${OCIS_EXT_PHOTO_ADDON_DOCKER_TAG:-latest}
     container_name: ocis-ext-photo-addon-init
-    command: ["-c", "cp -R /var/lib/nginx/html/photo-addon/ /apps"]
+    command:
+      - -c
+      - "cp -R /var/lib/nginx/html/photo-addon/ /apps"
 
   ocis-ext-jsonviewer-init:
     <<: *ocis-ext-default
     image: owncloud/web-extensions:json-viewer-${OCIS_EXT_JSON_VIEWER_DOCKER_TAG:-latest}
     container_name: ocis-ext-jsonviewer-init
-    command: ["-c", "cp -R /var/lib/nginx/html/json-viewer/ /apps"]
+    command:
+      - -c
+      - "cp -R /var/lib/nginx/html/json-viewer/ /apps"
 
   ocis-ext-advanced-search-init:
     <<: *ocis-ext-default
     image: owncloud/web-extensions:advanced-search-${OCIS_EXT_ADV_SEARCH_DOCKER_TAG:-latest}
     container_name: ocis-ext-advanced-search-init
-    command: ["-c", "cp -R /var/lib/nginx/html/advanced-search/ /apps"]
+    command:
+      - -c
+      - "cp -R /var/lib/nginx/html/advanced-search/ /apps"
 
   ocis-ext-unzip-init:
     <<: *ocis-ext-default
     image: owncloud/web-extensions:unzip-${OCIS_EXT_UNZIP_DOCKER_TAG:-latest}
     container_name: ocis-ext-unzip-init
-    command: ["-c", "cp -R /var/lib/nginx/html/unzip/ /apps"]
+    command:
+      - -c
+      - "cp -R /var/lib/nginx/html/unzip/ /apps"
 
   ocis-ext-drawio-init:
     <<: *ocis-ext-default
     image: owncloud/web-extensions:draw-io-${OCIS_EXT_DRAWIO_DOCKER_TAG:-latest}
     container_name: ocis-ext-drawio-init
-    command: ["-c", "cp -R /var/lib/nginx/html/draw-io/ /apps"]
+    command:
+      - -c
+      - "cp -R /var/lib/nginx/html/draw-io/ /apps"
 
   ocis-ext-3dviewer-init:
     <<: *ocis-ext-default
     image: sawjan/3dviewer:${OCIS_EXT_3D_VIEWER_DOCKER_TAG:-0.1.0}
     container_name: ocis-ext-3dviewer-init
-    command: ['-c', 'cp -R /app/* /apps']
+    command:
+      - -c
+      - "cp -R /app/* /apps"
 
   ocis-ext-custom-init:
     <<: *ocis-ext-custom
     container_name: ocis-ext-custom-init
-    command: 
-      - /bin/sh
-      - /init.sh
+    command:
       - "LukasHirt/web-app-excalidraw:${OCIS_EXT_EXCALIDRAW_DOCKER_TAG:-latest}"
       - "mschlachter/ocis-app-tokens:${OCIS_EXT_APP_TOKENS_DOCKER_TAG:-latest}"
-    volumes:
-      - ./init/init-extensions.sh:/init.sh:ro
-      - ocis-apps:/apps
 
   # --- Full Text Search Extractor ---
   tika:
@@ -108,7 +136,9 @@ services:
     logging:
       driver: local
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:9998/version || exit 1"]
+      test:
+        - CMD-SHELL
+        - "wget -qO /dev/null http://127.0.0.1:9998/version || exit 1"
 
   # --- Main oCIS Server ---
   ocis:
@@ -135,7 +165,7 @@ services:
         condition: service_completed_successfully
       ocis-ext-3dviewer-init:
         condition: service_completed_successfully
-      ocis-ext-ocis-custom-init:
+      ocis-ext-custom-init:
         condition: service_completed_successfully
       tika:
         condition: service_healthy
@@ -147,7 +177,7 @@ services:
 
     # Configuration: Core oCIS environment variables and features
     environment:
-      OCIS_ADD_RUN_SERVICES: "notifications"
+      OCIS_ADD_RUN_SERVICES: "notifications, auth-app"
       OCIS_URL: "https://${OCIS_DOMAIN:-ocis.localhost}"
       OCIS_LOG_LEVEL: "info"
       OCIS_LOG_COLOR: "false"
@@ -156,6 +186,7 @@ services:
       GATEWAY_GRPC_ADDR: "0.0.0.0:9142"
       OCIS_INSECURE: "true"
       PROXY_ENABLE_BASIC_AUTH: "true"
+      PROXY_ENABLE_APP_AUTH: "true"
       IDM_ADMIN_PASSWORD: "admin"
       IDM_CREATE_DEMO_USERS: "false"
       NOTIFICATIONS_SMTP_HOST: "${OCIS_SMTP_HOST:?}"
@@ -178,7 +209,9 @@ services:
     # Execution: Initialize if needed, then start server
     entrypoint:
       - /bin/sh
-    command: ["-c", "ocis init || true; exec ocis server"]
+    command:
+      - -c
+      - "ocis init || true; exec ocis server"
 
     # Routing: Traefik reverse proxy configuration
     labels:
@@ -193,6 +226,7 @@ services:
       - ${OCIS_CONFIG_DIR:-./data/config/}:/etc/ocis
       - ${OCIS_DATA_DIR:-./data/data/}:/var/lib/ocis
       - ./config/ocis/app-registry.yaml:/etc/ocis/app-registry.yaml
+      - ./config/ocis/apps.yaml:/etc/ocis/apps.yaml
       - ./config/ocis/csp.yaml:/etc/ocis/csp.yaml
       - ./config/ocis/banned-password-list.txt:/etc/ocis/banned-password-list.txt
       - ocis-apps:/var/lib/ocis/web/assets/apps
@@ -201,7 +235,9 @@ services:
     logging:
       driver: local
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:9200/healthz || exit 1"]
+      test:
+        - CMD-SHELL
+        - "wget -qO /dev/null http://127.0.0.1:9200/healthz || exit 1"
 
   # --- Connector: oCIS to OnlyOffice ---
   collaboration-oo:
@@ -244,7 +280,9 @@ services:
       OCIS_URL: "https://${OCIS_DOMAIN:-ocis.localhost}"
 
     # Execution: Start the collaboration service
-    command: ["collaboration", "server"]
+    command:
+      - collaboration
+      - server
 
     # State: Shared oCIS configuration
     volumes:
@@ -254,7 +292,9 @@ services:
     logging:
       driver: local
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:9304/healthz || exit 1"]
+      test:
+        - CMD-SHELL
+        - "wget -qO /dev/null http://127.0.0.1:9304/healthz || exit 1"
 
   # --- Document Server: OnlyOffice ---
   onlyoffice:
@@ -329,7 +369,9 @@ services:
     logging:
       driver: local
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://127.0.0.1/healthcheck || exit 1"]
+      test:
+        - CMD-SHELL
+        - "curl -f http://127.0.0.1/healthcheck || exit 1"
       start_period: 300s
 
 
@@ -340,7 +382,6 @@ networks:
   mariadb-internal:
   ocis-internal:
     name: ocis-internal
-    internal: true
 
 # --- Global Volumes ---
 volumes:
