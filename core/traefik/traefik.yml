@@ -28,11 +28,11 @@ services:
     networks:
       - socket-internal
 
-    # Configuration: Explicitly allow listing containers, block everything else
+    # Configuration: Explicitly allow listing containers, block everything else (Alphabetized)
     environment:
+      CONTAINERS: "1"
       LOG_LEVEL: "notice"
       PING: "1"
-      CONTAINERS: "1"
 
     # State: Read-only mount of the actual Docker socket, plus in-memory temp areas
     volumes:
@@ -74,7 +74,7 @@ services:
       - traefik-public
       - socket-internal
 
-    # Configuration: Global environment variables
+    # Configuration: Global environment variables (Alphabetized)
     environment:
       GANDIV5_PERSONAL_ACCESS_TOKEN: "${GANDIV5_PERSONAL_ACCESS_TOKEN:?}"
       LEGO_DISABLE_CNAME_SUPPORT: "true"

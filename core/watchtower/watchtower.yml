@@ -7,7 +7,7 @@ services:
     image: nickfedor/watchtower:${WATCHTOWER_DOCKER_TAG:-latest}
     container_name: watchtower
 
-    # Security: Run as non-root user, grant Docker socket group, lock filesystem
+    # Security: Run as non-root user, grant Docker socket group permissions, lock filesystem
     user: "${PUID:-1000}:${GUID:-1000}"
     group_add:
       - "${DOCKER_SOCKET_GID:-987}"
@@ -17,12 +17,12 @@ services:
     networks:
       - outbound-public
 
-    # Configuration: Barebones automatic updates
+    # Configuration: Barebones automatic updates (Alphabetized)
     environment:
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_INCLUDE_STOPPED: "true"
       WATCHTOWER_LOG_LEVEL: "info"
       WATCHTOWER_POLL_INTERVAL: "${WATCHTOWER_POLL_INTERVAL:-900}"
-      WATCHTOWER_INCLUDE_STOPPED: "true"
-      WATCHTOWER_CLEANUP: "true"
 
     # State: Direct socket mount and in-memory mounts explicitly required for read-only filesystem
     volumes:
@@ -30,6 +30,7 @@ services:
     tmpfs:
       - /tmp
       - /etc/cron.d
+
 
 # --- Global Network Definitions ---
 networks:

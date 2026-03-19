@@ -10,7 +10,7 @@ services:
   base-init:
     image: busybox:${BUSYBOX_DOCKER_TAG:-latest}
 
-    # Routing/Labels: Tell Watchtower to ignore all containers using this template
+    # Lifecycle: Tell Watchtower to ignore all containers using this template
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
 

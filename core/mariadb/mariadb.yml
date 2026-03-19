@@ -5,8 +5,10 @@ services:
       file: ../templates.yml
       service: base-init
     container_name: mariadb-init
+
     # Execution: Create directory and fix permissions
     command: sh -c "mkdir -p /var/lib/mysql && chown -R ${PUID:-1000}:${GUID:-1000} /var/lib/mysql"
+
     # State: Mount database directory
     volumes:
       - ./data:/var/lib/mysql
@@ -34,19 +36,19 @@ services:
 
     # Configuration: Natively auto-creates the databases and users on first startup
     environment:
-      # Core Database Settings
-      MARIADB_ROOT_PASSWORD: "${MARIADB_ROOT_PASSWORD:?}"
+      # Core Database Settings (Alphabetized)
       MARIADB_AUTO_UPGRADE: "true"
+      MARIADB_ROOT_PASSWORD: "${MARIADB_ROOT_PASSWORD:?}"
 
-      # App 1: Roundcube Variables (Read by 01-init-roundcube.sh)
+      # App 1: Roundcube Variables (Alphabetized)
       ROUNDCUBE_DB_NAME: "${ROUNDCUBE_DB_NAME:-roundcubemail}"
-      ROUNDCUBE_DB_USER: "${ROUNDCUBE_DB_USER:-roundcube}"
       ROUNDCUBE_DB_PASSWORD: "${ROUNDCUBE_DB_PASSWORD:?}"
+      ROUNDCUBE_DB_USER: "${ROUNDCUBE_DB_USER:-roundcube}"
 
-      # App 2: OnlyOffice Variables (Read by 02-init-onlyoffice.sh)
+      # App 2: OnlyOffice Variables (Alphabetized)
       ONLYOFFICE_DB_NAME: "${OCIS_ONLYOFFICE_DB_NAME:-onlyoffice}"
-      ONLYOFFICE_DB_USER: "${OCIS_ONLYOFFICE_DB_USER:-onlyoffice}"
       ONLYOFFICE_DB_PASSWORD: "${OCIS_ONLYOFFICE_DB_PASSWORD:?}"
+      ONLYOFFICE_DB_USER: "${OCIS_ONLYOFFICE_DB_USER:-onlyoffice}"
 
     # State: Persistent folder mounts and required in-memory directories for read-only filesystem
     volumes:

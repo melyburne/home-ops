@@ -191,36 +191,36 @@ services:
       - ocis-internal
       - traefik-public
 
-    # Configuration: Core oCIS environment variables and features
+    # Configuration: Core oCIS environment variables and features (Alphabetized)
     environment:
-      OCIS_ADD_RUN_SERVICES: "notifications, auth-app"
-      OCIS_URL: "https://${OCIS_DOMAIN:-ocis.localhost}"
-      OCIS_LOG_LEVEL: "info"
-      OCIS_LOG_COLOR: "false"
-      OCIS_LOG_PRETTY: "false"
-      PROXY_TLS: "false"
+      FRONTEND_FULL_TEXT_SEARCH_ENABLED: "true"
       GATEWAY_GRPC_ADDR: "0.0.0.0:9142"
-      OCIS_INSECURE: "true"
-      PROXY_ENABLE_BASIC_AUTH: "true"
-      PROXY_ENABLE_APP_AUTH: "true"
       IDM_ADMIN_PASSWORD: "admin"
       IDM_CREATE_DEMO_USERS: "false"
-      NOTIFICATIONS_SMTP_HOST: "${OCIS_SMTP_HOST:?}"
-      NOTIFICATIONS_SMTP_PORT: "${OCIS_SMTP_PORT:-465}"
-      NOTIFICATIONS_SMTP_SENDER: "${OCIS_SMTP_SENDER:?}"
-      NOTIFICATIONS_SMTP_USERNAME: "${OCIS_SMTP_USERNAME:?}"
-      NOTIFICATIONS_SMTP_PASSWORD: "${OCIS_SMTP_PASSWORD:?}"
-      NOTIFICATIONS_SMTP_AUTHENTICATION: "${OCIS_SMTP_AUTHENTICATION:-login}"
-      NOTIFICATIONS_SMTP_INSECURE: "false"
       MICRO_REGISTRY_ADDRESS: "127.0.0.1:9233"
       NATS_NATS_HOST: "0.0.0.0"
       NATS_NATS_PORT: "9233"
-      PROXY_CSP_CONFIG_FILE_LOCATION: "/etc/ocis/csp.yaml"
-      ONLYOFFICE_DOMAIN: "${OCIS_ONLYOFFICE_DOMAIN:-onlyoffice.localhost}"
+      NOTIFICATIONS_SMTP_AUTHENTICATION: "${OCIS_SMTP_AUTHENTICATION:-login}"
+      NOTIFICATIONS_SMTP_HOST: "${OCIS_SMTP_HOST:?}"
+      NOTIFICATIONS_SMTP_INSECURE: "false"
+      NOTIFICATIONS_SMTP_PASSWORD: "${OCIS_SMTP_PASSWORD:?}"
+      NOTIFICATIONS_SMTP_PORT: "${OCIS_SMTP_PORT:-465}"
+      NOTIFICATIONS_SMTP_SENDER: "${OCIS_SMTP_SENDER:?}"
+      NOTIFICATIONS_SMTP_USERNAME: "${OCIS_SMTP_USERNAME:?}"
+      OCIS_ADD_RUN_SERVICES: "notifications, auth-app"
+      OCIS_INSECURE: "true"
+      OCIS_LOG_COLOR: "false"
+      OCIS_LOG_LEVEL: "info"
+      OCIS_LOG_PRETTY: "false"
       OCIS_PASSWORD_POLICY_BANNED_PASSWORDS_LIST: "banned-password-list.txt"
-      SEARCH_EXTRACTOR_TYPE: "tika"
+      OCIS_URL: "https://${OCIS_DOMAIN:-ocis.localhost}"
+      ONLYOFFICE_DOMAIN: "${OCIS_ONLYOFFICE_DOMAIN:-onlyoffice.localhost}"
+      PROXY_CSP_CONFIG_FILE_LOCATION: "/etc/ocis/csp.yaml"
+      PROXY_ENABLE_APP_AUTH: "true"
+      PROXY_ENABLE_BASIC_AUTH: "true"
+      PROXY_TLS: "false"
       SEARCH_EXTRACTOR_TIKA_TIKA_URL: "http://tika:9998"
-      FRONTEND_FULL_TEXT_SEARCH_ENABLED: "true"
+      SEARCH_EXTRACTOR_TYPE: "tika"
 
     # Execution: Initialize if needed, then start server
     entrypoint:
@@ -241,10 +241,10 @@ services:
     volumes:
       - ${OCIS_CONFIG_DIR:-./data/config/}:/etc/ocis
       - ${OCIS_DATA_DIR:-./data/data/}:/var/lib/ocis
-      - ./config/ocis/app-registry.yaml:/etc/ocis/app-registry.yaml
-      - ./config/ocis/apps.yaml:/etc/ocis/apps.yaml
-      - ./config/ocis/csp.yaml:/etc/ocis/csp.yaml
-      - ./config/ocis/banned-password-list.txt:/etc/ocis/banned-password-list.txt
+      - ./config/ocis/app-registry.yaml:/etc/ocis/app-registry.yaml:ro
+      - ./config/ocis/apps.yaml:/etc/ocis/apps.yaml:ro
+      - ./config/ocis/csp.yaml:/etc/ocis/csp.yaml:ro
+      - ./config/ocis/banned-password-list.txt:/etc/ocis/banned-password-list.txt:ro
       - ocis-apps:/var/lib/ocis/web/assets/apps
 
     # Monitoring: Local logging driver and healthcheck
@@ -276,21 +276,21 @@ services:
       - ocis-internal
       - traefik-public
 
-    # Configuration: Connector connection details
+    # Configuration: Connector connection details (Alphabetized)
     environment:
-      COLLABORATION_GRPC_ADDR: "0.0.0.0:9301"
-      COLLABORATION_HTTP_ADDR: "0.0.0.0:9300"
-      MICRO_REGISTRY: "nats-js-kv"
-      MICRO_REGISTRY_ADDRESS: "ocis:9233"
-      COLLABORATION_WOPI_SRC: "http://collaboration-oo:9300"
-      COLLABORATION_APP_NAME: "OnlyOffice"
-      COLLABORATION_APP_PRODUCT: "OnlyOffice"
       COLLABORATION_APP_ADDR: "https://${OCIS_ONLYOFFICE_DOMAIN:-onlyoffice.localhost}"
       COLLABORATION_APP_ICON: "https://${OCIS_ONLYOFFICE_DOMAIN:-onlyoffice.localhost}/web-apps/apps/documenteditor/main/resources/img/favicon.ico"
       COLLABORATION_APP_INSECURE: "true"
+      COLLABORATION_APP_NAME: "OnlyOffice"
+      COLLABORATION_APP_PRODUCT: "OnlyOffice"
       COLLABORATION_CS3API_DATAGATEWAY_INSECURE: "true"
-      COLLABORATION_WOPI_SECRET: "${OCIS_ONLYOFFICE_JWT_SECRET:?}"
+      COLLABORATION_GRPC_ADDR: "0.0.0.0:9301"
+      COLLABORATION_HTTP_ADDR: "0.0.0.0:9300"
       COLLABORATION_LOG_LEVEL: "info"
+      COLLABORATION_WOPI_SECRET: "${OCIS_ONLYOFFICE_JWT_SECRET:?}"
+      COLLABORATION_WOPI_SRC: "http://collaboration-oo:9300"
+      MICRO_REGISTRY: "nats-js-kv"
+      MICRO_REGISTRY_ADDRESS: "ocis:9233"
       OCIS_URL: "https://${OCIS_DOMAIN:-ocis.localhost}"
 
     # Execution: Start the collaboration service
@@ -340,22 +340,22 @@ services:
       - mariadb-internal
       - traefik-public
 
-    # Configuration: Document server core settings
+    # Configuration: Document server core settings (Alphabetized)
     environment:
-      WOPI_ENABLED: "true"
-      USE_UNAUTHORIZED_STORAGE: "true"
-      JWT_ENABLED: "true"
-      JWT_SECRET: "${OCIS_ONLYOFFICE_JWT_SECRET:?}"
-      JWT_HEADER: "Authorization"
       AMQP_URI: "amqp://guest:guest@localhost"
-      DB_TYPE: "mariadb"
       DB_HOST: "mariadb"
-      DB_PORT: "3306"
       DB_NAME: "${OCIS_ONLYOFFICE_DB_NAME:-onlyoffice}"
-      DB_USER: "${OCIS_ONLYOFFICE_DB_USER:-onlyoffice}"
+      DB_PORT: "3306"
       DB_PWD: "${OCIS_ONLYOFFICE_DB_PASSWORD:?}"
+      DB_TYPE: "mariadb"
+      DB_USER: "${OCIS_ONLYOFFICE_DB_USER:-onlyoffice}"
+      JWT_ENABLED: "true"
+      JWT_HEADER: "Authorization"
+      JWT_SECRET: "${OCIS_ONLYOFFICE_JWT_SECRET:?}"
       REDIS_SERVER_HOST: "localhost"
       REDIS_SERVER_PORT: "6379"
+      USE_UNAUTHORIZED_STORAGE: "true"
+      WOPI_ENABLED: "true"
 
     # Execution: Run custom entrypoint script
     entrypoint:
@@ -374,8 +374,8 @@ services:
 
     # State: Mount custom scripts and local configuration
     volumes:
-      - ./config/onlyoffice/entrypoint-override.sh:/entrypoint-override.sh
-      - ./config/onlyoffice/local.json:/etc/onlyoffice/documentserver/local.dist.json
+      - ./config/onlyoffice/entrypoint-override.sh:/entrypoint-override.sh:ro
+      - ./config/onlyoffice/local.json:/etc/onlyoffice/documentserver/local.dist.json:ro
 
     # Monitoring: Local logging driver and healthcheck
     logging:
