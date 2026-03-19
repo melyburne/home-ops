@@ -5,7 +5,9 @@ services:
       file: ../templates.yml
       service: base-init
     container_name: traefik-init
+    # Execution: Touch file and fix permissions
     command: sh -c "touch /data/acme.json && chown -R ${PUID:-1000}:${GUID:-1000} /data && chmod 600 /data/acme.json"
+    # State: Mount data directory
     volumes:
       - ./data:/data
 

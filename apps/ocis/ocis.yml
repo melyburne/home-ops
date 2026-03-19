@@ -65,6 +65,7 @@ services:
     <<: *ocis-ext-default
     image: owncloud/web-extensions:photo-addon-${OCIS_EXT_PHOTO_ADDON_DOCKER_TAG:-latest}
     container_name: ocis-ext-photo-addon-init
+    # Execution: Copy extension to shared volume
     command:
       - -c
       - "cp -R /var/lib/nginx/html/photo-addon/ /apps"
@@ -73,6 +74,7 @@ services:
     <<: *ocis-ext-default
     image: owncloud/web-extensions:json-viewer-${OCIS_EXT_JSON_VIEWER_DOCKER_TAG:-latest}
     container_name: ocis-ext-jsonviewer-init
+    # Execution: Copy extension to shared volume
     command:
       - -c
       - "cp -R /var/lib/nginx/html/json-viewer/ /apps"
@@ -81,6 +83,7 @@ services:
     <<: *ocis-ext-default
     image: owncloud/web-extensions:advanced-search-${OCIS_EXT_ADV_SEARCH_DOCKER_TAG:-latest}
     container_name: ocis-ext-advanced-search-init
+    # Execution: Copy extension to shared volume
     command:
       - -c
       - "cp -R /var/lib/nginx/html/advanced-search/ /apps"
@@ -89,6 +92,7 @@ services:
     <<: *ocis-ext-default
     image: owncloud/web-extensions:unzip-${OCIS_EXT_UNZIP_DOCKER_TAG:-latest}
     container_name: ocis-ext-unzip-init
+    # Execution: Copy extension to shared volume
     command:
       - -c
       - "cp -R /var/lib/nginx/html/unzip/ /apps"
@@ -97,6 +101,7 @@ services:
     <<: *ocis-ext-default
     image: owncloud/web-extensions:draw-io-${OCIS_EXT_DRAWIO_DOCKER_TAG:-latest}
     container_name: ocis-ext-drawio-init
+    # Execution: Copy extension to shared volume
     command:
       - -c
       - "cp -R /var/lib/nginx/html/draw-io/ /apps"
@@ -105,6 +110,7 @@ services:
     <<: *ocis-ext-default
     image: sawjan/3dviewer:${OCIS_EXT_3D_VIEWER_DOCKER_TAG:-0.1.0}
     container_name: ocis-ext-3dviewer-init
+    # Execution: Copy extension to shared volume
     command:
       - -c
       - "cp -R /app/* /apps"
@@ -112,6 +118,7 @@ services:
   ocis-ext-custom-init:
     <<: *ocis-ext-custom
     container_name: ocis-ext-custom-init
+    # Execution: Download and install custom extensions via script
     command:
       - "LukasHirt/web-app-excalidraw:${OCIS_EXT_EXCALIDRAW_DOCKER_TAG:-latest}"
       - "mschlachter/ocis-app-tokens:${OCIS_EXT_APP_TOKENS_DOCKER_TAG:-latest}"
@@ -303,6 +310,19 @@ services:
     image: onlyoffice/documentserver:${OCIS_ONLYOFFICE_DOCKER_TAG:-latest}
     container_name: ocis-onlyoffice
 
+    # Security: Remove all kernel privileges, add back only what's strictly needed
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - FOWNER
+      - AUDIT_WRITE
+      - DAC_OVERRIDE
+      - NET_BIND_SERVICE
+      - KILL
+
     # Lifecycle: Wait for database to be ready
     depends_on:
       mariadb:
@@ -350,19 +370,6 @@ services:
     volumes:
       - ./config/onlyoffice/entrypoint-override.sh:/entrypoint-override.sh
       - ./config/onlyoffice/local.json:/etc/onlyoffice/documentserver/local.dist.json
-
-    # Security Hardening: Remove all kernel privileges, add back only what's strictly needed
-    cap_drop:
-      - ALL
-    cap_add:
-      - CHOWN
-      - SETUID
-      - SETGID
-      - FOWNER
-      - AUDIT_WRITE
-      - DAC_OVERRIDE
-      - NET_BIND_SERVICE
-      - KILL
 
     # Monitoring: Local logging driver and healthcheck
     logging:

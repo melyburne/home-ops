@@ -5,7 +5,9 @@ services:
       file: ../templates.yml
       service: base-init
     container_name: mariadb-init
+    # Execution: Create directory and fix permissions
     command: sh -c "mkdir -p /var/lib/mysql && chown -R ${PUID:-1000}:${GUID:-1000} /var/lib/mysql"
+    # State: Mount database directory
     volumes:
       - ./data:/var/lib/mysql
 

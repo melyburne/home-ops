@@ -5,7 +5,9 @@ services:
       file: ../templates.yml
       service: base-init
     container_name: gandi-ddns-init
+    # Execution: Fix permissions
     command: sh -c "chown -R ${PUID:-1000}:${GUID:-1000} /data"
+    # State: Mount data directory
     volumes:
       - ./data:/data
 
