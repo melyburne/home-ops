@@ -23,9 +23,9 @@ services:
 
     # Configuration: Explicitly allow listing containers, block everything else
     environment:
-      LOG_LEVEL: notice
-      PING: 1
-      CONTAINERS: 1
+      LOG_LEVEL: "notice"
+      PING: "1"
+      CONTAINERS: "1"
 
     # State: Read-only mount of the actual Docker socket, plus in-memory temp areas
     volumes:
@@ -69,8 +69,8 @@ services:
 
     # Configuration: Global environment variables
     environment:
-      - GANDIV5_PERSONAL_ACCESS_TOKEN=${GANDIV5_PERSONAL_ACCESS_TOKEN:?}
-      - LEGO_DISABLE_CNAME_SUPPORT=true
+      GANDIV5_PERSONAL_ACCESS_TOKEN: "${GANDIV5_PERSONAL_ACCESS_TOKEN:?}"
+      LEGO_DISABLE_CNAME_SUPPORT: "true"
 
     # Execution: Core Traefik configuration (Providers, Entrypoints, Let's Encrypt)
     command:

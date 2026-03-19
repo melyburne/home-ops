@@ -29,21 +29,21 @@ services:
     networks:
       - mariadb-internal
 
-    # Configuration: Natively auto-creates the Roundcube database and user on first startup
+    # Configuration: Natively auto-creates the databases and users on first startup
     environment:
       # Core Database Settings
-      - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD:?}
-      - MARIADB_AUTO_UPGRADE=true
+      MARIADB_ROOT_PASSWORD: "${MARIADB_ROOT_PASSWORD:?}"
+      MARIADB_AUTO_UPGRADE: "true"
 
       # App 1: Roundcube Variables (Read by 01-init-roundcube.sh)
-      - ROUNDCUBE_DB_NAME=${ROUNDCUBE_DB_NAME:-roundcubemail}
-      - ROUNDCUBE_DB_USER=${ROUNDCUBE_DB_USER:-roundcube}
-      - ROUNDCUBE_DB_PASSWORD=${ROUNDCUBE_DB_PASSWORD:?}
+      ROUNDCUBE_DB_NAME: "${ROUNDCUBE_DB_NAME:-roundcubemail}"
+      ROUNDCUBE_DB_USER: "${ROUNDCUBE_DB_USER:-roundcube}"
+      ROUNDCUBE_DB_PASSWORD: "${ROUNDCUBE_DB_PASSWORD:?}"
 
       # App 2: OnlyOffice Variables (Read by 02-init-onlyoffice.sh)
-      - ONLYOFFICE_DB_NAME=${OCIS_ONLYOFFICE_DB_NAME:-onlyoffice}
-      - ONLYOFFICE_DB_USER=${OCIS_ONLYOFFICE_DB_USER:-onlyoffice}
-      - ONLYOFFICE_DB_PASSWORD=${OCIS_ONLYOFFICE_DB_PASSWORD:?}
+      ONLYOFFICE_DB_NAME: "${OCIS_ONLYOFFICE_DB_NAME:-onlyoffice}"
+      ONLYOFFICE_DB_USER: "${OCIS_ONLYOFFICE_DB_USER:-onlyoffice}"
+      ONLYOFFICE_DB_PASSWORD: "${OCIS_ONLYOFFICE_DB_PASSWORD:?}"
 
     # State: Persistent folder mounts and required in-memory directories for read-only filesystem
     volumes:

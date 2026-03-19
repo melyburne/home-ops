@@ -14,7 +14,7 @@ services:
 
     # Configuration: Design settings
     environment:
-      - ADMINER_DESIGN=lavender-light
+      ADMINER_DESIGN: "lavender-light"
 
     # Routing: Traefik configuration for secure external access
     labels:
@@ -31,6 +31,7 @@ services:
     # Monitoring: Ensure Adminer interface is responding
     healthcheck:
       test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:8080/ || exit 1"]
+
 
 # --- Global Network Definitions ---
 networks:

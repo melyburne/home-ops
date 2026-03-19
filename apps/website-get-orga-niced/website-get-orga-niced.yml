@@ -11,7 +11,7 @@ services:
     networks:
       - traefik-public
 
-    # Routing: Traefik dynamic configuration (HTTPS, middleware, internal port mapping)
+    # Routing: Traefik dynamic configuration (HTTPS and internal port mapping)
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web-get-orga-niced.rule=${WEB_GETORGANICED_HOST_RULE:-Host(`organiced.localhost`)}"

@@ -16,25 +16,27 @@ services:
       service: base-secure
     image: qmcgaw/ddns-updater:${DDNS_UPDATER_DOCKER_TAG:-latest}
     container_name: ddns-updater
+
+    # Security: Run as non-root user
     user: "${PUID:-1000}:${GUID:-1000}"
+
+    # Lifecycle: Wait for permissions to be fixed
+    depends_on:
+      gandi-ddns-init:
+        condition: service_completed_successfully
 
     # Connectivity: Attach to the shared outbound traffic
     networks:
       - outbound-public
 
-    # Ensures permissions are fixed before the updater attempts to write to the volume
-    depends_on:
-      gandi-ddns-init:
-        condition: service_completed_successfully
-
     # Configuration: Global environment variables
     environment:
-      - LOG_LEVEL=info
-      - SERVER_ENABLED=false
-      - RESOLVER_ADDRESS=1.1.1.1:53
-      - CONFIG={"settings":[{"provider":"gandi","domain":"aaronsoft.de","ttl":10800,"ip_version":"ipv4","personal_access_token":"${GANDIV5_PERSONAL_ACCESS_TOKEN:?}"},{"provider":"gandi","domain":"get-orga-niced.de","ttl":10800,"ip_version":"ipv4","personal_access_token":"${GANDIV5_PERSONAL_ACCESS_TOKEN:?}"}]}
+      LOG_LEVEL: "info"
+      SERVER_ENABLED: "false"
+      RESOLVER_ADDRESS: "1.1.1.1:53"
+      CONFIG: '{"settings":[{"provider":"gandi","domain":"aaronsoft.de","ttl":10800,"ip_version":"ipv4","personal_access_token":"${GANDIV5_PERSONAL_ACCESS_TOKEN:?}"},{"provider":"gandi","domain":"get-orga-niced.de","ttl":10800,"ip_version":"ipv4","personal_access_token":"${GANDIV5_PERSONAL_ACCESS_TOKEN:?}"}]}'
 
-    # State persistence to prevent API rate limiting from Gandi on container restart
+    # State: Persistence to prevent API rate limiting from Gandi on container restart
     volumes:
       - ./data:/updater/data
     tmpfs:
