@@ -66,25 +66,15 @@ services:
       - ocis-apps:/ocis-apps
 
   # --- Web Extensions ---
-  ocis-ext-photo-addon-init:
+  ocis-ext-3dviewer-init:
     <<: *ocis-ext-default
-    image: owncloud/web-extensions:photo-addon-${OCIS_EXT_PHOTO_ADDON_DOCKER_TAG:-latest}
-    container_name: ocis-ext-photo-addon-init
+    image: sawjan/3dviewer:${OCIS_EXT_3D_VIEWER_DOCKER_TAG:-0.1.0}
+    container_name: ocis-ext-3dviewer-init
 
     # Execution: Copy extension to shared volume
     command:
       - -c
-      - "cp -R /var/lib/nginx/html/photo-addon/ /apps"
-
-  ocis-ext-jsonviewer-init:
-    <<: *ocis-ext-default
-    image: owncloud/web-extensions:json-viewer-${OCIS_EXT_JSON_VIEWER_DOCKER_TAG:-latest}
-    container_name: ocis-ext-jsonviewer-init
-
-    # Execution: Copy extension to shared volume
-    command:
-      - -c
-      - "cp -R /var/lib/nginx/html/json-viewer/ /apps"
+      - "cp -R /app/* /apps"
 
   ocis-ext-advanced-search-init:
     <<: *ocis-ext-default
@@ -96,16 +86,6 @@ services:
       - -c
       - "cp -R /var/lib/nginx/html/advanced-search/ /apps"
 
-  ocis-ext-unzip-init:
-    <<: *ocis-ext-default
-    image: owncloud/web-extensions:unzip-${OCIS_EXT_UNZIP_DOCKER_TAG:-latest}
-    container_name: ocis-ext-unzip-init
-
-    # Execution: Copy extension to shared volume
-    command:
-      - -c
-      - "cp -R /var/lib/nginx/html/unzip/ /apps"
-
   ocis-ext-drawio-init:
     <<: *ocis-ext-default
     image: owncloud/web-extensions:draw-io-${OCIS_EXT_DRAWIO_DOCKER_TAG:-latest}
@@ -116,15 +96,35 @@ services:
       - -c
       - "cp -R /var/lib/nginx/html/draw-io/ /apps"
 
-  ocis-ext-3dviewer-init:
+  ocis-ext-jsonviewer-init:
     <<: *ocis-ext-default
-    image: sawjan/3dviewer:${OCIS_EXT_3D_VIEWER_DOCKER_TAG:-0.1.0}
-    container_name: ocis-ext-3dviewer-init
+    image: owncloud/web-extensions:json-viewer-${OCIS_EXT_JSON_VIEWER_DOCKER_TAG:-latest}
+    container_name: ocis-ext-jsonviewer-init
 
     # Execution: Copy extension to shared volume
     command:
       - -c
-      - "cp -R /app/* /apps"
+      - "cp -R /var/lib/nginx/html/json-viewer/ /apps"
+
+  ocis-ext-photo-addon-init:
+    <<: *ocis-ext-default
+    image: owncloud/web-extensions:photo-addon-${OCIS_EXT_PHOTO_ADDON_DOCKER_TAG:-latest}
+    container_name: ocis-ext-photo-addon-init
+
+    # Execution: Copy extension to shared volume
+    command:
+      - -c
+      - "cp -R /var/lib/nginx/html/photo-addon/ /apps"
+
+  ocis-ext-unzip-init:
+    <<: *ocis-ext-default
+    image: owncloud/web-extensions:unzip-${OCIS_EXT_UNZIP_DOCKER_TAG:-latest}
+    container_name: ocis-ext-unzip-init
+
+    # Execution: Copy extension to shared volume
+    command:
+      - -c
+      - "cp -R /var/lib/nginx/html/unzip/ /apps"
 
   ocis-ext-custom-init:
     <<: *ocis-ext-custom
@@ -169,17 +169,17 @@ services:
 
     # Lifecycle: Wait for extensions and tika
     depends_on:
-      ocis-ext-photo-addon-init:
-        condition: service_completed_successfully
-      ocis-ext-jsonviewer-init:
+      ocis-ext-3dviewer-init:
         condition: service_completed_successfully
       ocis-ext-advanced-search-init:
         condition: service_completed_successfully
-      ocis-ext-unzip-init:
-        condition: service_completed_successfully
       ocis-ext-drawio-init:
         condition: service_completed_successfully
-      ocis-ext-3dviewer-init:
+      ocis-ext-jsonviewer-init:
+        condition: service_completed_successfully
+      ocis-ext-photo-addon-init:
+        condition: service_completed_successfully
+      ocis-ext-unzip-init:
         condition: service_completed_successfully
       ocis-ext-custom-init:
         condition: service_completed_successfully
@@ -362,15 +362,15 @@ services:
       - /bin/sh
       - /entrypoint-override.sh
 
-    # Routing: Traefik reverse proxy configuration with middleware
+    # Routing: Traefik reverse proxy configuration with middleware (Alphabetized)
     labels:
       - "traefik.enable=true"
+      - "traefik.http.middlewares.onlyoffice.headers.customrequestheaders.X-Forwarded-Proto=https"
       - "traefik.http.routers.onlyoffice.entrypoints=websecure"
+      - "traefik.http.routers.onlyoffice.middlewares=onlyoffice"
       - "traefik.http.routers.onlyoffice.rule=Host(`${OCIS_ONLYOFFICE_DOMAIN:-onlyoffice.localhost}`)"
       - "traefik.http.routers.onlyoffice.service=onlyoffice"
       - "traefik.http.services.onlyoffice.loadbalancer.server.port=80"
-      - "traefik.http.middlewares.onlyoffice.headers.customrequestheaders.X-Forwarded-Proto=https"
-      - "traefik.http.routers.onlyoffice.middlewares=onlyoffice"
 
     # State: Mount custom scripts and local configuration
     volumes:
@@ -387,11 +387,11 @@ services:
 
 # --- Global Network Definitions ---
 networks:
-  traefik-public:
-  outbound-public:
   mariadb-internal:
   ocis-internal:
     name: ocis-internal
+  outbound-public:
+  traefik-public:
 
 # --- Global Volumes ---
 volumes:
