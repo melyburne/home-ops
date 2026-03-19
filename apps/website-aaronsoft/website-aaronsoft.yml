@@ -7,6 +7,9 @@ services:
     image: ghcr.io/kartoffelbauer/web-aaronsoft:${WEB_AARONSOFT_DOCKER_TAG:-latest}
     container_name: website-aaronsoft
 
+    # Security: Lock the filesystem
+    read_only: true
+
     # Connectivity: Attach to the shared reverse proxy network
     networks:
       - traefik-public
@@ -23,9 +26,6 @@ services:
       - /tmp
       - /var/cache/nginx
       - /var/run
-
-    # Security: Lock the filesystem
-    read_only: true
 
     # Monitoring: Internal check to ensure the web server is actually responding
     healthcheck:

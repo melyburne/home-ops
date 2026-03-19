@@ -19,8 +19,9 @@ services:
     image: mariadb:${MARIADB_DOCKER_TAG:-latest}
     container_name: mariadb
 
-    # Security: Run as non-root user
+    # Security: Run as non-root user, lock filesystem
     user: "${PUID:-1000}:${GUID:-1000}"
+    read_only: true
 
     # Lifecycle: Wait for permissions to be fixed
     depends_on:
@@ -54,9 +55,6 @@ services:
     tmpfs:
       - /tmp
       - /run/mysqld
-
-    # Security: Lock filesystem
-    read_only: true
 
     # Monitoring: Built-in check to ensure the InnoDB engine is fully initialized
     healthcheck:

@@ -7,10 +7,11 @@ services:
     image: nickfedor/watchtower:${WATCHTOWER_DOCKER_TAG:-latest}
     container_name: watchtower
 
-    # Security: Run as non-root user, grant Docker socket group permissions
+    # Security: Run as non-root user, grant Docker socket group, lock filesystem
     user: "${PUID:-1000}:${GUID:-1000}"
     group_add:
       - "${DOCKER_SOCKET_GID:-987}"
+    read_only: true
 
     # Connectivity: Needs outbound internet to check registries for updates
     networks:
@@ -29,10 +30,6 @@ services:
     tmpfs:
       - /tmp
       - /etc/cron.d
-
-    # Security: Lock filesystem
-    read_only: true
-
 
 # --- Global Network Definitions ---
 networks:

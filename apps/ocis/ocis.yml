@@ -1,6 +1,7 @@
 # --- DRY Templates ---
 # Template for oCIS Web Extensions
 x-ocis-ext-base: &ocis-ext-base
+  # Security: Set base privileges and capabilities
   user: root
   platform: linux/amd64
   security_opt:
@@ -12,9 +13,13 @@ x-ocis-ext-base: &ocis-ext-base
     - FOWNER
     - FSETID
     - DAC_OVERRIDE
+
+  # Lifecycle: Wait for init
   depends_on:
     ocis-init:
       condition: service_completed_successfully
+
+  # State: Bind extension apps folder
   volumes:
     - ocis-apps:/apps
 
@@ -65,6 +70,7 @@ services:
     <<: *ocis-ext-default
     image: owncloud/web-extensions:photo-addon-${OCIS_EXT_PHOTO_ADDON_DOCKER_TAG:-latest}
     container_name: ocis-ext-photo-addon-init
+
     # Execution: Copy extension to shared volume
     command:
       - -c
@@ -74,6 +80,7 @@ services:
     <<: *ocis-ext-default
     image: owncloud/web-extensions:json-viewer-${OCIS_EXT_JSON_VIEWER_DOCKER_TAG:-latest}
     container_name: ocis-ext-jsonviewer-init
+
     # Execution: Copy extension to shared volume
     command:
       - -c
@@ -83,6 +90,7 @@ services:
     <<: *ocis-ext-default
     image: owncloud/web-extensions:advanced-search-${OCIS_EXT_ADV_SEARCH_DOCKER_TAG:-latest}
     container_name: ocis-ext-advanced-search-init
+
     # Execution: Copy extension to shared volume
     command:
       - -c
@@ -92,6 +100,7 @@ services:
     <<: *ocis-ext-default
     image: owncloud/web-extensions:unzip-${OCIS_EXT_UNZIP_DOCKER_TAG:-latest}
     container_name: ocis-ext-unzip-init
+
     # Execution: Copy extension to shared volume
     command:
       - -c
@@ -101,6 +110,7 @@ services:
     <<: *ocis-ext-default
     image: owncloud/web-extensions:draw-io-${OCIS_EXT_DRAWIO_DOCKER_TAG:-latest}
     container_name: ocis-ext-drawio-init
+
     # Execution: Copy extension to shared volume
     command:
       - -c
@@ -110,6 +120,7 @@ services:
     <<: *ocis-ext-default
     image: sawjan/3dviewer:${OCIS_EXT_3D_VIEWER_DOCKER_TAG:-0.1.0}
     container_name: ocis-ext-3dviewer-init
+
     # Execution: Copy extension to shared volume
     command:
       - -c
@@ -118,6 +129,7 @@ services:
   ocis-ext-custom-init:
     <<: *ocis-ext-custom
     container_name: ocis-ext-custom-init
+
     # Execution: Download and install custom extensions via script
     command:
       - "LukasHirt/web-app-excalidraw:${OCIS_EXT_EXCALIDRAW_DOCKER_TAG:-latest}"
@@ -142,9 +154,7 @@ services:
     logging:
       driver: local
     healthcheck:
-      test:
-        - CMD-SHELL
-        - "wget -qO /dev/null http://127.0.0.1:9998/version || exit 1"
+      test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:9998/version || exit 1"]
 
   # --- Main oCIS Server ---
   ocis:
@@ -241,9 +251,7 @@ services:
     logging:
       driver: local
     healthcheck:
-      test:
-        - CMD-SHELL
-        - "wget -qO /dev/null http://127.0.0.1:9200/healthz || exit 1"
+      test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:9200/healthz || exit 1"]
 
   # --- Connector: oCIS to OnlyOffice ---
   collaboration-oo:
@@ -298,9 +306,7 @@ services:
     logging:
       driver: local
     healthcheck:
-      test:
-        - CMD-SHELL
-        - "wget -qO /dev/null http://127.0.0.1:9304/healthz || exit 1"
+      test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:9304/healthz || exit 1"]
 
   # --- Document Server: OnlyOffice ---
   onlyoffice:
@@ -375,9 +381,7 @@ services:
     logging:
       driver: local
     healthcheck:
-      test:
-        - CMD-SHELL
-        - "curl -f http://127.0.0.1/healthcheck || exit 1"
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1/healthcheck || exit 1"]
       start_period: 300s
 
 

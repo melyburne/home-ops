@@ -5,23 +5,20 @@ x-healthcheck-defaults: &healthcheck-defaults
   timeout: 10s
   retries: 3
 
-
  # --- Init Service: Templates for preparing permissions ---
 services:
   base-init:
     image: busybox:${BUSYBOX_DOCKER_TAG:-latest}
 
-    # Labels: Tell Watchtower to ignore all containers using this template
+    # Routing/Labels: Tell Watchtower to ignore all containers using this template
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
 
     # Connectivity: Attach to no network
     network_mode: none
 
-    # Security: Lock the filesystem
+    # Security: Lock the filesystem, drop all privileges, and add only required ones back
     read_only: true
-
-    # Security: Drop all privileges and add only required ones back
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -35,7 +32,7 @@ services:
   base-default:
     restart: unless-stopped
 
-    # Healtcheck: Inject the anchor locally
+    # Healthcheck: Inject the anchor locally
     healthcheck:
       <<: *healthcheck-defaults
 
@@ -49,6 +46,6 @@ services:
     cap_drop:
       - ALL
 
-    # Healtcheck: Inject the anchor locally
+    # Healthcheck: Inject the anchor locally
     healthcheck:
       <<: *healthcheck-defaults
