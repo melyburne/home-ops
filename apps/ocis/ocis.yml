@@ -54,10 +54,7 @@ services:
     container_name: ocis-init
 
     # Execution: Set correct ownership for oCIS directories
-    command:
-      - sh
-      - -c
-      - "chown -R ${PUID:-1000}:${GUID:-1000} /ocis-config /ocis-data /ocis-apps"
+    command: sh -c "chown -R ${PUID:-1000}:${GUID:-1000} /ocis-config /ocis-data /ocis-apps"
 
     # State: Mount configuration and data directories
     volumes:
@@ -229,7 +226,7 @@ services:
       - -c
       - "ocis init || true; exec ocis server"
 
-    # Routing: Traefik reverse proxy configuration
+    # Routing: Traefik reverse proxy configuration (Alphabetized)
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.ocis.entrypoints=websecure"
@@ -387,11 +384,11 @@ services:
 
 # --- Global Network Definitions ---
 networks:
+  traefik-public:
+  outbound-public:
   mariadb-internal:
   ocis-internal:
     name: ocis-internal
-  outbound-public:
-  traefik-public:
 
 # --- Global Volumes ---
 volumes:

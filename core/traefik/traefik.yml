@@ -79,18 +79,19 @@ services:
       GANDIV5_PERSONAL_ACCESS_TOKEN: "${GANDIV5_PERSONAL_ACCESS_TOKEN:?}"
       LEGO_DISABLE_CNAME_SUPPORT: "true"
 
-    # Execution: Core Traefik configuration (Providers, Entrypoints, Let's Encrypt)
+    # Execution: Core Traefik configuration (Alphabetized)
     command:
-      - "--log.level=INFO"
-      - "--ping=true"
+      # General (Dashboard, Logging, Ping)
       - "--api.dashboard=true"
       - "--api.disableDashboardAd=true"
+      - "--log.level=INFO"
+      - "--ping=true"
 
       # Docker Provider (via Proxy)
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.endpoint=tcp://socket-proxy:2375"
+      - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.network=traefik-public"
+      - "--providers.docker=true"
 
       # File Provider
       - "--providers.file.filename=/config/dynamic.yml"
@@ -98,41 +99,38 @@ services:
 
       # Entrypoints (HTTP automatically redirects to HTTPS)
       - "--entrypoints.web.address=:80"
-      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
       - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
       - "--entrypoints.websecure.address=:443"
-      - "--entrypoints.websecure.http.tls=true"
       - "--entrypoints.websecure.http.middlewares=sec-public@file"
+      - "--entrypoints.websecure.http.tls=true"
 
       # --- oCIS specific Configuration ---
-      # Change default timeouts for long-running requests
-      # This is needed for webdav clients that do not support the TUS protocol
+      - "--entryPoints.websecure.transport.respondingTimeouts.idleTimeout=3m"
       - "--entryPoints.websecure.transport.respondingTimeouts.readTimeout=12h"
       - "--entryPoints.websecure.transport.respondingTimeouts.writeTimeout=12h"
-      - "--entryPoints.websecure.transport.respondingTimeouts.idleTimeout=3m"
-      # Allow encoded characters which is required for collaboration/Collabora
-      - "--entryPoints.websecure.http.encodedCharacters.allowEncodedSlash=true"
-      - "--entryPoints.websecure.http.encodedCharacters.allowEncodedQuestionMark=true"
       - "--entryPoints.websecure.http.encodedCharacters.allowEncodedPercent=true"
+      - "--entryPoints.websecure.http.encodedCharacters.allowEncodedQuestionMark=true"
+      - "--entryPoints.websecure.http.encodedCharacters.allowEncodedSlash=true"
 
       # --- Let's Encrypt Staging (DNS Challenge) ---
       # Remember to remove "-staging" from the caServer URL when moving to production!
       - "--certificatesresolvers.myresolver.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory"
-      - "--certificatesresolvers.myresolver.acme.email=${TRAEFIK_ACME_EMAIL:?}"
-      - "--certificatesresolvers.myresolver.acme.storage=/data/acme.json"
-      - "--certificatesresolvers.myresolver.acme.dnschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.dnschallenge.propagation.delayBeforeChecks=10s"
       - "--certificatesresolvers.myresolver.acme.dnschallenge.provider=gandiv5"
       - "--certificatesresolvers.myresolver.acme.dnschallenge.resolvers=1.1.1.1:53,8.8.8.8:53"
-      - "--certificatesresolvers.myresolver.acme.dnschallenge.propagation.delayBeforeChecks=10s"
+      - "--certificatesresolvers.myresolver.acme.dnschallenge=true"
+      - "--certificatesresolvers.myresolver.acme.email=${TRAEFIK_ACME_EMAIL:?}"
+      - "--certificatesresolvers.myresolver.acme.storage=/data/acme.json"
 
-    # Routing: Internal dashboard exposure configuration
+    # Routing: Internal dashboard exposure configuration (Alphabetized)
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.dashboard.rule=${TRAEFIK_DASHBOARD_HOST_RULE:-Host(`traefik.localhost`)}"
-      - "traefik.http.routers.dashboard.entrypoints=websecure"
-      - "traefik.http.routers.dashboard.service=api@internal"
-      - "traefik.http.routers.dashboard.middlewares=dashboard-auth"
       - "traefik.http.middlewares.dashboard-auth.basicauth.users=${TRAEFIK_DASHBOARD_CREDENTIALS:?}"
+      - "traefik.http.routers.dashboard.entrypoints=websecure"
+      - "traefik.http.routers.dashboard.middlewares=dashboard-auth"
+      - "traefik.http.routers.dashboard.rule=${TRAEFIK_DASHBOARD_HOST_RULE:-Host(`traefik.localhost`)}"
+      - "traefik.http.routers.dashboard.service=api@internal"
 
     # State: Persistent data and dynamic config mounts
     volumes:
