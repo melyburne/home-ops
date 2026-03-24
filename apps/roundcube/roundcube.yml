@@ -14,8 +14,6 @@ services:
     depends_on:
       mariadb:
         condition: service_healthy
-      roundcube-init:
-        condition: service_completed_successfully
 
     # Connectivity: Public facing proxy and internal database network
     networks:
@@ -50,7 +48,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.roundcube.entrypoints=websecure"
       - "traefik.http.routers.roundcube.rule=${ROUNDCUBE_HOST_RULE:-Host(`mail.localhost`)}"
-      - "traefik.http.services.roundcube.loadbalancer.server.ort=8000"
+      - "traefik.http.services.roundcube.loadbalancer.server.port=8000"
 
     # Monitoring: Internal check to ensure the webmail interface is responding
     healthcheck:
