@@ -7,11 +7,11 @@ services:
     container_name: mariadb-init
 
     # Execution: Create directory and fix permissions
-    command: sh -c "mkdir -p /var/lib/mysql && chown -R ${PUID:-1000}:${GUID:-1000} /var/lib/mysql"
+    command: sh -c "chown -R ${PUID:-1000}:${GUID:-1000} /data"
 
     # State: Mount database directory
     volumes:
-      - ./data:/var/lib/mysql
+      - ./data:/data
 
   # --- Database Service ---
   mariadb:
