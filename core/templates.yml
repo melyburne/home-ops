@@ -8,7 +8,7 @@ x-healthcheck-defaults: &healthcheck-defaults
  # --- Init Service: Templates for preparing permissions ---
 services:
   base-init:
-    image: busybox:${BUSYBOX_DOCKER_TAG:-latest}
+    image: busybox:${BUSYBOX_DOCKER_TAG:-1.37}
 
     # Lifecycle: Tell Watchtower to ignore all containers using this template
     labels:

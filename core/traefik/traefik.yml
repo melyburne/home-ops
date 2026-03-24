@@ -50,7 +50,7 @@ services:
     extends:
       file: ../templates.yml
       service: base-secure
-    image: traefik:${TRAEFIK_DOCKER_TAG:-latest}
+    image: traefik:${TRAEFIK_DOCKER_TAG:-v3}
     container_name: traefik
 
     # Security: Run as non-root user, lock filesystem, add port capabilities

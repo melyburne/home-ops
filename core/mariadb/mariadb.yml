@@ -18,7 +18,7 @@ services:
     extends:
       file: ../templates.yml
       service: base-secure
-    image: mariadb:${MARIADB_DOCKER_TAG:-latest}
+    image: mariadb:${MARIADB_DOCKER_TAG:-11.4}
     container_name: mariadb
 
     # Security: Run as non-root user, lock filesystem

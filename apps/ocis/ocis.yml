@@ -34,7 +34,7 @@ x-ocis-ext-default: &ocis-ext-default
 # Template for oCIS Web Extensions with custom logic
 x-ocis-ext-custom: &ocis-ext-custom
   <<: *ocis-ext-base
-  image: alpine:${ALPINE_DOCKER_TAG:-latest}
+  image: alpine:${ALPINE_DOCKER_TAG:-3.23}
   entrypoint:
     - /bin/sh
     - /init.sh
@@ -158,7 +158,7 @@ services:
     extends:
       file: ../../core/templates.yml
       service: base-secure
-    image: owncloud/ocis:${OCIS_DOCKER_TAG:-latest}
+    image: owncloud/ocis:${OCIS_DOCKER_TAG:-8.0}
     container_name: ocis
 
     # Security: Run as non-root user
@@ -255,7 +255,7 @@ services:
     extends:
       file: ../../core/templates.yml
       service: base-secure
-    image: owncloud/ocis:${OCIS_DOCKER_TAG:-latest}
+    image: owncloud/ocis:${OCIS_DOCKER_TAG:-8.0}
     container_name: ocis-collaboration-oo
 
     # Security: Run as non-root user
@@ -310,7 +310,7 @@ services:
     extends:
       file: ../../core/templates.yml
       service: base-default
-    image: onlyoffice/documentserver:${OCIS_ONLYOFFICE_DOCKER_TAG:-latest}
+    image: onlyoffice/documentserver:${OCIS_ONLYOFFICE_DOCKER_TAG:-9.2}
     container_name: ocis-onlyoffice
 
     # Security: Remove all kernel privileges, add back only what's strictly needed
