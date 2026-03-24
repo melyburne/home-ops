@@ -47,7 +47,7 @@ htpasswd -nB admin
 Lock down the file permissions of your `.env` file to ensure that sensitive configuration files are secured "at rest":
 
 ```bash
-chown 600 .env
+chmod 600 .env
 ```
 
 **4. Launch the Stack**
