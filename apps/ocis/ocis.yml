@@ -251,7 +251,7 @@ services:
       test: "wget -qO /dev/null http://127.0.0.1:9200/healthz || exit 1"
 
   # --- Connector: oCIS to OnlyOffice ---
-  collaboration-oo:
+  ocis-collaboration-oo:
     extends:
       file: ../../core/templates.yml
       service: base-secure
@@ -306,7 +306,7 @@ services:
       test: "wget -qO /dev/null http://127.0.0.1:9304/healthz || exit 1"
 
   # --- Document Server: OnlyOffice ---
-  onlyoffice:
+  ocis-onlyoffice:
     extends:
       file: ../../core/templates.yml
       service: base-default

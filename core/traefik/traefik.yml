@@ -14,7 +14,7 @@ services:
       - ./data:/data
 
   # --- Security Proxy: Shields the Docker socket from direct access by Traefik ---
-  socket-proxy:
+  traefik-socket-proxy:
     extends:
       file: ../templates.yml
       service: base-secure
