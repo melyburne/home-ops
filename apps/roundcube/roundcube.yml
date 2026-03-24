@@ -1,18 +1,4 @@
 services:
-  # --- Init Service: Prepares permissions for Roundcube ---
-  roundcube-init:
-    extends:
-      file: ../../core/templates.yml
-      service: base-init
-    container_name: roundcube-init
-
-    # Execution: Fix group ownership and permissions
-    command: sh -c "chgrp -R ${GUID:-1000} /config && chmod -R 640 /config/*"
-
-    # State: Mount configuration directory
-    volumes:
-      - ./config:/config
-
   # --- Main Web Service: Roundcube Webmail ---
   roundcube:
     extends:
