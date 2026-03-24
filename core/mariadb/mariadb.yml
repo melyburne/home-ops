@@ -60,7 +60,7 @@ services:
 
     # Monitoring: Built-in check to ensure the InnoDB engine is fully initialized
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test: "healthcheck.sh --connect --innodb_initialized"
 
 
 # --- Global Network Definitions ---

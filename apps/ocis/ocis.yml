@@ -151,7 +151,7 @@ services:
     logging:
       driver: local
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:9998/version || exit 1"]
+      test: "wget -qO /dev/null http://127.0.0.1:9998/version || exit 1"
 
   # --- Main oCIS Server ---
   ocis:
@@ -248,7 +248,7 @@ services:
     logging:
       driver: local
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:9200/healthz || exit 1"]
+      test: "wget -qO /dev/null http://127.0.0.1:9200/healthz || exit 1"
 
   # --- Connector: oCIS to OnlyOffice ---
   collaboration-oo:
@@ -303,7 +303,7 @@ services:
     logging:
       driver: local
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:9304/healthz || exit 1"]
+      test: "wget -qO /dev/null http://127.0.0.1:9304/healthz || exit 1"
 
   # --- Document Server: OnlyOffice ---
   onlyoffice:
@@ -378,7 +378,7 @@ services:
     logging:
       driver: local
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://127.0.0.1/healthcheck || exit 1"]
+      test: "curl -f http://127.0.0.1/healthcheck || exit 1"
       start_period: 300s
 
 

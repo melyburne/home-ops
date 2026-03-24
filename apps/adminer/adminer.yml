@@ -30,7 +30,7 @@ services:
 
     # Monitoring: Ensure Adminer interface is responding
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:8080/ || exit 1"]
+      test: "wget -qO /dev/null http://127.0.0.1:8080/ || exit 1"
 
 
 # --- Global Network Definitions ---
