@@ -389,6 +389,7 @@ networks:
   mariadb-internal:
   ocis-internal:
     name: ocis-internal
+    internal: true
 
 # --- Global Volumes ---
 volumes:
