@@ -88,7 +88,7 @@ services:
       - "--ping=true"
 
       # Docker Provider (via Proxy)
-      - "--providers.docker.endpoint=tcp://socket-proxy:2375"
+      - "--providers.docker.endpoint=tcp://traefik-socket-proxy:2375"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.network=traefik-public"
       - "--providers.docker=true"
