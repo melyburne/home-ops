@@ -265,7 +265,7 @@ services:
     depends_on:
       ocis:
         condition: service_healthy
-      onlyoffice:
+      ocis-onlyoffice:
         condition: service_healthy
 
     # Connectivity: Internal communication and outbound requests
@@ -285,7 +285,7 @@ services:
       COLLABORATION_HTTP_ADDR: "0.0.0.0:9300"
       COLLABORATION_LOG_LEVEL: "info"
       COLLABORATION_WOPI_SECRET: "${OCIS_ONLYOFFICE_JWT_SECRET:?}"
-      COLLABORATION_WOPI_SRC: "http://collaboration-oo:9300"
+      COLLABORATION_WOPI_SRC: "http://ocis-collaboration-oo:9300"
       MICRO_REGISTRY: "nats-js-kv"
       MICRO_REGISTRY_ADDRESS: "ocis:9233"
       OCIS_URL: "https://${OCIS_DOMAIN:-ocis.localhost}"
