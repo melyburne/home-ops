@@ -7,7 +7,7 @@ services:
     container_name: gandi-ddns-init
 
     # Execution: Fix permissions
-    command: sh -c "chown -R ${PUID:-1000}:${GUID:-1000} /data"
+    command: sh -c "chown -R ${DDNS_UPDATER_PUID:-1002}:${DDNS_UPDATER_GUID:-1002} /data"
 
     # State: Mount data directory
     volumes:
@@ -22,7 +22,7 @@ services:
     container_name: ddns-updater
 
     # Security: Run as non-root user, lock the filesystem
-    user: "${PUID:-1000}:${GUID:-1000}"
+    user: "${DDNS_UPDATER_PUID:-1002}:${DDNS_UPDATER_GUID:-1002}"
     read_only: true
 
     # Lifecycle: Wait for permissions to be fixed
