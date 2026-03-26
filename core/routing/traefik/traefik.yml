@@ -2,7 +2,7 @@ services:
   # --- Init Service: Prepares ACME config permissions before Traefik starts ---
   traefik-init:
     extends:
-      file: ../templates.yml
+      file: ../../../shared/templates.yml
       service: base-init
     container_name: traefik-init
 
@@ -16,7 +16,7 @@ services:
   # --- Security Proxy: Shields the Docker socket from direct access by Traefik ---
   traefik-socket-proxy:
     extends:
-      file: ../templates.yml
+      file: ../../../shared/templates.yml
       service: base-secure
     image: tecnativa/docker-socket-proxy:latest
     container_name: traefik-socket-proxy
@@ -48,7 +48,7 @@ services:
   # --- Main Reverse Proxy: Traefik ---
   traefik:
     extends:
-      file: ../templates.yml
+      file: ../../../shared/templates.yml
       service: base-secure
     image: traefik:${TRAEFIK_DOCKER_TAG:-v3}
     container_name: traefik

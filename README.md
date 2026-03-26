@@ -4,8 +4,9 @@ A highly secure, modular Docker Compose stack for self-hosting applications and 
 
 ## 📂 Project Structure
 
-- **`core/`**: Core infrastructure services including Traefik (with a Docker Socket Proxy for security), MariaDB, Gandi DDNS Updater, Watchtower (for automated updates), and the DRY YAML `templates.yml`.
-- **`apps/`**: End-user applications including ownCloud Infinite Scale (oCIS) with OnlyOffice, Roundcube Webmail, Adminer, and Nginx-based static websites.
+- **`shared/`**: Contains global configurations and the DRY YAML `templates.yml` used to enforce project-wide security standards across all containers.
+- **`core/`**: Infrastructure and backend services (grouped by domain, such as `database`, `routing`, and `system`). This includes Traefik (with a Docker Socket Proxy for security), MariaDB, Adminer, Gandi DDNS Updater, and Watchtower.
+- **`apps/`**: End-user facing applications including ownCloud Infinite Scale (oCIS) with OnlyOffice, Roundcube Webmail, and a dedicated `websites/` grouping for Nginx-based static sites.
 - **`docker-compose.yml`**: The master compose file that cleanly acts as the entrypoint and automatically includes all modular sub-services.
 - **`security-hardening.sh`**: A utility script to lock down sensitive file permissions on the host machine.
 

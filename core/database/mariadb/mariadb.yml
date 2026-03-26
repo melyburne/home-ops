@@ -2,7 +2,7 @@ services:
   # --- Init Service: Prepares permissions for MariaDB ---
   mariadb-init:
     extends:
-      file: ../templates.yml
+      file: ../../../shared/templates.yml
       service: base-init
     container_name: mariadb-init
 
@@ -16,7 +16,7 @@ services:
   # --- Database Service ---
   mariadb:
     extends:
-      file: ../templates.yml
+      file: ../../../shared/templates.yml
       service: base-secure
     image: mariadb:${MARIADB_DOCKER_TAG:-11.4}
     container_name: mariadb

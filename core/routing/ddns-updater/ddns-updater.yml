@@ -2,7 +2,7 @@ services:
   # --- Init Service: Prepares the environment before the main application starts ---
   gandi-ddns-init:
     extends:
-      file: ../templates.yml
+      file: ../../../shared/templates.yml
       service: base-init
     container_name: gandi-ddns-init
 
@@ -16,7 +16,7 @@ services:
   # --- Main Service: Handles the dynamic DNS updates ---
   ddns-updater:
     extends:
-      file: ../templates.yml
+      file: ../../../shared/templates.yml
       service: base-secure
     image: qmcgaw/ddns-updater:${DDNS_UPDATER_DOCKER_TAG:-latest}
     container_name: ddns-updater

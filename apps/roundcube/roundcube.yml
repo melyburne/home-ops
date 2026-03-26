@@ -2,7 +2,7 @@ services:
   # --- Main Web Service: Roundcube Webmail ---
   roundcube:
     extends:
-      file: ../../core/templates.yml
+      file: ../../shared/templates.yml
       service: base-secure
     image: ghcr.io/kartoffelbauer/docker-roundcube-custom:${ROUNDCUBE_DOCKER_TAG:-1.6-nonroot}
     container_name: roundcube

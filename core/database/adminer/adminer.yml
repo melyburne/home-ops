@@ -2,7 +2,7 @@ services:
   # --- Database Management Interface ---
   adminer:
     extends:
-      file: ../../core/templates.yml
+      file: ../../../shared/templates.yml
       service: base-secure
     image: adminer:${ADMINER_DOCKER_TAG:-latest}
     container_name: adminer

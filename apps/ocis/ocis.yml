@@ -49,7 +49,7 @@ services:
   # --- Init Service: Prepares permissions for oCIS ---
   ocis-init:
     extends:
-      file: ../../core/templates.yml
+      file: ../../shared/templates.yml
       service: base-init
     container_name: ocis-init
 
@@ -135,7 +135,7 @@ services:
   # --- Full Text Search Extractor ---
   tika:
     extends:
-      file: ../../core/templates.yml
+      file: ../../shared/templates.yml
       service: base-secure
     image: apache/tika:latest-full
     container_name: ocis-tika
@@ -156,7 +156,7 @@ services:
   # --- Main oCIS Server ---
   ocis:
     extends:
-      file: ../../core/templates.yml
+      file: ../../shared/templates.yml
       service: base-secure
     image: owncloud/ocis:${OCIS_DOCKER_TAG:-8.0}
     container_name: ocis
@@ -253,7 +253,7 @@ services:
   # --- Connector: oCIS to OnlyOffice ---
   ocis-collaboration-oo:
     extends:
-      file: ../../core/templates.yml
+      file: ../../shared/templates.yml
       service: base-secure
     image: owncloud/ocis:${OCIS_DOCKER_TAG:-8.0}
     container_name: ocis-collaboration-oo
@@ -308,7 +308,7 @@ services:
   # --- Document Server: OnlyOffice ---
   ocis-onlyoffice:
     extends:
-      file: ../../core/templates.yml
+      file: ../../shared/templates.yml
       service: base-default
     image: onlyoffice/documentserver:${OCIS_ONLYOFFICE_DOCKER_TAG:-9.2}
     container_name: ocis-onlyoffice
