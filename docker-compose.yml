@@ -18,8 +18,8 @@ include:
   # 4. End-User Applications
   - apps/roundcube/roundcube.yml
   - apps/ocis/ocis.yml
-  - apps/websites/aaronsoft/website-aaronsoft.yml
-  - apps/websites/get-orga-niced/website-get-orga-niced.yml
+  - apps/websites/aaronsoft/aaronsoft.yml
+  - apps/websites/get-orga-niced/get-orga-niced.yml
 
 # --- Global Network Definitions ---
 networks:

@@ -1,6 +1,6 @@
 services:
   # --- Main Web Service ---
-  website-aaronsoft:
+  aaronsoft:
     extends:
       file: ../../../shared/templates.yml
       service: base-secure
