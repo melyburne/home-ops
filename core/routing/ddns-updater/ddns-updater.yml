@@ -1,10 +1,10 @@
 services:
   # --- Init Service: Prepares the environment before the main application starts ---
-  gandi-ddns-init:
+  ddns-updater-init:
     extends:
       file: ../../../shared/templates.yml
       service: base-init
-    container_name: gandi-ddns-init
+    container_name: ddns-updater-init
 
     # Execution: Fix permissions
     command: sh -c "chown -R ${DDNS_UPDATER_PUID:-1002}:${DDNS_UPDATER_GUID:-1002} /data"
@@ -27,7 +27,7 @@ services:
 
     # Lifecycle: Wait for permissions to be fixed
     depends_on:
-      gandi-ddns-init:
+      ddns-updater-init:
         condition: service_completed_successfully
 
     # Connectivity: Attach to the shared outbound traffic

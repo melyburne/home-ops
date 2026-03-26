@@ -133,7 +133,7 @@ services:
       - "mschlachter/ocis-app-tokens:${OCIS_EXT_APP_TOKENS_DOCKER_TAG:-latest}"
 
   # --- Full Text Search Extractor ---
-  tika:
+  ocis-tika:
     extends:
       file: ../../shared/templates.yml
       service: base-secure
@@ -180,7 +180,7 @@ services:
         condition: service_completed_successfully
       ocis-ext-custom-init:
         condition: service_completed_successfully
-      tika:
+      ocis-tika:
         condition: service_healthy
 
     # Connectivity: Internal communication and public proxy exposure

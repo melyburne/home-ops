@@ -2,7 +2,7 @@ services:
   # --- Main Service: Watchtower Auto-Updater ---
   watchtower:
     extends:
-      file: ../templates.yml
+      file: ../../../shared/templates.yml
       service: base-secure
     image: nickfedor/watchtower:${WATCHTOWER_DOCKER_TAG:-latest}
     container_name: watchtower
