@@ -20,6 +20,7 @@ http:
         - "websecure"
       middlewares:
         - "redirect-to-www"
+        - "rewrite-to-index"
       service: "maintenance@file"
       tls:
         certResolver: "myresolver"
@@ -36,6 +37,7 @@ http:
         - "websecure"
       middlewares:
         - "redirect-to-www"
+        - "rewrite-to-index"
       service: "maintenance@file"
       tls:
         certResolver: "myresolver"
