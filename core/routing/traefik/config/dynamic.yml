@@ -1,5 +1,14 @@
 http:
   # -------------------------------------------------------------------------------------------------
+  # 1. EXPLICIT SERVICES (Bypasses Docker provider naming issues)
+  # -------------------------------------------------------------------------------------------------
+  services:
+    maintenance:
+      loadBalancer:
+        servers:
+          - url: "http://maintenance:8080"
+
+  # -------------------------------------------------------------------------------------------------
   # 1. ROUTERS (Domain Infrastructure & Wildcard SSL)
   # -------------------------------------------------------------------------------------------------
   routers:
@@ -11,7 +20,7 @@ http:
         - "websecure"
       middlewares:
         - "redirect-to-www"
-      service: "maintenance@docker"
+      service: "maintenance@file"
       tls:
         certResolver: "myresolver"
         domains:
@@ -27,7 +36,7 @@ http:
         - "websecure"
       middlewares:
         - "redirect-to-www"
-      service: "maintenance@docker"
+      service: "maintenance@file"
       tls:
         certResolver: "myresolver"
         domains:
