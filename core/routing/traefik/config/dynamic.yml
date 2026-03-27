@@ -60,13 +60,21 @@ http:
         stsPreload: true
         forceSTSHeader: true
 
+    # Error Handling
+    error-pages:
+      errors:
+        status:
+          - "502-504"
+        service: "maintenance-svc@docker"
+        query: "/"
+
     # Public middleware
     sec-public:
       chain:
         middlewares:
           - sec-transport
           - rate-limit
-
+          - error-pages
 
 # -------------------------------------------------------------------------------------------------
 # 3. TLS OPTIONS

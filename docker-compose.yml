@@ -14,6 +14,7 @@ include:
 
   # 3. System & Maintenance Tier
   - core/system/watchtower/watchtower.yml
+  - core/system/maintenance/maintenance.yml
 
   # 4. End-User Applications
   - apps/roundcube/roundcube.yml

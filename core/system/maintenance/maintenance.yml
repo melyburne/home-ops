@@ -1,0 +1,34 @@
+services:
+  maintenance:
+    extends:
+      file: ../../../shared/templates.yml
+      service: base-secure
+    image: nginx:alpine
+    container_name: maintenance
+
+    # Security: Lock the filesystem
+    read_only: true
+
+    # Connectivity: Attach to the shared reverse proxy network
+    networks:
+      - traefik-public
+
+    # Routing: Traefik configuration (Alphabetized)
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.maintenance.rule=Host(`maintenance.localhost`)"
+      - "traefik.http.services.maintenance-svc.loadbalancer.server.port=80"
+
+    # State: Mount the HTML folder and required temp dirs for Nginx
+    volumes:
+      - ./html:/usr/share/nginx/html:ro
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+      - /var/run
+
+    healthcheck:
+      test: "wget -qO /dev/null http://127.0.0.1:80/ || exit 1"
+
+networks:
+  traefik-public:
