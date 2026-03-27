@@ -216,7 +216,7 @@ services:
       PROXY_ENABLE_APP_AUTH: "true"
       PROXY_ENABLE_BASIC_AUTH: "true"
       PROXY_TLS: "false"
-      SEARCH_EXTRACTOR_TIKA_TIKA_URL: "http://tika:9998"
+      SEARCH_EXTRACTOR_TIKA_TIKA_URL: "http://ocis-tika:9998"
       SEARCH_EXTRACTOR_TYPE: "tika"
 
     # Execution: Initialize if needed, then start server
