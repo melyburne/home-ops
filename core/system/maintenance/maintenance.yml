@@ -1,12 +1,14 @@
 services:
+  # --- Main Web Service ---
   maintenance:
     extends:
       file: ../../../shared/templates.yml
       service: base-secure
-    image: nginx:alpine
+    image: nginxinc/nginx-unprivileged:${NGINX_UNPRIVILEGED_DOCKER_TAG:-alpine}
     container_name: maintenance
 
-    # Security: Lock the filesystem
+    # Security: Run as non-root user, lock the filesystem
+    user: "${PUID:-1000}:${GUID:-1000}"
     read_only: true
 
     # Connectivity: Attach to the shared reverse proxy network
@@ -17,7 +19,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.maintenance.rule=Host(`maintenance.localhost`)"
-      - "traefik.http.services.maintenance-svc.loadbalancer.server.port=80"
+      - "traefik.http.services.maintenance-svc.loadbalancer.server.port=8080"
 
     # State: Mount the HTML folder and required temp dirs for Nginx
     volumes:
@@ -27,8 +29,9 @@ services:
       - /var/cache/nginx
       - /var/run
 
+    # Monitoring: Internal check targeting the new unprivileged port
     healthcheck:
-      test: "wget -qO /dev/null http://127.0.0.1:80/ || exit 1"
+      test: "wget -qO /dev/null http://127.0.0.1:8080/ || exit 1"
 
 networks:
   traefik-public:
