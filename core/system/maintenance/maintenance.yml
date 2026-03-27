@@ -19,7 +19,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.maintenance.rule=Host(`maintenance.localhost`)"
-      - "traefik.http.services.maintenance-svc.loadbalancer.server.port=8080"
+      - "traefik.http.services.maintenance.loadbalancer.server.port=8080"
 
     # State: Mount the HTML folder and required temp dirs for Nginx
     volumes:

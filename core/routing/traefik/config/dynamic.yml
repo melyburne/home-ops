@@ -11,7 +11,7 @@ http:
         - "websecure"
       middlewares:
         - "redirect-to-www"
-      service: "api@internal" # Dummy service
+      service: "maintenance@docker"
       tls:
         certResolver: "myresolver"
         domains:
@@ -27,7 +27,7 @@ http:
         - "websecure"
       middlewares:
         - "redirect-to-www"
-      service: "api@internal"
+      service: "maintenance@docker"
       tls:
         certResolver: "myresolver"
         domains:
@@ -65,7 +65,7 @@ http:
       errors:
         status:
           - "502-504"
-        service: "maintenance-svc@docker"
+        service: "maintenance@docker"
         query: "/"
 
     # Public middleware
