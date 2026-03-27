@@ -1,11 +1,11 @@
 services:
   # --- Main Web Service ---
-  aaronsoft:
+  web-get-orga-niced:
     extends:
       file: ../../../shared/templates.yml
       service: base-secure
-    image: ghcr.io/kartoffelbauer/web-aaronsoft:${WEB_AARONSOFT_DOCKER_TAG:-latest}
-    container_name: website-aaronsoft
+    image: ghcr.io/kartoffelbauer/web-get-orga-niced:${WEB_GETORGANICED_DOCKER_TAG:-latest}
+    container_name: web-get-orga-niced
 
     # Security: Lock the filesystem
     read_only: true
@@ -17,9 +17,9 @@ services:
     # Routing: Traefik dynamic configuration (Alphabetized)
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web-aaronsoft.entrypoints=websecure"
-      - "traefik.http.routers.web-aaronsoft.rule=${WEB_AARONSOFT_HOST_RULE:-Host(`aaronsoft.localhost`)}"
-      - "traefik.http.services.web-aaronsoft.loadbalancer.server.port=8080"
+      - "traefik.http.routers.web-get-orga-niced.entrypoints=websecure"
+      - "traefik.http.routers.web-get-orga-niced.rule=${WEB_GETORGANICED_HOST_RULE:-Host(`organiced.localhost`)}"
+      - "traefik.http.services.web-get-orga-niced.loadbalancer.server.port=8080"
 
     # State: In-memory mounts explicitly required for Nginx to run on a read-only filesystem
     tmpfs:
