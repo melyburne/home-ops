@@ -73,7 +73,7 @@ services:
     networks:
       traefik-public:
         aliases:
-          - ${OCIS_ONLYOFFICE_DOMAIN:-onlyoffice.localhost}
+          - onlyoffice.${DOMAIN_PRIMARY:-localhost}
       socket-internal:
 
     # Configuration: Global environment variables (Alphabetized)
@@ -131,7 +131,7 @@ services:
       - "traefik.http.middlewares.dashboard-auth.basicauth.users=${TRAEFIK_DASHBOARD_CREDENTIALS:?}"
       - "traefik.http.routers.dashboard.entrypoints=websecure"
       - "traefik.http.routers.dashboard.middlewares=dashboard-auth"
-      - "traefik.http.routers.dashboard.rule=${TRAEFIK_DASHBOARD_HOST_RULE:-Host(`traefik.localhost`)}"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.${DOMAIN_PRIMARY:-localhost}`, `traefik.${DOMAIN_SECONDARY:-localhost}`)"
       - "traefik.http.routers.dashboard.service=api@internal"
 
     # State: Persistent data and dynamic config mounts

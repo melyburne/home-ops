@@ -210,8 +210,8 @@ services:
       OCIS_LOG_LEVEL: "info"
       OCIS_LOG_PRETTY: "false"
       OCIS_PASSWORD_POLICY_BANNED_PASSWORDS_LIST: "banned-password-list.txt"
-      OCIS_URL: "https://${OCIS_DOMAIN:-ocis.localhost}"
-      ONLYOFFICE_DOMAIN: "${OCIS_ONLYOFFICE_DOMAIN:-onlyoffice.localhost}"
+      OCIS_URL: "https://ocis.${DOMAIN_PRIMARY:-localhost}"
+      ONLYOFFICE_DOMAIN: "onlyoffice.${DOMAIN_PRIMARY:-localhost}"
       PROXY_CSP_CONFIG_FILE_LOCATION: "/etc/ocis/csp.yaml"
       PROXY_ENABLE_APP_AUTH: "true"
       PROXY_ENABLE_BASIC_AUTH: "true"
@@ -230,7 +230,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.ocis.entrypoints=websecure"
-      - "traefik.http.routers.ocis.rule=Host(`${OCIS_DOMAIN:-ocis.localhost}`)"
+      - "traefik.http.routers.ocis.rule=Host(`ocis.${DOMAIN_PRIMARY:-localhost}`)"
       - "traefik.http.routers.ocis.service=ocis"
       - "traefik.http.services.ocis.loadbalancer.server.port=9200"
 
@@ -275,8 +275,8 @@ services:
 
     # Configuration: Connector connection details (Alphabetized)
     environment:
-      COLLABORATION_APP_ADDR: "https://${OCIS_ONLYOFFICE_DOMAIN:-onlyoffice.localhost}"
-      COLLABORATION_APP_ICON: "https://${OCIS_ONLYOFFICE_DOMAIN:-onlyoffice.localhost}/web-apps/apps/documenteditor/main/resources/img/favicon.ico"
+      COLLABORATION_APP_ADDR: "https://onlyoffice.${DOMAIN_PRIMARY:-localhost}"
+      COLLABORATION_APP_ICON: "https://onlyoffice.${DOMAIN_PRIMARY:-localhost}/web-apps/apps/documenteditor/main/resources/img/favicon.ico"
       COLLABORATION_APP_INSECURE: "true"
       COLLABORATION_APP_NAME: "OnlyOffice"
       COLLABORATION_APP_PRODUCT: "OnlyOffice"
@@ -288,7 +288,7 @@ services:
       COLLABORATION_WOPI_SRC: "http://ocis-collaboration-oo:9300"
       MICRO_REGISTRY: "nats-js-kv"
       MICRO_REGISTRY_ADDRESS: "ocis:9233"
-      OCIS_URL: "https://${OCIS_DOMAIN:-ocis.localhost}"
+      OCIS_URL: "https://ocis.${DOMAIN_PRIMARY:-localhost}"
 
     # Execution: Start the collaboration service
     command:
@@ -365,7 +365,7 @@ services:
       - "traefik.http.middlewares.onlyoffice.headers.customrequestheaders.X-Forwarded-Proto=https"
       - "traefik.http.routers.onlyoffice.entrypoints=websecure"
       - "traefik.http.routers.onlyoffice.middlewares=onlyoffice"
-      - "traefik.http.routers.onlyoffice.rule=Host(`${OCIS_ONLYOFFICE_DOMAIN:-onlyoffice.localhost}`)"
+      - "traefik.http.routers.onlyoffice.rule=Host(`onlyoffice.${DOMAIN_PRIMARY:-localhost}`)"
       - "traefik.http.routers.onlyoffice.service=onlyoffice"
       - "traefik.http.services.onlyoffice.loadbalancer.server.port=80"
 
