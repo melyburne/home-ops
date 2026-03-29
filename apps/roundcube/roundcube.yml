@@ -47,7 +47,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.roundcube.entrypoints=websecure"
-      - "traefik.http.routers.roundcube.rule=Host(`${ROUNDCUBE_SUBDOMAIN:-mail}.${DOMAIN_PRIMARY:-localhost}`, `${ROUNDCUBE_SUBDOMAIN:-mail}.${DOMAIN_SECONDARY:-localhost}`)"
+      - "traefik.http.routers.roundcube.rule=Host(`${ROUNDCUBE_SUBDOMAIN:-mail}.${DOMAIN_PRIMARY:-localhost}`) || Host(`${ROUNDCUBE_SUBDOMAIN:-mail}.${DOMAIN_SECONDARY:-localhost}`)"
       - "traefik.http.services.roundcube.loadbalancer.server.port=8000"
 
     # Monitoring: Internal check to ensure the webmail interface is responding

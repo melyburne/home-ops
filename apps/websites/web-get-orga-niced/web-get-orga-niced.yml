@@ -18,7 +18,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web-get-orga-niced.entrypoints=websecure"
-      - "traefik.http.routers.web-aaronsoft.rule=Host(`${WEB_SUBDOMAIN:-www}.${DOMAIN_SECONDARY:-localhost}`)"
+      - "traefik.http.routers.web-get-orga-niced.rule=Host(`${WEB_SUBDOMAIN:-www}.${DOMAIN_SECONDARY:-localhost}`)"
       - "traefik.http.services.web-get-orga-niced.loadbalancer.server.port=8080"
 
     # State: In-memory mounts explicitly required for Nginx to run on a read-only filesystem

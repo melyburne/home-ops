@@ -130,7 +130,7 @@ services:
       - "traefik.http.middlewares.dashboard-auth.basicauth.users=${TRAEFIK_DASHBOARD_CREDENTIALS:?}"
       - "traefik.http.routers.dashboard.entrypoints=websecure"
       - "traefik.http.routers.dashboard.middlewares=dashboard-auth"
-      - "traefik.http.routers.dashboard.rule=Host(`${TRAEFIK_SUBDOMAIN:-traefik}.${DOMAIN_PRIMARY:-localhost}`, `${TRAEFIK_SUBDOMAIN:-traefik}.${DOMAIN_SECONDARY:-localhost}`)"
+      - "traefik.http.routers.dashboard.rule=Host(`${TRAEFIK_SUBDOMAIN:-traefik}.${DOMAIN_PRIMARY:-localhost}`) || Host(`${TRAEFIK_SUBDOMAIN:-traefik}.${DOMAIN_SECONDARY:-localhost}`)"
       - "traefik.http.routers.dashboard.service=api@internal"
 
     # State: Persistent data and dynamic config mounts

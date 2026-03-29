@@ -24,7 +24,7 @@ services:
       # PRIMARY DOMAIN ($DOMAIN_PRIMARY)
       # ==========================================
       # PRIORITY 2: Show maintenance page for KNOWN apps if they go offline
-      - "traefik.http.routers.maint-primary.rule=Host(`${WEB_SUBDOMAIN:-www}.${DOMAIN_PRIMARY:-localhost}`, `${ROUNDCUBE_SUBDOMAIN:-mail}.${DOMAIN_PRIMARY:-localhost}`, `${OCIS_SUBDOMAIN:-ocis}.${DOMAIN_PRIMARY:-localhost}`, `${ADMINER_SUBDOMAIN:-adminer}.${DOMAIN_PRIMARY:-localhost}`)"
+      - "traefik.http.routers.maint-primary.rule=Host(`${WEB_SUBDOMAIN:-www}.${DOMAIN_PRIMARY:-localhost}`) || Host(`${ROUNDCUBE_SUBDOMAIN:-mail}.${DOMAIN_PRIMARY:-localhost}`) || Host(`${OCIS_SUBDOMAIN:-ocis}.${DOMAIN_PRIMARY:-localhost}`) || Host(`${ADMINER_SUBDOMAIN:-adminer}.${DOMAIN_PRIMARY:-localhost}`)"
       - "traefik.http.routers.maint-primary.priority=2"
       - "traefik.http.routers.maint-primary.entrypoints=websecure"
       - "traefik.http.routers.maint-primary.middlewares=rewrite-to-index@file"
@@ -36,7 +36,7 @@ services:
       - "traefik.http.routers.redirect-primary.entrypoints=websecure"
       - "traefik.http.routers.redirect-primary.middlewares=redirect-to-www@file"
       # Dummy service for redirects so it doesn't hit the maintenance HTML
-      - "traefik.http.routers.redirect-primary.service=noop@internal" 
+      - "traefik.http.routers.redirect-primary.service=noop@internal"
       - "traefik.http.routers.redirect-primary.tls.certresolver=myresolver"
       - "traefik.http.routers.redirect-primary.tls.domains[0].main=${DOMAIN_PRIMARY:-localhost}"
       - "traefik.http.routers.redirect-primary.tls.domains[0].sans=*.${DOMAIN_PRIMARY:-localhost}"
@@ -45,7 +45,7 @@ services:
       # SECONDARY DOMAIN ($DOMAIN_SECONDARY)
       # ==========================================
       # PRIORITY 2: Show maintenance page for KNOWN apps if they go offline
-      - "traefik.http.routers.maint-secondary.rule=Host(`${WEB_SUBDOMAIN:-www}.${DOMAIN_SECONDARY:-localhost}`, `${ROUNDCUBE_SUBDOMAIN:-mail}.${DOMAIN_SECONDARY:-localhost}`, `${ADMINER_SUBDOMAIN:-adminer}.${DOMAIN_SECONDARY:-localhost}`)"
+      - "traefik.http.routers.maint-secondary.rule=Host(`${WEB_SUBDOMAIN:-www}.${DOMAIN_SECONDARY:-localhost}`) || Host(`${ROUNDCUBE_SUBDOMAIN:-mail}.${DOMAIN_SECONDARY:-localhost}`) || Host(`${ADMINER_SUBDOMAIN:-adminer}.${DOMAIN_SECONDARY:-localhost}`)"
       - "traefik.http.routers.maint-secondary.priority=2"
       - "traefik.http.routers.maint-secondary.entrypoints=websecure"
       - "traefik.http.routers.maint-secondary.middlewares=rewrite-to-index@file"
