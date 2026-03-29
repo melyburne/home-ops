@@ -158,7 +158,7 @@ services:
     extends:
       file: ../../shared/templates.yml
       service: base-secure
-    image: owncloud/ocis:${OCIS_DOCKER_TAG:-8.0}
+    image: owncloud/ocis:${OCIS_DOCKER_TAG:-8.1}
     container_name: ocis
 
     # Security: Run as non-root user
@@ -255,7 +255,7 @@ services:
     extends:
       file: ../../shared/templates.yml
       service: base-secure
-    image: owncloud/ocis:${OCIS_DOCKER_TAG:-8.0}
+    image: owncloud/ocis:${OCIS_DOCKER_TAG:-8.1}
     container_name: ocis-collaboration-oo
 
     # Security: Run as non-root user
