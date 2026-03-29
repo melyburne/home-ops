@@ -310,7 +310,7 @@ services:
     extends:
       file: ../../shared/templates.yml
       service: base-default
-    image: onlyoffice/documentserver:${OCIS_ONLYOFFICE_DOCKER_TAG:-9.2}
+    image: onlyoffice/documentserver:${OCIS_ONLYOFFICE_DOCKER_TAG:-9.3}
     container_name: ocis-onlyoffice
 
     # Security: Remove all kernel privileges, add back only what's strictly needed
