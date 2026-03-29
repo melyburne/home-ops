@@ -18,7 +18,46 @@ services:
     # Routing: Traefik configuration (Alphabetized)
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.maintenance.rule=Host(`maintenance.localhost`)"
+      - "traefik.http.services.maintenance.loadbalancer.server.port=8080"
+
+      # ==========================================
+      # PRIMARY DOMAIN ($DOMAIN_PRIMARY)
+      # ==========================================
+      # PRIORITY 2: Show maintenance page for KNOWN apps if they go offline
+      - "traefik.http.routers.maint-primary.rule=Host(`${WEB_SUBDOMAIN:-www}.${DOMAIN_PRIMARY}`, `${ROUNDCUBE_SUBDOMAIN:-mail}.${DOMAIN_PRIMARY}`, `${OCIS_SUBDOMAIN:-ocis}.${DOMAIN_PRIMARY}`, `${ADMINER_SUBDOMAIN:-adminer}.${DOMAIN_PRIMARY}`)"
+      - "traefik.http.routers.maint-primary.priority=2"
+      - "traefik.http.routers.maint-primary.entrypoints=websecure"
+      - "traefik.http.routers.maint-primary.middlewares=rewrite-to-index@file"
+      - "traefik.http.routers.maint-primary.tls.certresolver=myresolver"
+
+      # PRIORITY 1: Redirect Naked Domain AND Typos to WWW
+      # Note: We use $$ to escape the regex end-of-line character in Docker Compose
+      - "traefik.http.routers.redirect-primary.rule=HostRegexp(`^.+\\.${DOMAIN_PRIMARY}$$`) || Host(`${DOMAIN_PRIMARY}`)"
+      - "traefik.http.routers.redirect-primary.priority=1"
+      - "traefik.http.routers.redirect-primary.entrypoints=websecure"
+      - "traefik.http.routers.redirect-primary.middlewares=redirect-to-www@file"
+      - "traefik.http.routers.redirect-primary.tls.certresolver=myresolver"
+      - "traefik.http.routers.redirect-primary.tls.domains[0].main=${DOMAIN_PRIMARY}"
+      - "traefik.http.routers.redirect-primary.tls.domains[0].sans=*.${DOMAIN_PRIMARY}"
+
+      # ==========================================
+      # SECONDARY DOMAIN ($DOMAIN_SECONDARY)
+      # ==========================================
+      # PRIORITY 2: Show maintenance page for KNOWN apps if they go offline
+      - "traefik.http.routers.maint-secondary.rule=Host(`${WEB_SUBDOMAIN:-www}.${DOMAIN_SECONDARY}`, `${ROUNDCUBE_SUBDOMAIN:-mail}.${DOMAIN_SECONDARY}`, `${ADMINER_SUBDOMAIN:-adminer}.${DOMAIN_SECONDARY}`)"
+      - "traefik.http.routers.maint-secondary.priority=2"
+      - "traefik.http.routers.maint-secondary.entrypoints=websecure"
+      - "traefik.http.routers.maint-secondary.middlewares=rewrite-to-index@file"
+      - "traefik.http.routers.maint-secondary.tls.certresolver=myresolver"
+
+      # PRIORITY 1: Redirect Naked Domain AND Typos to WWW
+      - "traefik.http.routers.redirect-secondary.rule=HostRegexp(`^.+\\.${DOMAIN_SECONDARY}$$`) || Host(`${DOMAIN_SECONDARY}`)"
+      - "traefik.http.routers.redirect-secondary.priority=1"
+      - "traefik.http.routers.redirect-secondary.entrypoints=websecure"
+      - "traefik.http.routers.redirect-secondary.middlewares=redirect-to-www@file"
+      - "traefik.http.routers.redirect-secondary.tls.certresolver=myresolver"
+      - "traefik.http.routers.redirect-secondary.tls.domains[0].main=${DOMAIN_SECONDARY}"
+      - "traefik.http.routers.redirect-secondary.tls.domains[0].sans=*.${DOMAIN_SECONDARY}"
 
     # State: Mount the HTML folder and required temp dirs for Nginx
     volumes:

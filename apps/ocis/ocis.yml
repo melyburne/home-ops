@@ -210,7 +210,7 @@ services:
       OCIS_LOG_LEVEL: "info"
       OCIS_LOG_PRETTY: "false"
       OCIS_PASSWORD_POLICY_BANNED_PASSWORDS_LIST: "banned-password-list.txt"
-      OCIS_URL: "https://ocis.${DOMAIN_PRIMARY:-localhost}"
+      OCIS_URL: "https://${OCIS_SUBDOMAIN:-ocis}.${DOMAIN_PRIMARY:-localhost}"
       ONLYOFFICE_DOMAIN: "onlyoffice.${DOMAIN_PRIMARY:-localhost}"
       PROXY_CSP_CONFIG_FILE_LOCATION: "/etc/ocis/csp.yaml"
       PROXY_ENABLE_APP_AUTH: "true"
@@ -230,7 +230,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.ocis.entrypoints=websecure"
-      - "traefik.http.routers.ocis.rule=Host(`ocis.${DOMAIN_PRIMARY:-localhost}`)"
+      - "traefik.http.routers.ocis.rule=Host(`${OCIS_SUBDOMAIN:-ocis}.${DOMAIN_PRIMARY:-localhost}`)"
       - "traefik.http.routers.ocis.service=ocis"
       - "traefik.http.services.ocis.loadbalancer.server.port=9200"
 
@@ -288,7 +288,7 @@ services:
       COLLABORATION_WOPI_SRC: "http://ocis-collaboration-oo:9300"
       MICRO_REGISTRY: "nats-js-kv"
       MICRO_REGISTRY_ADDRESS: "ocis:9233"
-      OCIS_URL: "https://ocis.${DOMAIN_PRIMARY:-localhost}"
+      OCIS_URL: "https://${OCIS_SUBDOMAIN:-ocis}.${DOMAIN_PRIMARY:-localhost}"
 
     # Execution: Start the collaboration service
     command:
