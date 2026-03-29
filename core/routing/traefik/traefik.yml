@@ -116,8 +116,7 @@ services:
       - "--entryPoints.websecure.http.encodedCharacters.allowEncodedSlash=true"
 
       # --- Let's Encrypt Staging (DNS Challenge) ---
-      # Remember to remove "-staging" from the caServer URL when moving to production!
-      - "--certificatesresolvers.myresolver.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory"
+      - "--certificatesresolvers.myresolver.acme.caServer=${TRAEFIK_ACME_CASERVER:-https://acme-staging-v02.api.letsencrypt.org/directory}"
       - "--certificatesresolvers.myresolver.acme.dnschallenge.propagation.delayBeforeChecks=10s"
       - "--certificatesresolvers.myresolver.acme.dnschallenge.provider=gandiv5"
       - "--certificatesresolvers.myresolver.acme.dnschallenge.resolvers=1.1.1.1:53,8.8.8.8:53"
