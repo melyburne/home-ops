@@ -83,86 +83,89 @@ services:
 
     # Execution: Core Traefik configuration (Alphabetized)
     command:
-      # General (Dashboard, Logging, Ping)
+      # --- 1. CORE SYSTEM SETTINGS (API, Logging, Healthchecks) ---
       - "--api.dashboard=true"
       - "--api.disableDashboardAd=true"
       - "--log.level=INFO"
       - "--ping=true"
 
-      # Docker Provider (via Proxy)
+      # --- 2. ENTRYPOINTS (Network Ports & Global Routing) ---
+      # HTTP (80): Redirects
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+
+      # HTTPS (443): Core Entrypoint & oCIS Overrides
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.websecure.http.encodedCharacters.allowEncodedPercent=true"
+      - "--entrypoints.websecure.http.encodedCharacters.allowEncodedQuestionMark=true"
+      - "--entrypoints.websecure.http.encodedCharacters.allowEncodedSlash=true"
+      - "--entrypoints.websecure.http.middlewares=sec-public@file"
+      - "--entrypoints.websecure.http.tls=true"
+      - "--entrypoints.websecure.transport.respondingTimeouts.idleTimeout=3m"
+      - "--entrypoints.websecure.transport.respondingTimeouts.readTimeout=12h"
+      - "--entrypoints.websecure.transport.respondingTimeouts.writeTimeout=12h"
+
+      # --- 3. PROVIDERS (Backend Discovery & Dynamic Configuration) ---
+      # Docker Provider
+      - "--providers.docker=true"
       - "--providers.docker.endpoint=tcp://traefik-socket-proxy:2375"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.network=traefik-public"
-      - "--providers.docker=true"
 
       # File Provider
       - "--providers.file.filename=/config/dynamic.yml"
       - "--providers.file.watch=true"
 
-      # Entrypoints (HTTP automatically redirects to HTTPS)
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
-      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
-      - "--entrypoints.websecure.address=:443"
-      - "--entrypoints.websecure.http.middlewares=sec-public@file"
-      - "--entrypoints.websecure.http.tls=true"
-
-      # --- oCIS specific Configuration ---
-      - "--entryPoints.websecure.transport.respondingTimeouts.idleTimeout=3m"
-      - "--entryPoints.websecure.transport.respondingTimeouts.readTimeout=12h"
-      - "--entryPoints.websecure.transport.respondingTimeouts.writeTimeout=12h"
-      - "--entryPoints.websecure.http.encodedCharacters.allowEncodedPercent=true"
-      - "--entryPoints.websecure.http.encodedCharacters.allowEncodedQuestionMark=true"
-      - "--entryPoints.websecure.http.encodedCharacters.allowEncodedSlash=true"
-
-      # --- Let's Encrypt Staging (DNS Challenge) ---
+      # --- 4. CERTIFICATE RESOLVERS (Let's Encrypt via DNS-01 Challenge) ---
       - "--certificatesresolvers.myresolver.acme.caServer=${TRAEFIK_ACME_CASERVER:-https://acme-staging-v02.api.letsencrypt.org/directory}"
+      - "--certificatesresolvers.myresolver.acme.dnschallenge=true"
       - "--certificatesresolvers.myresolver.acme.dnschallenge.propagation.delayBeforeChecks=10s"
       - "--certificatesresolvers.myresolver.acme.dnschallenge.provider=gandiv5"
       - "--certificatesresolvers.myresolver.acme.dnschallenge.resolvers=1.1.1.1:53,8.8.8.8:53"
-      - "--certificatesresolvers.myresolver.acme.dnschallenge=true"
       - "--certificatesresolvers.myresolver.acme.email=${TRAEFIK_ACME_EMAIL:?}"
       - "--certificatesresolvers.myresolver.acme.storage=/data/acme.json"
 
-      # ----------------------------------------------------------------------
-      # DYNAMIC REDIRECT MIDDLEWARE (Fully configurable via .env)
-      # Note: We use $${1} so Docker Compose correctly passes ${1} to Traefik
-      # ----------------------------------------------------------------------
+    # Routing: Dashboard exposure & Global redirect configuration (Alphabetized)
+    labels:
+      # --- 1. Core Service Settings ---
+      - "traefik.enable=true"
+
+      # --- 2. Middlewares Hosted by this Service ---
+      # Secure the Traefik dashboard with Basic Authentication
+      - "traefik.http.middlewares.dashboard-auth.basicauth.users=${TRAEFIK_DASHBOARD_CREDENTIALS:?}"
+
+      # Dynamic Redirect Middleware: Forwards traffic to the preferred web subdomain
+      - "traefik.http.middlewares.redirect-to-web.redirectregex.permanent=true"
       - "traefik.http.middlewares.redirect-to-web.redirectregex.regex=^https?://(?:[^/]+\\.)?([^/]+\\.[^/]+)/(.*)"
       - "traefik.http.middlewares.redirect-to-web.redirectregex.replacement=https://${WEB_SUBDOMAIN:-www}.$${1}/$${2}"
-      - "traefik.http.middlewares.redirect-to-web.redirectregex.permanent=true"
 
-      # ----------------------------------------------------------------------
-      # PRIORITY 1: GLOBAL REDIRECTS (Naked Domains & Typos -> Web Subdomain)
-      # ----------------------------------------------------------------------
-      # Primary Domain Redirects
-      - "traefik.http.routers.redirect-primary.rule=HostRegexp(`^.+\\.${DOMAIN_PRIMARY:-localhost}$$`) || Host(`${DOMAIN_PRIMARY:-localhost}`)"
-      - "traefik.http.routers.redirect-primary.priority=1"
+      # --- 3. Routers ---
+      # Internal Dashboard Router
+      - "traefik.http.routers.dashboard.entrypoints=websecure"
+      - "traefik.http.routers.dashboard.middlewares=dashboard-auth"
+      - "traefik.http.routers.dashboard.rule=Host(`${TRAEFIK_SUBDOMAIN:-traefik}.${DOMAIN_PRIMARY:-localhost}`) || Host(`${TRAEFIK_SUBDOMAIN:-traefik}.${DOMAIN_SECONDARY:-localhost}`)"
+      - "traefik.http.routers.dashboard.service=api@internal"
+
+      # Priority 1: Primary Domain Global Redirects (Naked domains & Typos -> Web Subdomain)
       - "traefik.http.routers.redirect-primary.entrypoints=websecure"
       - "traefik.http.routers.redirect-primary.middlewares=redirect-to-web"
+      - "traefik.http.routers.redirect-primary.priority=1"
+      - "traefik.http.routers.redirect-primary.rule=HostRegexp(`^.+\\.${DOMAIN_PRIMARY:-localhost}$$`) || Host(`${DOMAIN_PRIMARY:-localhost}`)"
       - "traefik.http.routers.redirect-primary.service=noop@internal"
       - "traefik.http.routers.redirect-primary.tls.certresolver=myresolver"
       - "traefik.http.routers.redirect-primary.tls.domains[0].main=${DOMAIN_PRIMARY:-localhost}"
       - "traefik.http.routers.redirect-primary.tls.domains[0].sans=*.${DOMAIN_PRIMARY:-localhost}"
 
-      # Secondary Domain Redirects
-      - "traefik.http.routers.redirect-secondary.rule=HostRegexp(`^.+\\.${DOMAIN_SECONDARY:-localhost}$$`) || Host(`${DOMAIN_SECONDARY:-localhost}`)"
-      - "traefik.http.routers.redirect-secondary.priority=1"
+      # Priority 1: Secondary Domain Global Redirects (Naked domains & Typos -> Web Subdomain)
       - "traefik.http.routers.redirect-secondary.entrypoints=websecure"
       - "traefik.http.routers.redirect-secondary.middlewares=redirect-to-web"
+      - "traefik.http.routers.redirect-secondary.priority=1"
+      - "traefik.http.routers.redirect-secondary.rule=HostRegexp(`^.+\\.${DOMAIN_SECONDARY:-localhost}$$`) || Host(`${DOMAIN_SECONDARY:-localhost}`)"
       - "traefik.http.routers.redirect-secondary.service=noop@internal"
       - "traefik.http.routers.redirect-secondary.tls.certresolver=myresolver"
       - "traefik.http.routers.redirect-secondary.tls.domains[0].main=${DOMAIN_SECONDARY:-localhost}"
       - "traefik.http.routers.redirect-secondary.tls.domains[0].sans=*.${DOMAIN_SECONDARY:-localhost}"
-
-    # Routing: Internal dashboard exposure configuration (Alphabetized)
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.middlewares.dashboard-auth.basicauth.users=${TRAEFIK_DASHBOARD_CREDENTIALS:?}"
-      - "traefik.http.routers.dashboard.entrypoints=websecure"
-      - "traefik.http.routers.dashboard.middlewares=dashboard-auth"
-      - "traefik.http.routers.dashboard.rule=Host(`${TRAEFIK_SUBDOMAIN:-traefik}.${DOMAIN_PRIMARY:-localhost}`) || Host(`${TRAEFIK_SUBDOMAIN:-traefik}.${DOMAIN_SECONDARY:-localhost}`)"
-      - "traefik.http.routers.dashboard.service=api@internal"
 
     # State: Persistent data and dynamic config mounts
     volumes:
