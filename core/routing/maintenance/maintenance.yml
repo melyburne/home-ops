@@ -31,11 +31,12 @@ services:
       - "traefik.http.routers.maint-primary.tls.certresolver=myresolver"
 
       # PRIORITY 1: Redirect Naked Domain AND Typos to WWW
-      # Note: We use $$ to escape the regex end-of-line character in Docker Compose
       - "traefik.http.routers.redirect-primary.rule=HostRegexp(`^.+\\.${DOMAIN_PRIMARY}$$`) || Host(`${DOMAIN_PRIMARY}`)"
       - "traefik.http.routers.redirect-primary.priority=1"
       - "traefik.http.routers.redirect-primary.entrypoints=websecure"
       - "traefik.http.routers.redirect-primary.middlewares=redirect-to-www@file"
+      # Dummy service for redirects so it doesn't hit the maintenance HTML
+      - "traefik.http.routers.redirect-primary.service=noop@internal" 
       - "traefik.http.routers.redirect-primary.tls.certresolver=myresolver"
       - "traefik.http.routers.redirect-primary.tls.domains[0].main=${DOMAIN_PRIMARY}"
       - "traefik.http.routers.redirect-primary.tls.domains[0].sans=*.${DOMAIN_PRIMARY}"
@@ -55,6 +56,8 @@ services:
       - "traefik.http.routers.redirect-secondary.priority=1"
       - "traefik.http.routers.redirect-secondary.entrypoints=websecure"
       - "traefik.http.routers.redirect-secondary.middlewares=redirect-to-www@file"
+      # Dummy service for redirects so it doesn't hit the maintenance HTML
+      - "traefik.http.routers.redirect-secondary.service=noop@internal"
       - "traefik.http.routers.redirect-secondary.tls.certresolver=myresolver"
       - "traefik.http.routers.redirect-secondary.tls.domains[0].main=${DOMAIN_SECONDARY}"
       - "traefik.http.routers.redirect-secondary.tls.domains[0].sans=*.${DOMAIN_SECONDARY}"

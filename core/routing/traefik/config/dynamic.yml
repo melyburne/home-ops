@@ -1,50 +1,12 @@
 http:
   # -------------------------------------------------------------------------------------------------
-  # 1. EXPLICIT SERVICES (Bypasses Docker provider naming issues)
+  # 1. EXPLICIT SERVICES
   # -------------------------------------------------------------------------------------------------
   services:
     maintenance:
       loadBalancer:
         servers:
           - url: "http://maintenance:8080"
-
-  # -------------------------------------------------------------------------------------------------
-  # 1. ROUTERS (Domain Infrastructure & Wildcard SSL)
-  # -------------------------------------------------------------------------------------------------
-  routers:
-    # --- Aaronsoft.de Infrastructure ---
-    catchall-aaronsoft:
-      rule: "HostRegexp(`{subdomain:[a-z0-9-_]+}.aaronsoft.de`) || Host(`aaronsoft.de`)"
-      priority: 1 # Lowest priority: only triggers if no other container claims the URL
-      entryPoints:
-        - "websecure"
-      middlewares:
-        - "redirect-to-www"
-        - "rewrite-to-index"
-      service: "maintenance@file"
-      tls:
-        certResolver: "myresolver"
-        domains:
-          - main: "aaronsoft.de"
-            sans:
-              - "*.aaronsoft.de"
-
-    # --- Get-Orga-Niced.de Infrastructure ---
-    catchall-orga:
-      rule: "HostRegexp(`{subdomain:[a-z0-9-_]+}.get-orga-niced.de`) || Host(`get-orga-niced.de`)"
-      priority: 1
-      entryPoints:
-        - "websecure"
-      middlewares:
-        - "redirect-to-www"
-        - "rewrite-to-index"
-      service: "maintenance@file"
-      tls:
-        certResolver: "myresolver"
-        domains:
-          - main: "get-orga-niced.de"
-            sans:
-              - "*.get-orga-niced.de"
 
   # -------------------------------------------------------------------------------------------------
   # 2. MIDDLEWARES
@@ -56,6 +18,11 @@ http:
         regex: "^https?://(?:[^/]+\\.)?([^/]+\\.[^/]+)/(.*)"
         replacement: "https://www.${1}/${2}"
         permanent: true
+
+    # Go back to main page
+    rewrite-to-index:
+      replacePath:
+        path: "/"
 
     # Rate limiting
     rate-limit:
@@ -71,7 +38,7 @@ http:
         stsPreload: true
         forceSTSHeader: true
 
-    # Error Handling
+    # Error Handling (Catches internal 502/503/504 errors on running apps)
     error-pages:
       errors:
         status:
@@ -79,7 +46,7 @@ http:
         service: "maintenance@file"
         query: "/"
 
-    # Public middleware
+    # Public middleware chain applied globally
     sec-public:
       chain:
         middlewares:
@@ -94,7 +61,6 @@ tls:
   options:
     default:
       minVersion: VersionTLS12
-      #sniStrict: # Enable when moving into production
       cipherSuites:
         - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
         - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
