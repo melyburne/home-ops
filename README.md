@@ -14,7 +14,7 @@ A highly secure, modular Docker Compose stack for self-hosting applications and 
 
 This stack is built from the ground up with container security in mind:
 - **Least Privilege:** Almost all containers drop all Linux capabilities (`cap_drop: ALL`) and only add back the strict minimum required to function.
-- **Non-Root Execution:** Most services run as standard users (`PUID`/`GUID` 1000) using custom initialization containers to pre-configure volume permissions.
+- **Non-Root Execution:** Most services run as standard users (`PUID`/`PGID` 1000) using custom initialization containers to pre-configure volume permissions.
 - **Read-Only Filesystems:** Core applications are forced to run with `read_only: true` by dynamically mounting strictly required `tmpfs` directories.
 - **Socket Isolation:** Traefik does not have direct access to `docker.sock`. It reads through a heavily restricted, read-only TCP proxy proxying only container list requests.
 
@@ -28,7 +28,7 @@ This stack is built from the ground up with container security in mind:
 
 **1. Configure the Environment**
 
-Copy the example environment file and fill in your specific details (domains, passwords, Gandi API tokens, and your user's `PUID`/`GUID`):
+Copy the example environment file and fill in your specific details (domains, passwords, Gandi API tokens, and your user's `PUID`/`PGID`):
 
 ```bash
 cp .env.example .env

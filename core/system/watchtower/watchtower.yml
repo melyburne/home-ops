@@ -8,9 +8,9 @@ services:
     container_name: watchtower
 
     # Security: Run as non-root user, grant Docker socket group permissions, lock filesystem
-    user: "${PUID:-1000}:${GUID:-1000}"
+    user: "${PUID:-1000}:${PGID:-1000}"
     group_add:
-      - "${DOCKER_SOCKET_GID:-987}"
+      - "${DOCKER_SOCKET_PGID:-987}"
     read_only: true
 
     # Connectivity: Needs outbound internet to check registries for updates

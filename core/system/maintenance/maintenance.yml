@@ -8,7 +8,7 @@ services:
     container_name: maintenance
 
     # Security: Run as non-root user, lock the filesystem
-    user: "${PUID:-1000}:${GUID:-1000}"
+    user: "${PUID:-1000}:${PGID:-1000}"
     read_only: true
 
     # Connectivity: Attach to the shared reverse proxy network
