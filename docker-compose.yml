@@ -7,6 +7,7 @@ include:
   # 1. Network & Routing Tier
   - core/routing/ddns-updater/ddns-updater.yml
   - core/routing/traefik/traefik.yml
+  - core/routing/maintenance/maintenance.yml
 
   # 2. Database Tier
   - core/database/mariadb/mariadb.yml
@@ -14,8 +15,7 @@ include:
 
   # 3. System & Maintenance Tier
   - core/system/watchtower/watchtower.yml
-  - core/system/maintenance/maintenance.yml
-
+  
   # 4. End-User Applications
   - apps/roundcube/roundcube.yml
   - apps/ocis/ocis.yml
