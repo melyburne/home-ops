@@ -7,7 +7,7 @@ include:
   # 1. Network & Routing Tier
   - core/routing/ddns-updater/ddns-updater.yml
   - core/routing/traefik/traefik.yml
-  - core/routing/maintenance/maintenance.yml
+  - core/routing/fallback/fallback.yml
 
   # 2. Database Tier
   - core/database/mariadb/mariadb.yml

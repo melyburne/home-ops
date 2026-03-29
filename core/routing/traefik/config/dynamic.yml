@@ -1,29 +1,5 @@
 http:
-  # -------------------------------------------------------------------------------------------------
-  # 1. EXPLICIT SERVICES
-  # -------------------------------------------------------------------------------------------------
-  services:
-    maintenance:
-      loadBalancer:
-        servers:
-          - url: "http://maintenance:8080"
-
-  # -------------------------------------------------------------------------------------------------
-  # 2. MIDDLEWARES
-  # -------------------------------------------------------------------------------------------------
   middlewares:
-    # --- Universal Domain-Independent Redirect ---
-    redirect-to-www:
-      redirectRegex:
-        regex: "^https?://(?:[^/]+\\.)?([^/]+\\.[^/]+)/(.*)"
-        replacement: "https://www.${1}/${2}"
-        permanent: true
-
-    # Go back to main page
-    rewrite-to-index:
-      replacePath:
-        path: "/"
-
     # Rate limiting
     rate-limit:
       rateLimit:
@@ -38,24 +14,17 @@ http:
         stsPreload: true
         forceSTSHeader: true
 
-    # Error Handling (Catches internal 502/503/504 errors on running apps)
-    error-pages:
-      errors:
-        status:
-          - "502-504"
-        service: "maintenance@file"
-        query: "/"
-
     # Public middleware chain applied globally
     sec-public:
       chain:
         middlewares:
           - sec-transport
           - rate-limit
-          - error-pages
+          # Cross-provider reference! Points directly to the label in fallback.yml
+          - error-pages-fallback@docker
 
 # -------------------------------------------------------------------------------------------------
-# 3. TLS OPTIONS
+# TLS OPTIONS
 # -------------------------------------------------------------------------------------------------
 tls:
   options:

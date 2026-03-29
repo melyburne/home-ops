@@ -124,6 +124,37 @@ services:
       - "--certificatesresolvers.myresolver.acme.email=${TRAEFIK_ACME_EMAIL:?}"
       - "--certificatesresolvers.myresolver.acme.storage=/data/acme.json"
 
+      # ----------------------------------------------------------------------
+      # DYNAMIC REDIRECT MIDDLEWARE (Fully configurable via .env)
+      # Note: We use $${1} so Docker Compose correctly passes ${1} to Traefik
+      # ----------------------------------------------------------------------
+      - "traefik.http.middlewares.redirect-to-web.redirectregex.regex=^https?://(?:[^/]+\\.)?([^/]+\\.[^/]+)/(.*)"
+      - "traefik.http.middlewares.redirect-to-web.redirectregex.replacement=https://${WEB_SUBDOMAIN:-www}.$${1}/$${2}"
+      - "traefik.http.middlewares.redirect-to-web.redirectregex.permanent=true"
+
+      # ----------------------------------------------------------------------
+      # PRIORITY 1: GLOBAL REDIRECTS (Naked Domains & Typos -> Web Subdomain)
+      # ----------------------------------------------------------------------
+      # Primary Domain Redirects
+      - "traefik.http.routers.redirect-primary.rule=HostRegexp(`^.+\\.${DOMAIN_PRIMARY:-localhost}$$`) || Host(`${DOMAIN_PRIMARY:-localhost}`)"
+      - "traefik.http.routers.redirect-primary.priority=1"
+      - "traefik.http.routers.redirect-primary.entrypoints=websecure"
+      - "traefik.http.routers.redirect-primary.middlewares=redirect-to-web"
+      - "traefik.http.routers.redirect-primary.service=noop@internal"
+      - "traefik.http.routers.redirect-primary.tls.certresolver=myresolver"
+      - "traefik.http.routers.redirect-primary.tls.domains[0].main=${DOMAIN_PRIMARY:-localhost}"
+      - "traefik.http.routers.redirect-primary.tls.domains[0].sans=*.${DOMAIN_PRIMARY:-localhost}"
+
+      # Secondary Domain Redirects
+      - "traefik.http.routers.redirect-secondary.rule=HostRegexp(`^.+\\.${DOMAIN_SECONDARY:-localhost}$$`) || Host(`${DOMAIN_SECONDARY:-localhost}`)"
+      - "traefik.http.routers.redirect-secondary.priority=1"
+      - "traefik.http.routers.redirect-secondary.entrypoints=websecure"
+      - "traefik.http.routers.redirect-secondary.middlewares=redirect-to-web"
+      - "traefik.http.routers.redirect-secondary.service=noop@internal"
+      - "traefik.http.routers.redirect-secondary.tls.certresolver=myresolver"
+      - "traefik.http.routers.redirect-secondary.tls.domains[0].main=${DOMAIN_SECONDARY:-localhost}"
+      - "traefik.http.routers.redirect-secondary.tls.domains[0].sans=*.${DOMAIN_SECONDARY:-localhost}"
+
     # Routing: Internal dashboard exposure configuration (Alphabetized)
     labels:
       - "traefik.enable=true"
