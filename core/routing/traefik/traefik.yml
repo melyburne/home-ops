@@ -28,9 +28,10 @@ services:
     networks:
       - socket-internal
 
-    # Configuration: Explicitly allow listing containers, block everything else (Alphabetized)
+    # Configuration: Explicitly allow listing containers & events, block everything else (Alphabetized)
     environment:
       CONTAINERS: "1"
+      EVENTS: "1"
       LOG_LEVEL: "notice"
       PING: "1"
 

@@ -147,9 +147,7 @@ services:
     networks:
       - ocis-internal
 
-    # Monitoring: Local logging driver and healthcheck
-    logging:
-      driver: local
+    # Monitoring: Healthcheck
     healthcheck:
       test: "wget -qO /dev/null http://127.0.0.1:9998/version || exit 1"
 
@@ -244,9 +242,7 @@ services:
       - ./config/ocis/banned-password-list.txt:/etc/ocis/banned-password-list.txt:ro
       - ocis-apps:/var/lib/ocis/web/assets/apps
 
-    # Monitoring: Local logging driver and healthcheck
-    logging:
-      driver: local
+    # Monitoring: Healthcheck
     healthcheck:
       test: "wget -qO /dev/null http://127.0.0.1:9200/healthz || exit 1"
 
@@ -299,9 +295,7 @@ services:
     volumes:
       - ${OCIS_CONFIG_DIR:-./data/config/}:/etc/ocis
 
-    # Monitoring: Local logging driver and healthcheck
-    logging:
-      driver: local
+    # Monitoring: Healthcheck
     healthcheck:
       test: "wget -qO /dev/null http://127.0.0.1:9304/healthz || exit 1"
 
@@ -374,9 +368,7 @@ services:
       - ./config/onlyoffice/entrypoint-override.sh:/entrypoint-override.sh:ro
       - ./config/onlyoffice/local.json:/etc/onlyoffice/documentserver/local.dist.json:ro
 
-    # Monitoring: Local logging driver and healthcheck
-    logging:
-      driver: local
+    # Monitoring: Healthcheck
     healthcheck:
       test: "curl -f http://127.0.0.1/healthcheck || exit 1"
       start_period: 300s

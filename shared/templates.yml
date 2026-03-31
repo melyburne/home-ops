@@ -32,6 +32,10 @@ services:
   base-default:
     restart: unless-stopped
 
+    # Monitoring: Keep logs locally and rotate them automatically
+    logging:
+      driver: local
+
     # Healthcheck: Inject the anchor locally
     healthcheck:
       <<: *healthcheck-defaults
@@ -39,6 +43,10 @@ services:
   # --- Secure Service Base: Template for secure containers ---
   base-secure:
     restart: unless-stopped
+
+    # Monitoring: Keep logs locally and rotate them automatically
+    logging:
+      driver: local
 
     # Security: Drop all privileges by default
     security_opt:

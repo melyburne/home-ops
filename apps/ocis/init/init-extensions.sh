@@ -34,7 +34,7 @@ install_extension() {
   if [ "$VERSION" = "latest" ] || [ -z "$VERSION" ]; then
     VERSION=$(wget -qO- "https://api.github.com/repos/${REPO}/releases/latest" | \
               grep '"tag_name":' | \
-              sed -E 's/.*"([^"]+)".*/\1/')
+              sed -E 's/.*"tag_name": *"([^"]+)".*/\1/')
   fi
   echo "Target version: ${VERSION}"
 
@@ -44,7 +44,7 @@ install_extension() {
                     grep '"browser_download_url":' | \
                     grep -E '\.(tar\.gz|tgz|zip)"' | \
                     head -n 1 | \
-                    sed -E 's/.*"([^"]+)".*/\1/')
+                    sed -E 's/.*"browser_download_url": *"([^"]+)".*/\1/')
 
   if [ -z "$ASSET_URL" ]; then
     echo "Error: Could not find a suitable .zip or .tar.gz release asset for ${REPO}."
