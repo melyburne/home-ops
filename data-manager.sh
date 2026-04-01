@@ -5,8 +5,8 @@
 # ==============================================================================
 # Description: Safely backs up and restores all dynamically found 'data'
 #              directories across the modular Docker Compose stack.
-# Note: Performs "Cold Backups" by stopping the containers first to ensure
-#       database consistency (e.g., MariaDB, oCIS).
+# Note: Performs "Cold Backups" by stopping containers first. Restores perform
+#       a "Clean Slate" wipe to prevent merging corrupted data with backups.
 # Log Output: /var/log/home-ops-data-manager.log
 # ==============================================================================
 
@@ -57,6 +57,7 @@ _log() {
 log_info()    { _log "INFO"    "\e[34m" "$1"; }
 log_success() { _log "SUCCESS" "\e[32m" "$1"; }
 log_error()   { _log "ERROR"   "\e[31m" "$1"; }
+log_warn()    { _log "WARN"    "\e[33m" "$1"; }
 
 # Ensures the script is run with root privileges (required for file ownership/permissions)
 check_root() {
@@ -74,7 +75,7 @@ Usage: $0 <command> <target_path>
 
 Commands:
   backup  <dest_dir>      Stops containers and backs up all data dirs to <dest_dir>
-  restore <archive_file>  Stops containers, extracts <archive_file> over existing data
+  restore <archive_file>  Stops containers, WIPES current data, and extracts <archive_file>
 
 Examples:
   sudo $0 backup /mnt/external_drive/backups
@@ -127,7 +128,7 @@ do_backup() {
     # Switch to project root to keep relative paths clean in the tarball
     cd "${PROJECT_ROOT}"
 
-    # Generate an array of target directories to back up.
+    # Generate an array of target directories to back up
     local TARGETS=()
     while IFS= read -r dir; do
         TARGETS+=("${dir#${PROJECT_ROOT}/}")
@@ -150,6 +151,30 @@ do_backup() {
 # ------------------------------------------------------------------------------
 # 4. CORE LOGIC: RESTORE
 # ------------------------------------------------------------------------------
+
+# Safely wipes existing state so the restore doesn't merge with corrupted/new files
+wipe_current_state() {
+    log_info "Wiping existing data directories to ensure a clean slate..."
+    cd "${PROJECT_ROOT}"
+
+    # 1. Wipe all 'data' directories dynamically
+    while IFS= read -r dir; do
+        # Defensive check to ensure we only delete directories
+        if [ -d "$dir" ]; then
+            log_info "Deleting folder: ${dir#${PROJECT_ROOT}/}"
+            rm -rf "$dir"
+        fi
+    done < <(get_data_dirs)
+
+    # 2. Wipe the .env file (it will be recreated from the backup)
+    if [ -f ".env" ]; then
+        log_info "Deleting file: .env"
+        rm -f ".env"
+    fi
+
+    log_success "Clean slate achieved. Ready for extraction."
+}
+
 do_restore() {
     local ARCHIVE_FILE="$1"
 
@@ -158,9 +183,9 @@ do_restore() {
         exit 1
     fi
 
-    # Safety confirmation to prevent accidental overwrites
-    echo -e "\e[33m[WARNING]\e[0m This will OVERWRITE current data directories with the contents of the backup."
-    read -p "Are you absolutely sure you want to continue? (y/N) " -n 1 -r
+    # Safety confirmation to prevent accidental data loss
+    echo -e "\e[31m[CRITICAL WARNING]\e[0m This will COMPLETELY DELETE all current data directories and replace them with the backup."
+    read -p "Are you absolutely sure you want to proceed? (y/N) " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
         # Use simple echo here because we don't need to log user aborts to the system log
@@ -174,10 +199,13 @@ do_restore() {
 
     stop_stack
 
+    # Wipe the existing state to prevent folder merging
+    wipe_current_state
+
     log_info "Extracting backup from: ${ARCHIVE_FILE}"
     cd "${PROJECT_ROOT}"
 
-    # Extract preserving permissions (-p) and overwrite existing files
+    # Extract preserving permissions (-p)
     # Send verbose output (-v) to the log file using tee
     tar -xzpvf "${ARCHIVE_FILE}" 2>&1 | tee -a "$LOG_FILE"
 
