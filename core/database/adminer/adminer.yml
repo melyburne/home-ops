@@ -28,9 +28,9 @@ services:
       - /tmp
       - /var/lib/php/sessions
 
-    # Monitoring: Ensure Adminer interface is responding
+    # Monitoring: Ensure Adminer port is accepting connections (Silent TCP check)
     healthcheck:
-      test: "wget -qO /dev/null http://127.0.0.1:8080/ || exit 1"
+      test: "nc -z 127.0.0.1 8080 || exit 1"
 
 
 # --- Global Network Definitions ---
