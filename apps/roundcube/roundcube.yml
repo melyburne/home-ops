@@ -52,7 +52,7 @@ services:
 
     # Monitoring: Internal check to ensure the webmail interface is responding
     healthcheck:
-      test: "curl -sfL http://127.0.0.1:8000/ || exit 1"
+      test: "curl -sfL http://127.0.0.1:8000/healthz || exit 1"
 
 # --- Global Network Definitions ---
 networks:
