@@ -335,11 +335,11 @@ services:
     environment:
       AMQP_URI: "amqp://guest:guest@localhost"
       DB_HOST: "mariadb"
-      DB_NAME: "${OCIS_ONLYOFFICE_DB_NAME:-onlyoffice}"
+      DB_NAME: "onlyoffice"
       DB_PORT: "3306"
       DB_PWD: "${OCIS_ONLYOFFICE_DB_PASSWORD:?}"
       DB_TYPE: "mariadb"
-      DB_USER: "${OCIS_ONLYOFFICE_DB_USER:-onlyoffice}"
+      DB_USER: "onlyoffice"
       JWT_ENABLED: "true"
       JWT_HEADER: "Authorization"
       JWT_SECRET: "${OCIS_ONLYOFFICE_JWT_SECRET:?}"
