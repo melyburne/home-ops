@@ -169,7 +169,7 @@ services:
     # State: Persistent data and dynamic config mounts
     volumes:
       - ./data:/data
-      - ./config/dynamic.yml:/config/dynamic.yml:ro
+      - ./config:/config:ro
     tmpfs:
       - /tmp
 
