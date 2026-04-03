@@ -102,7 +102,7 @@ services:
       - "--entrypoints.websecure.http.encodedCharacters.allowEncodedQuestionMark=true"
       - "--entrypoints.websecure.http.encodedCharacters.allowEncodedSlash=true"
       - "--entrypoints.websecure.http.middlewares=sec-public@file"
-      - "--entrypoints.websecure.http.tls=true"
+      - "--entrypoints.websecure.http.tls.certresolver=resolver"
       - "--entrypoints.websecure.transport.respondingTimeouts.idleTimeout=3m"
       - "--entrypoints.websecure.transport.respondingTimeouts.readTimeout=12h"
       - "--entrypoints.websecure.transport.respondingTimeouts.writeTimeout=12h"
@@ -115,7 +115,7 @@ services:
       - "--providers.docker.network=traefik-public"
 
       # File Provider
-      - "--providers.file.filename=/config/dynamic.yml"
+      - "--providers.file.directory=/config"
       - "--providers.file.watch=true"
 
       # --- 4. CERTIFICATE RESOLVERS (Let's Encrypt via DNS-01 Challenge) ---
@@ -154,7 +154,6 @@ services:
       - "traefik.http.routers.redirect-primary.priority=1"
       - "traefik.http.routers.redirect-primary.rule=HostRegexp(`^.+\\.${DOMAIN_PRIMARY:-localhost}$$`) || Host(`${DOMAIN_PRIMARY:-localhost}`)"
       - "traefik.http.routers.redirect-primary.service=noop@internal"
-      - "traefik.http.routers.redirect-primary.tls.certresolver=resolver"
       - "traefik.http.routers.redirect-primary.tls.domains[0].main=${DOMAIN_PRIMARY:-localhost}"
       - "traefik.http.routers.redirect-primary.tls.domains[0].sans=*.${DOMAIN_PRIMARY:-localhost}"
 
@@ -164,7 +163,6 @@ services:
       - "traefik.http.routers.redirect-secondary.priority=1"
       - "traefik.http.routers.redirect-secondary.rule=HostRegexp(`^.+\\.${DOMAIN_SECONDARY:-localhost}$$`) || Host(`${DOMAIN_SECONDARY:-localhost}`)"
       - "traefik.http.routers.redirect-secondary.service=noop@internal"
-      - "traefik.http.routers.redirect-secondary.tls.certresolver=resolver"
       - "traefik.http.routers.redirect-secondary.tls.domains[0].main=${DOMAIN_SECONDARY:-localhost}"
       - "traefik.http.routers.redirect-secondary.tls.domains[0].sans=*.${DOMAIN_SECONDARY:-localhost}"
 
