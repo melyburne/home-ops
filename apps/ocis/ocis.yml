@@ -58,8 +58,8 @@ services:
 
     # State: Mount configuration and data directories
     volumes:
-      - ${OCIS_CONFIG_DIR:-./data/config/}:/ocis-config
-      - ${OCIS_DATA_DIR:-./data/data/}:/ocis-data
+      - ./data/config/:/ocis-config
+      - ./data/data/:/ocis-data
       - ocis-apps:/ocis-apps
 
   # --- Web Extensions ---
@@ -147,7 +147,7 @@ services:
     networks:
       - ocis-internal
 
-    # Monitoring: Healthcheck
+    # Monitoring: Internal check to ensure the app is healthy
     healthcheck:
       test: "wget -qO /dev/null http://127.0.0.1:9998/version || exit 1"
 
@@ -234,15 +234,15 @@ services:
 
     # State: Persistent data, config overrides, and web apps
     volumes:
-      - ${OCIS_CONFIG_DIR:-./data/config/}:/etc/ocis
-      - ${OCIS_DATA_DIR:-./data/data/}:/var/lib/ocis
+      - ./data/config/:/etc/ocis
+      - ./data/data/:/var/lib/ocis
       - ./config/ocis/app-registry.yaml:/etc/ocis/app-registry.yaml:ro
       - ./config/ocis/apps.yaml:/etc/ocis/apps.yaml:ro
       - ./config/ocis/csp.yaml:/etc/ocis/csp.yaml:ro
       - ./config/ocis/banned-password-list.txt:/etc/ocis/banned-password-list.txt:ro
       - ocis-apps:/var/lib/ocis/web/assets/apps
 
-    # Monitoring: Healthcheck
+    # Monitoring: Internal check to ensure the app is healthy
     healthcheck:
       test: "wget -qO /dev/null http://127.0.0.1:9200/healthz || exit 1"
 
@@ -293,9 +293,9 @@ services:
 
     # State: Shared oCIS configuration
     volumes:
-      - ${OCIS_CONFIG_DIR:-./data/config/}:/etc/ocis
+      - ./data/config/:/etc/ocis
 
-    # Monitoring: Healthcheck
+    # Monitoring: Internal check to ensure the app is healthy
     healthcheck:
       test: "wget -qO /dev/null http://127.0.0.1:9304/healthz || exit 1"
 
@@ -368,7 +368,7 @@ services:
       - ./config/onlyoffice/entrypoint-override.sh:/entrypoint-override.sh:ro
       - ./config/onlyoffice/local.json:/etc/onlyoffice/documentserver/local.dist.json:ro
 
-    # Monitoring: Healthcheck
+    # Monitoring: Internal check to ensure the app is healthy
     healthcheck:
       test: "curl -f http://127.0.0.1/healthcheck || exit 1"
       start_period: 300s
