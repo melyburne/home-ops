@@ -32,7 +32,7 @@ services:
     environment:
       CONTAINERS: "1"
       EVENTS: "1"
-      LOG_LEVEL: "notice"
+      LOG_LEVEL: "warning"
       PING: "1"
 
     # State: Read-only mount of the actual Docker socket, plus in-memory temp areas
@@ -81,13 +81,13 @@ services:
     environment:
       GANDIV5_PERSONAL_ACCESS_TOKEN: "${GANDIV5_PERSONAL_ACCESS_TOKEN:?}"
       LEGO_DISABLE_CNAME_SUPPORT: "true"
+      TRAEFIK_LOG_LEVEL: "${TRAEFIK_LOG_LEVEL:-info}"
 
     # Execution: Core Traefik configuration (Alphabetized)
     command:
       # --- 1. CORE SYSTEM SETTINGS (API, Logging, Healthchecks) ---
       - "--api.dashboard=true"
       - "--api.disableDashboardAd=true"
-      - "--log.level=INFO"
       - "--ping=true"
 
       # --- 2. ENTRYPOINTS (Network Ports & Global Routing) ---

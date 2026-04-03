@@ -21,7 +21,7 @@ services:
     environment:
       WATCHTOWER_CLEANUP: "true"
       WATCHTOWER_INCLUDE_STOPPED: "true"
-      WATCHTOWER_LOG_LEVEL: "info"
+      WATCHTOWER_LOG_LEVEL: "${WATCHTOWER_LOG_LEVEL:-info}"
       WATCHTOWER_POLL_INTERVAL: "${WATCHTOWER_POLL_INTERVAL:-900}"
 
     # State: Direct socket mount and in-memory mounts explicitly required for read-only filesystem
