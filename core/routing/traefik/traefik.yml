@@ -119,13 +119,13 @@ services:
       - "--providers.file.watch=true"
 
       # --- 4. CERTIFICATE RESOLVERS (Let's Encrypt via DNS-01 Challenge) ---
-      - "--certificatesresolvers.myresolver.acme.caServer=${TRAEFIK_ACME_CASERVER:-https://acme-staging-v02.api.letsencrypt.org/directory}"
-      - "--certificatesresolvers.myresolver.acme.dnschallenge=true"
-      - "--certificatesresolvers.myresolver.acme.dnschallenge.propagation.delayBeforeChecks=10s"
-      - "--certificatesresolvers.myresolver.acme.dnschallenge.provider=gandiv5"
-      - "--certificatesresolvers.myresolver.acme.dnschallenge.resolvers=1.1.1.1:53,8.8.8.8:53"
-      - "--certificatesresolvers.myresolver.acme.email=${TRAEFIK_ACME_EMAIL:?}"
-      - "--certificatesresolvers.myresolver.acme.storage=/data/acme.json"
+      - "--certificatesresolvers.resolver.acme.caServer=${TRAEFIK_ACME_CASERVER:-https://acme-staging-v02.api.letsencrypt.org/directory}"
+      - "--certificatesresolvers.resolver.acme.dnschallenge=true"
+      - "--certificatesresolvers.resolver.acme.dnschallenge.propagation.delayBeforeChecks=10s"
+      - "--certificatesresolvers.resolver.acme.dnschallenge.provider=gandiv5"
+      - "--certificatesresolvers.resolver.acme.dnschallenge.resolvers=1.1.1.1:53,8.8.8.8:53"
+      - "--certificatesresolvers.resolver.acme.email=${TRAEFIK_ACME_EMAIL:?}"
+      - "--certificatesresolvers.resolver.acme.storage=/data/acme.json"
 
     # Routing: Dashboard exposure & Global redirect configuration (Alphabetized)
     labels:
@@ -154,7 +154,7 @@ services:
       - "traefik.http.routers.redirect-primary.priority=1"
       - "traefik.http.routers.redirect-primary.rule=HostRegexp(`^.+\\.${DOMAIN_PRIMARY:-localhost}$$`) || Host(`${DOMAIN_PRIMARY:-localhost}`)"
       - "traefik.http.routers.redirect-primary.service=noop@internal"
-      - "traefik.http.routers.redirect-primary.tls.certresolver=myresolver"
+      - "traefik.http.routers.redirect-primary.tls.certresolver=resolver"
       - "traefik.http.routers.redirect-primary.tls.domains[0].main=${DOMAIN_PRIMARY:-localhost}"
       - "traefik.http.routers.redirect-primary.tls.domains[0].sans=*.${DOMAIN_PRIMARY:-localhost}"
 
@@ -164,7 +164,7 @@ services:
       - "traefik.http.routers.redirect-secondary.priority=1"
       - "traefik.http.routers.redirect-secondary.rule=HostRegexp(`^.+\\.${DOMAIN_SECONDARY:-localhost}$$`) || Host(`${DOMAIN_SECONDARY:-localhost}`)"
       - "traefik.http.routers.redirect-secondary.service=noop@internal"
-      - "traefik.http.routers.redirect-secondary.tls.certresolver=myresolver"
+      - "traefik.http.routers.redirect-secondary.tls.certresolver=resolver"
       - "traefik.http.routers.redirect-secondary.tls.domains[0].main=${DOMAIN_SECONDARY:-localhost}"
       - "traefik.http.routers.redirect-secondary.tls.domains[0].sans=*.${DOMAIN_SECONDARY:-localhost}"
 

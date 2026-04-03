@@ -38,7 +38,7 @@ services:
       - "traefik.http.routers.fallback-primary.priority=2"
       - "traefik.http.routers.fallback-primary.rule=Host(`${WEB_SUBDOMAIN:-www}.${DOMAIN_PRIMARY:-localhost}`) || Host(`${ROUNDCUBE_SUBDOMAIN:-mail}.${DOMAIN_PRIMARY:-localhost}`) || Host(`${ADMINER_SUBDOMAIN:-adminer}.${DOMAIN_PRIMARY:-localhost}`) || Host(`onlyoffice.${DOMAIN_PRIMARY:-localhost}`) || Host(`${OCIS_SUBDOMAIN:-ocis}.${DOMAIN_PRIMARY:-localhost}`)"
       - "traefik.http.routers.fallback-primary.service=fallback-svc"
-      - "traefik.http.routers.fallback-primary.tls.certresolver=myresolver"
+      - "traefik.http.routers.fallback-primary.tls.certresolver=resolver"
 
       # Secondary Domain
       - "traefik.http.routers.fallback-secondary.entrypoints=websecure"
