@@ -37,7 +37,7 @@ http:
         middlewares:
           - sec-transport
           - rate-limit
-          - error-pages-fallback@docker
+          - error-pages-fallback
 
 # ==============================================================================
 # Global Configuration: TLS / SSL Standards
