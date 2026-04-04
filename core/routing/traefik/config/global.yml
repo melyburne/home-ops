@@ -1,7 +1,7 @@
 # ==============================================================================
 # Global Configuration: Security & Routing Policies
-# Description: Defines reusable security constraints and TLS hardening applied
-#              across the entire Traefik environment.
+# Description: Defines reusable security constraints, fallback logic and
+#              TLS hardening applied across the entire Traefik environment.
 # ==============================================================================
 http:
   middlewares:
