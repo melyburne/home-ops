@@ -22,23 +22,16 @@ services:
       - "traefik.enable=true"
       - "traefik.http.services.fallback-svc.loadbalancer.server.port=8080"
 
-      # --- 2. Middlewares Hosted by this Service ---
-      # Catch internal errors (502-504) from running but failing apps
-      - "traefik.http.middlewares.error-pages-fallback.errors.query=/"
-      - "traefik.http.middlewares.error-pages-fallback.errors.service=fallback-svc"
-      - "traefik.http.middlewares.error-pages-fallback.errors.status=502-504"
-
       # Prevent Nginx 404s by forcing all sub-path traffic back to index.html
       - "traefik.http.middlewares.rewrite-to-index.replacepath.path=/"
 
-      # --- 3. Fallback Routers (Trigger when known apps are offline) ---
+      # --- 2. Fallback Routers (Trigger when known apps are offline) ---
       # Primary Domain
       - "traefik.http.routers.fallback-primary.entrypoints=websecure"
       - "traefik.http.routers.fallback-primary.middlewares=rewrite-to-index"
       - "traefik.http.routers.fallback-primary.priority=2"
       - "traefik.http.routers.fallback-primary.rule=Host(`${WEB_SUBDOMAIN:-www}.${DOMAIN_PRIMARY:-localhost}`) || Host(`${ROUNDCUBE_SUBDOMAIN:-mail}.${DOMAIN_PRIMARY:-localhost}`) || Host(`${ADMINER_SUBDOMAIN:-adminer}.${DOMAIN_PRIMARY:-localhost}`) || Host(`onlyoffice.${DOMAIN_PRIMARY:-localhost}`) || Host(`${OCIS_SUBDOMAIN:-ocis}.${DOMAIN_PRIMARY:-localhost}`)"
       - "traefik.http.routers.fallback-primary.service=fallback-svc"
-      - "traefik.http.routers.fallback-primary.tls.certresolver=resolver"
 
       # Secondary Domain
       - "traefik.http.routers.fallback-secondary.entrypoints=websecure"
