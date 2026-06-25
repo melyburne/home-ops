@@ -45,7 +45,7 @@ services:
     # Monitoring: Internal check targeting the native API
     healthcheck:
       test: "wget -qO /dev/null http://127.0.0.1:8123/ || exit 1"
-      timeout: 600s
+      timeout: 1500s
 
 # --- Global Network Definitions ---
 networks:

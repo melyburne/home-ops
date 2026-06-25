@@ -1,0 +1,30 @@
+services:
+  # --- Main Service: mDNS Reflector (Avahi) ---
+  avahi:
+    extends:
+      file: ../../../shared/templates.yml
+      service: base-secure
+    image: flungo/avahi:${AVAHI_DOCKER_TAG:-latest}
+    container_name: avahi
+
+    # Connectivity: network_mode host is mandatory for mDNS/Multicast discovery
+    network_mode: host
+
+    # Security: Run as root and drop all privileges and whitelist only what Avahi needs to function
+    read_only: true
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SETUID
+      - SETGID
+
+    # Configuration: Reflector settings (Alphabetized)
+    environment:
+      REFLECTOR_ENABLE_REFLECTOR: "yes"
+      TZ: "${TZ:-Etc/UTC}"
+
+    # State: In-memory mounts for read-only filesystem
+    tmpfs:
+      - /run
+      - /tmp
+      - /var/run
