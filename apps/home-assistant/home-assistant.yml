@@ -7,11 +7,16 @@ services:
     image: lscr.io/linuxserver/homeassistant:${HOMEASSISTANT_DOCKER_TAG:-latest}
     container_name: home-assistant
 
-    # Security: Lock the filesystem and add network capabilities for ping/device tracking
-    read_only: true
+    # Security: Add network capabilities for ping/device tracking
     cap_add:
       - NET_RAW
       - NET_ADMIN
+      - CHOWN
+      - FOWNER
+      - DAC_OVERRIDE
+      - SETUID
+      - SETGID
+
 
     # Lifecycle: Wait for database to be ready
     depends_on:
@@ -42,10 +47,6 @@ services:
     volumes:
       - ./data/config:/config
       - /run/dbus:/run/dbus:ro
-    tmpfs:
-      - /tmp
-      - /run
-      - /var/run
 
     # Monitoring: Internal check targeting the native API
     healthcheck:
