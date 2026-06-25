@@ -4,7 +4,7 @@ services:
     extends:
       file: ../../shared/templates.yml
       service: base-default
-    image: lscr.io/linuxserver/homeassistant:${HOMEASSISTANT_DOCKER_TAG:-latest}
+    image: lscr.io/linuxserver/homeassistant:${HOMEASSISTANT_DOCKER_TAG:-2026.6}
     container_name: home-assistant
 
     # Security: Explicitly grant required kernel capabilities dropped by base-secure.
