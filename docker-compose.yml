@@ -17,7 +17,7 @@ include:
   - core/system/watchtower/watchtower.yml
 
   # 4. End-User Applications
-  - apps/homeassistant/homeassistant.yml
+  - apps/home-assistant/home-assistant.yml
   - apps/roundcube/roundcube.yml
   - apps/ocis/ocis.yml
   - apps/websites/web-aaronsoft/web-aaronsoft.yml
