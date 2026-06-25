@@ -13,7 +13,7 @@ include:
   - core/database/adminer/adminer.yml
 
   # 3. System & Maintenance Tier
-  - core/system/fallback/avahi.yml
+  - core/system/avahi/avahi.yml
   - core/system/fallback/fallback.yml
   - core/system/watchtower/watchtower.yml
 
