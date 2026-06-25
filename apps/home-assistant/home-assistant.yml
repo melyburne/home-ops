@@ -7,13 +7,14 @@ services:
     image: lscr.io/linuxserver/homeassistant:${HOMEASSISTANT_DOCKER_TAG:-latest}
     container_name: home-assistant
 
-    # Security: Add network capabilities for ping/device tracking
+    # Security: Explicitly grant required kernel capabilities dropped by base-secure.
     cap_add:
-      - NET_RAW
-      - NET_ADMIN
       - CHOWN
-      - FOWNER
       - DAC_OVERRIDE
+      - FOWNER
+      - NET_ADMIN
+      - NET_RAW
+      - SETFCAP
 
     # Lifecycle: Wait for database to be ready
     depends_on:
