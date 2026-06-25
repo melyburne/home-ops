@@ -7,19 +7,26 @@ services:
     image: lscr.io/linuxserver/homeassistant:${HOMEASSISTANT_DOCKER_TAG:-latest}
     container_name: home-assistant
 
-    # Security: Lock the filesystem
+    # Security: Lock the filesystem and add network capabilities for ping/device tracking
     read_only: true
     cap_add:
       - NET_RAW
       - NET_ADMIN
 
-    # Connectivity: Public facing proxy and outbound for API integrations
+    # Lifecycle: Wait for database to be ready
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+    # Connectivity: Public facing proxy, outbound APIs, and internal database
     networks:
       - traefik-public
       - outbound-public
+      - mariadb-internal
 
-    # Configuration: Timezone and native LinuxServer privilege mapping (Alphabetized)
+    # Configuration: DB injection and native LinuxServer privilege mapping (Alphabetized)
     environment:
+      HOMEASSISTANT_DB_URL: "mysql://homeassistant:${HOMEASSISTANT_DB_PASSWORD:?}@mariadb/homeassistant?charset=utf8mb4"
       PGID: "${HOMEASSISTANT_PGID:-1005}"
       PUID: "${HOMEASSISTANT_PUID:-1005}"
 
@@ -31,7 +38,7 @@ services:
       - "traefik.http.routers.home-assistant.service=home-assistant"
       - "traefik.http.services.home-assistant.loadbalancer.server.port=8123"
 
-    # State: Persistent data and in-memory mounts explicitly required for read-only filesystem
+    # State: Persistent data, system message bus, and required in-memory mounts
     volumes:
       - ./data/config:/config
       - /run/dbus:/run/dbus:ro
@@ -48,3 +55,4 @@ services:
 networks:
   traefik-public:
   outbound-public:
+  mariadb-internal:
