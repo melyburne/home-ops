@@ -42,7 +42,9 @@ services:
       - ./data/config:/config
       - /run/dbus:/run/dbus:ro
 
-    # Monitoring: Internal check targeting the native API
+    # Monitoring: Logging and healthcheck
+    logger:
+      default: "${HOMEASSISTANT_LOG_LEVEL:-info}"
     healthcheck:
       test: "wget -qO /dev/null http://127.0.0.1:8123/ || exit 1"
       timeout: 1500s
