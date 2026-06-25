@@ -3,18 +3,14 @@ services:
   home-assistant:
     extends:
       file: ../../shared/templates.yml
-      service: base-secure
+      service: base-default
     image: lscr.io/linuxserver/homeassistant:${HOMEASSISTANT_DOCKER_TAG:-latest}
     container_name: home-assistant
 
     # Security: Explicitly grant required kernel capabilities dropped by base-secure.
     cap_add:
-      - CHOWN
-      - DAC_OVERRIDE
-      - FOWNER
       - NET_ADMIN
       - NET_RAW
-      - SETFCAP
 
     # Lifecycle: Wait for database to be ready
     depends_on:
