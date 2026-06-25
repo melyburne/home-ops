@@ -1,0 +1,50 @@
+services:
+  # --- Main Smart Home Service: Home Assistant ---
+  home-assistant:
+    extends:
+      file: ../../shared/templates.yml
+      service: base-secure
+    image: lscr.io/linuxserver/homeassistant:${HOMEASSISTANT_DOCKER_TAG:-latest}
+    container_name: home-assistant
+
+    # Security: Lock the filesystem
+    read_only: true
+    cap_add:
+      - NET_RAW
+      - NET_ADMIN
+
+    # Connectivity: Public facing proxy and outbound for API integrations
+    networks:
+      - traefik-public
+      - outbound-public
+
+    # Configuration: Timezone and native LinuxServer privilege mapping (Alphabetized)
+    environment:
+      PGID: "${HOMEASSISTANT_PGID:-1005}"
+      PUID: "${HOMEASSISTANT_PUID:-1005}"
+
+    # Routing: Traefik dynamic configuration (Alphabetized)
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.home-assistant.entrypoints=websecure"
+      - "traefik.http.routers.home-assistant.rule=Host(`${HOMEASSISTANT_SUBDOMAIN:-home}.${DOMAIN_PRIMARY:-localhost}`)"
+      - "traefik.http.routers.home-assistant.service=home-assistant"
+      - "traefik.http.services.home-assistant.loadbalancer.server.port=8123"
+
+    # State: Persistent data and in-memory mounts explicitly required for read-only filesystem
+    volumes:
+      - ./data/config:/config
+      - /run/dbus:/run/dbus:ro
+    tmpfs:
+      - /tmp
+      - /run
+      - /var/run
+
+    # Monitoring: Internal check targeting the native API
+    healthcheck:
+      test: "wget -qO /dev/null http://127.0.0.1:8123/ || exit 1"
+
+# --- Global Network Definitions ---
+networks:
+  traefik-public:
+  outbound-public:

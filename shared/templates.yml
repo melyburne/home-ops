@@ -28,6 +28,10 @@ services:
       - FOWNER
       - DAC_OVERRIDE
 
+    # Environment: Set the timezone for all containers using this template
+    environment:
+      TZ: "${TZ:-Etc/UTC}"
+
   # --- Basic Service Base: Template for basic containers ---
   base-default:
     restart: unless-stopped
@@ -53,6 +57,10 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
+
+    # Environment: Set the timezone for all containers using this template
+    environment:
+      TZ: "${TZ:-Etc/UTC}"
 
     # Healthcheck: Inject the anchor locally
     healthcheck:
