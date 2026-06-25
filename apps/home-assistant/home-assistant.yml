@@ -14,9 +14,6 @@ services:
       - CHOWN
       - FOWNER
       - DAC_OVERRIDE
-      - SETUID
-      - SETGID
-
 
     # Lifecycle: Wait for database to be ready
     depends_on:
