@@ -30,9 +30,9 @@ services:
       mariadb-init:
         condition: service_completed_successfully
 
-    # Connectivity: Expose the database port to the host for external access (e.g., Home Assistant)
+    # Connectivity: Expose the database port to the host for local access (e.g., Home Assistant) and internal network for other containers
     ports:
-      - "3306:3306"
+      - "127.0.0.1:3306:3306"
     networks:
       - mariadb-internal
 
@@ -40,7 +40,6 @@ services:
     environment:
       # Core Database Settings
       MARIADB_AUTO_UPGRADE: "true"
-      MARIADB_BIND_ADDRESS: "0.0.0.0"
       MARIADB_ROOT_PASSWORD: "${MARIADB_ROOT_PASSWORD:?}"
 
       # App 1: Roundcube Variables

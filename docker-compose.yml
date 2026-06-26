@@ -43,4 +43,4 @@ networks:
   # Security: Isolated internal network preventing direct outside access to backend databases
   mariadb-internal:
     name: mariadb-internal
-    internal: true
+    driver: bridge
