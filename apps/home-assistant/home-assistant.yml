@@ -1,4 +1,19 @@
 services:
+  # --- Init Service: Prepares config permissions before Home Assistant starts ---
+  home-assistant-init:
+    extends:
+      file: ../../../shared/templates.yml
+      service: base-init
+    container_name: home-assistant-init
+
+    # Execution: Fix config permissions
+    command: sh -c "chown -R ${HOMEASSISTANT_PUID:-1004}:${HOMEASSISTANT_PGID:-1004} /config && chmod 600 /config/configuration.yaml"
+
+    # State: Mount config directory
+    volumes:
+      - ./config:/config
+
+
   # --- Main Smart Home Service: Home Assistant ---
   home-assistant:
     extends:
@@ -26,8 +41,8 @@ services:
     # Configuration: DB injection and native LinuxServer privilege mapping (Alphabetized)
     environment:
       HOMEASSISTANT_DB_URL: "mysql://homeassistant:${HOMEASSISTANT_DB_PASSWORD:?}@mariadb/homeassistant?charset=utf8mb4"
-      PGID: "${HOMEASSISTANT_PGID:-1005}"
-      PUID: "${HOMEASSISTANT_PUID:-1005}"
+      PGID: "${HOMEASSISTANT_PGID:-1004}"
+      PUID: "${HOMEASSISTANT_PUID:-1004}"
 
     # Routing: Traefik dynamic configuration (Alphabetized)
     labels:
@@ -40,7 +55,9 @@ services:
     # State: Persistent data, system message bus, and required in-memory mounts
     volumes:
       - ./data/config:/config
-      - /run/dbus:/run/dbus:ro
+      - ./data/media:/media
+      - ./config/configuration.yaml:/config/configuration.yaml:rw
+      # - /run/dbus:/run/dbus:ro # Optional: Uncomment to enable D-Bus support for certain integrations (e.g., Bluetooth, Z-Wave)
 
     # Monitoring: Internal check targeting the native API
     healthcheck:
