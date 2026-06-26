@@ -31,12 +31,13 @@
             }
         }
 
-        /* --- 2. CSS Reset --- */
+        /* --- 2. CSS Reset & Utility Classes --- */
         * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        .hidden { display: none !important; }
 
         /* --- 3. Layout & Typography --- */
         body {
-            /* Uses native system fonts for maximum performance */
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-primary);
@@ -45,7 +46,6 @@
             align-items: center;
             min-height: 100vh;
             padding: 1rem;
-            /* Smooth transitioning when OS switches themes */
             transition: background-color 0.3s ease, color 0.3s ease;
         }
 
@@ -63,26 +63,48 @@
         h1 { font-size: 2.2rem; margin-bottom: 1rem; }
         p { font-size: 1.1rem; line-height: 1.6; color: var(--text-secondary); margin-bottom: 1.5rem; }
 
-        .refresh-text {
+        /* --- 4. Dynamic Status Section --- */
+        .status-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 24px; /* Prevents layout shift when swapping states */
             font-size: 0.95rem;
             font-weight: 500;
             color: var(--accent-color);
-            margin-bottom: 0;
         }
 
-        /* --- 4. Icon & Animation --- */
+        .loading-state {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* --- 5. Icons & Animations --- */
         .maintenance-icon {
             width: 72px;
             height: 72px;
             margin-bottom: 1.5rem;
-            /* DRY: Stroke color is driven by the CSS variable, not hardcoded in HTML */
             stroke: var(--accent-color);
             animation: pulse 2.5s infinite ease-in-out;
         }
 
+        .spinner {
+            width: 1.25rem;
+            height: 1.25rem;
+            animation: spin 1s linear infinite;
+        }
+
+        .spinner circle { opacity: 0.25; }
+        .spinner path { opacity: 0.75; }
+
         @keyframes pulse {
             0%, 100% { transform: scale(1); opacity: 1; }
             50% { transform: scale(1.08); opacity: 0.8; }
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
         }
     </style>
 
@@ -91,25 +113,46 @@
         document.addEventListener('DOMContentLoaded', () => {
             // Configuration Object prevents "Magic Numbers"
             const CONFIG = {
-                elementId: 'countdown',
+                ids: {
+                    countdownVal: 'countdown-value',
+                    countdownState: 'state-countdown',
+                    loadingState: 'state-loading'
+                },
                 durationSeconds: 30,
                 intervalMs: 1000
             };
 
-            const countdownElement = document.getElementById(CONFIG.elementId);
+            // DOM Node caching
+            const nodes = {
+                value: document.getElementById(CONFIG.ids.countdownVal),
+                countdown: document.getElementById(CONFIG.ids.countdownState),
+                loading: document.getElementById(CONFIG.ids.loadingState)
+            };
+
             let timeLeft = CONFIG.durationSeconds;
 
-            // Defensive programming: don't run if the DOM element is missing
-            if (!countdownElement) return;
+            // Defensive programming: abort if required DOM elements are missing
+            if (!nodes.value || !nodes.countdown || !nodes.loading) return;
 
             const timerInterval = setInterval(() => {
                 timeLeft -= 1;
-                countdownElement.textContent = timeLeft;
+                nodes.value.textContent = timeLeft;
 
                 if (timeLeft <= 0) {
-                    // Prevent memory leaks by clearing the interval before reloading
+                    // 1. Clear interval to prevent memory leaks
                     clearInterval(timerInterval);
-                    window.location.reload(true);
+
+                    // 2. State transition via utility classes (Clean UI swapping)
+                    nodes.countdown.classList.add('hidden');
+                    nodes.loading.classList.remove('hidden');
+
+                    // 3. Yield to the browser's render pipeline before synchronous reload.
+                    // This ensures the spinner is actually drawn on screen before the thread locks.
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            window.location.reload(true);
+                        });
+                    });
                 }
             }, CONFIG.intervalMs);
         });
@@ -123,7 +166,20 @@
 
         <h1>We'll be right back!</h1>
         <p>This service is currently undergoing maintenance or is temporarily offline.</p>
-        <p class="refresh-text">Checking for service in <span id="countdown">30</span> seconds...</p>
+
+        <div class="status-wrapper">
+            <div id="state-countdown">
+                Checking for service in <span id="countdown-value">30</span> seconds...
+            </div>
+
+            <div id="state-loading" class="loading-state hidden">
+                <svg class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Reconnecting...</span>
+            </div>
+        </div>
     </main>
 </body>
 </html>
