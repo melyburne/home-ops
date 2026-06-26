@@ -11,7 +11,7 @@ services:
 
     # State: Mount config directory
     volumes:
-      - ./config:/config
+      - ./data/config:/config
 
 
   # --- Main Smart Home Service: Home Assistant ---
