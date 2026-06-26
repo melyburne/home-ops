@@ -9,7 +9,8 @@ http:
     home-assistant:
       entryPoints:
         - websecure
-      rule: "Host(`home.aaronsoft.de`)"
+      # Templating: Dynamische Evaluierung der Umgebungsvariablen zur Laufzeit
+      rule: "Host(`{{ env "HOMEASSISTANT_SUBDOMAIN" }}.{{ env "DOMAIN_PRIMARY" }}`)"
       service: home-assistant-svc
 
   # --- Egress: Local Network Forwarding ---

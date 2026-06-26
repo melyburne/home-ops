@@ -10,21 +10,21 @@ http:
     mscm-panel:
       entryPoints:
         - websecure
-      rule: "Host(`mc.aaronsoft.de`)"
+      rule: "Host(`mc.{{ env "DOMAIN_PRIMARY" }}`)"
       service: mscm-panel-svc
 
     # Backend Node Agent: MCSManager Daemon (Handles terminal & WebSocket traffic)
     mscm-daemon:
       entryPoints:
         - websecure
-      rule: "Host(`mc-daemon.aaronsoft.de`)"
+      rule: "Host(`mc-daemon.{{ env "DOMAIN_PRIMARY" }}`)"
       service: mscm-daemon-svc
 
     # Public Application: BlueMap 3D Web Map
     bluemap:
       entryPoints:
         - websecure
-      rule: "Host(`mc-map.aaronsoft.de`)"
+      rule: "Host(`mc-map.{{ env "DOMAIN_PRIMARY" }}`)"
       service: bluemap-svc
 
   # --- Egress: Local Network Forwarding ---

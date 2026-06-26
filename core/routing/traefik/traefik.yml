@@ -79,7 +79,9 @@ services:
 
     # Configuration: Global environment variables (Alphabetized)
     environment:
+      DOMAIN_PRIMARY: "${DOMAIN_PRIMARY:-localhost}"
       GANDIV5_PERSONAL_ACCESS_TOKEN: "${GANDIV5_PERSONAL_ACCESS_TOKEN:?}"
+      HOMEASSISTANT_SUBDOMAIN: "${HOMEASSISTANT_SUBDOMAIN:-home}"
       LEGO_DISABLE_CNAME_SUPPORT: "true"
       TRAEFIK_LOG_LEVEL: "${TRAEFIK_LOG_LEVEL:-info}"
 
