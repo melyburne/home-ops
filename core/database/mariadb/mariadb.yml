@@ -57,9 +57,7 @@ services:
       ONLYOFFICE_DB_PASSWORD: "${OCIS_ONLYOFFICE_DB_PASSWORD:?}"
       ONLYOFFICE_DB_USER: "onlyoffice"
 
-    # State: Persistent data, initialization scripts, and temporary in-memory systems
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    # State: Mount the database directory and initialization scripts, plus in-memory temp areas
     volumes:
       - ./data:/var/lib/mysql
       - ./init:/docker-entrypoint-initdb.d:ro
