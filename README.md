@@ -9,6 +9,7 @@ The stack is modular, splitting services into logical domains:
 ```text
 .
 ├── apps/                  # End-user facing applications
+│   ├── home-assistant/    # Smart Home automation (host network)
 │   ├── ocis/              # ownCloud Infinite Scale & OnlyOffice
 │   ├── roundcube/         # Webmail client
 │   └── websites/          # Nginx-based static sites
@@ -20,6 +21,7 @@ The stack is modular, splitting services into logical domains:
 │   └── templates.yml      # Base templates enforcing project-wide security standards
 ├── data-manager.sh        # System administration script for backups and restores
 └── docker-compose.yml     # Master entrypoint importing all modular sub-services
+
 ```
 
 ## 🚀 Prerequisites
@@ -27,30 +29,46 @@ The stack is modular, splitting services into logical domains:
 * Docker and Docker Compose plugin installed.
 * `apache2-utils` (or equivalent) for generating `htpasswd` hashes.
 * A configured domain and relevant API tokens (e.g., Gandi) if utilizing the default DNS challenge setup.
+* UFW (Uncomplicated Firewall) enabled on the host machine.
 
 ## 🛠️ Quick Start
 
-1.  **Configure the Environment**
+1. **Configure the Environment**
+
     Copy the example environment file and fill in your domains, passwords, and tokens.
     ```bash
     cp .env.example .env
     nano .env
     ```
 
-2.  **Generate Traefik Credentials**
+2. **Generate Traefik Credentials**
+
     Generate a password hash for the Traefik dashboard. Replace `admin` with your preferred username.
     ```bash
     htpasswd -nB admin
     ```
+
     Copy the output and paste it into the `TRAEFIK_DASHBOARD_CREDENTIALS` variable in your `.env` file. Ensure you escape any `$` symbols by doubling them (e.g., `$$`).
 
-3.  **Secure Configuration Files**
+3. **Secure Configuration Files**
+
     Restrict permissions on your environment file to protect sensitive data.
     ```bash
     chmod 600 .env
     ```
 
-4.  **Start the Stack**
+4. **Configure Firewall**
+
+    To allow Traefik to securely communicate with Home Assistant without exposing port `8123` to the public internet, you must explicitly allow the Docker subnet in UFW:
+
+    ```bash
+    sudo ufw allow in from 172.16.0.0/12 to 172.17.0.1 port 8123 proto tcp comment 'Allow Traefik to Host Home Assistant'
+    ```
+
+    *Note: `172.16.0.0/12` is the standard private IP block Docker uses for bridge networks. `172.17.0.1` represents the default Docker gateway on the host.*
+
+4. **Start the Stack**
+
     Initialize and run all services in the background. The setup uses init-containers to automatically handle directory permissions and initial database setups.
     ```bash
     docker compose up -d
@@ -63,6 +81,7 @@ The repository includes a `data-manager.sh` script to handle cold backups. This 
 **Note:** The script must be run as root to preserve correct file ownership and permissions.
 
 ### Preparation
+
 Make the script executable (Run Once):
 
 ```bash
@@ -72,6 +91,7 @@ chmod +x data-manager.sh
 ### Create a Backup
 
 To create a backup archive in a specified destination directory:
+
 ```bash
 sudo ./data-manager.sh backup /path/to/backup/destination
 ```
