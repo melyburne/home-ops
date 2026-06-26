@@ -2,7 +2,7 @@ services:
   # --- Init Service: Prepares config permissions before Home Assistant starts ---
   home-assistant-init:
     extends:
-      file: ../../../shared/templates.yml
+      file: ../../shared/templates.yml
       service: base-init
     container_name: home-assistant-init
 
@@ -11,7 +11,7 @@ services:
 
     # State: Mount config directory
     volumes:
-      - ./data/config:/config
+      - ./config:/config
 
 
   # --- Main Smart Home Service: Home Assistant ---
@@ -47,5 +47,5 @@ services:
     volumes:
       - ./data/config:/config
       - ./data/media:/media
-      - ./config/configuration.yml:/config/configuration.yaml:ro
+      - ./config/configuration.yml:/data/config/configuration.yaml:ro
       - /run/dbus:/run/dbus:ro
