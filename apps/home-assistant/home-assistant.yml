@@ -1,4 +1,25 @@
 services:
+  # --- Init Service: Prepares config permissions before Home Assistant starts ---
+  home-assistant-init:
+    extends:
+      file: ../../shared/templates.yml
+      service: base-init
+    container_name: home-assistant-init
+
+    # Execution: Run a shell command to prepare the configuration directory and set permissions
+    command: >
+      sh -c "
+        mkdir -p /data/config &&
+        cp -n /config/configuration.yaml /data/config/configuration.yaml &&
+        touch -c /data/config/automations.yaml /data/config/scripts.yaml /data/config/scenes.yaml /data/config/secrets.yaml &&
+        chown -R ${HOMEASSISTANT_PUID:-1004}:${HOMEASSISTANT_PGID:-1004} /data
+      "
+
+    # State: Mount both the persistent data directory and the static source config directory
+    volumes:
+      - ./data:/data
+      - ./config:/config
+
   # --- Main Smart Home Service: Home Assistant ---
   home-assistant:
     extends:
@@ -19,6 +40,8 @@ services:
     depends_on:
       mariadb:
         condition: service_healthy
+      home-assistant-init:
+        condition: service_completed_successfully
 
     # Configuration: Mount configuration and media directories, and read-only mount the main configuration file
     environment:
@@ -31,7 +54,7 @@ services:
     volumes:
       - ./data/config:/config
       - ./data/media:/media
-      - ./data/config/configuration.yml:/config/configuration.yaml:ro
+      - ./data/config/configuration.yaml:/config/configuration.yaml:ro
       - /run/dbus:/run/dbus:ro
 
     # Monitoring: Internal check targeting the native API
