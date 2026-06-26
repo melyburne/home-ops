@@ -4,7 +4,7 @@ services:
     extends:
       file: ../../shared/templates.yml
       service: base-default
-    image: lscr.io/linuxserver/homeassistant:${HOMEASSISTANT_DOCKER_TAG:-2026.6}
+    image: lscr.io/linuxserver/homeassistant:${HOMEASSISTANT_DOCKER_TAG:-2026.6.4}
     container_name: home-assistant
 
     # Connectivity: Use host network mode for device discovery (mDNS)
@@ -32,3 +32,8 @@ services:
       - ./data/media:/media
       - ./data/config/configuration.yml:/config/configuration.yaml:ro
       - /run/dbus:/run/dbus:ro
+
+    # Monitoring: Internal check targeting the native API
+    healthcheck:
+      test: "wget -qO /dev/null http://127.0.0.1:8123/ || exit 1"
+      start_period: 1500s
