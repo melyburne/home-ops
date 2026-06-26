@@ -18,4 +18,4 @@ http:
     home-assistant-svc:
       loadBalancer:
         servers:
-          - url: "http://{{ env "HOMEASSISTANT_HOST_IP" }}:8123"
+          - url: "http://host.docker.internal:8123"

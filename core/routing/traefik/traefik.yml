@@ -81,7 +81,6 @@ services:
     environment:
       DOMAIN_PRIMARY: "${DOMAIN_PRIMARY:-localhost}"
       GANDIV5_PERSONAL_ACCESS_TOKEN: "${GANDIV5_PERSONAL_ACCESS_TOKEN:?}"
-      HOMEASSISTANT_HOST_IP: "${HOMEASSISTANT_HOST_IP:?}"
       HOMEASSISTANT_SUBDOMAIN: "${HOMEASSISTANT_SUBDOMAIN:-home}"
       LEGO_DISABLE_CNAME_SUPPORT: "true"
       TRAEFIK_LOG_LEVEL: "${TRAEFIK_LOG_LEVEL:-info}"
@@ -169,7 +168,9 @@ services:
       - "traefik.http.routers.redirect-secondary.tls.domains[0].main=${DOMAIN_SECONDARY:-localhost}"
       - "traefik.http.routers.redirect-secondary.tls.domains[0].sans=*.${DOMAIN_SECONDARY:-localhost}"
 
-    # State: Mount the persistent data directory and the static configuration directory, plus in-memory temp areas
+    # State: Persistent data, routing infrastructure map, and temporary in-memory systems
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./data:/data
       - ./config:/config:ro
