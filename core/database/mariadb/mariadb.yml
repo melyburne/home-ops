@@ -30,9 +30,9 @@ services:
       mariadb-init:
         condition: service_completed_successfully
 
-    # Connectivity: Expose MariaDB on localhost only (required for home assistant), for internal access by other containers
+    # Connectivity: Expose the database port to the host for external access (e.g., Home Assistant)
     ports:
-      - "127.0.0.1:3306:3306"
+      - "3306:3306"
     networks:
       - mariadb-internal
 
