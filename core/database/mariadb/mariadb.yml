@@ -40,6 +40,7 @@ services:
     environment:
       # Core Database Settings
       MARIADB_AUTO_UPGRADE: "true"
+      MARIADB_BIND_ADDRESS: "0.0.0.0"
       MARIADB_ROOT_PASSWORD: "${MARIADB_ROOT_PASSWORD:?}"
 
       # App 1: Roundcube Variables
@@ -57,7 +58,9 @@ services:
       ONLYOFFICE_DB_PASSWORD: "${OCIS_ONLYOFFICE_DB_PASSWORD:?}"
       ONLYOFFICE_DB_USER: "onlyoffice"
 
-    # State: Persistent folder mounts and required in-memory directories for read-only filesystem
+    # State: Persistent data, initialization scripts, and temporary in-memory systems
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./data:/var/lib/mysql
       - ./init:/docker-entrypoint-initdb.d:ro
