@@ -9,5 +9,10 @@ automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
 
+# Recorder: Use MariaDB for persistent state storage
 recorder:
   db_url: !env_var HOMEASSISTANT_DB_URL
+
+# Logger: Use environment variable to set log level
+logger:
+  default: !env_var HOMEASSISTANT_LOG_LEVEL

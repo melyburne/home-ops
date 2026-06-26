@@ -23,6 +23,7 @@ services:
     # Configuration: Mount configuration and media directories, and read-only mount the main configuration file
     environment:
       HOMEASSISTANT_DB_URL: "mysql://homeassistant:${HOMEASSISTANT_DB_PASSWORD:?}@127.0.0.1:3306/homeassistant?charset=utf8mb4"
+      HOMEASSISTANT_LOG_LEVEL: "${HOMEASSISTANT_LOG_LEVEL:-info}"
       PGID: "${HOMEASSISTANT_PGID:-1004}"
       PUID: "${HOMEASSISTANT_PUID:-1004}"
 
