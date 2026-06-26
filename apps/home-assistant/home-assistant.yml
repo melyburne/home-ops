@@ -22,50 +22,30 @@ services:
     image: lscr.io/linuxserver/homeassistant:${HOMEASSISTANT_DOCKER_TAG:-2026.6}
     container_name: home-assistant
 
-    # Security: Explicitly grant required kernel capabilities dropped by base-secure.
+    # Connectivity: Use host network mode for device discovery (mDNS)
+    network_mode: host
+
+    # Security: Explicitly grant required kernel capabilities
     cap_add:
       - NET_ADMIN
       - NET_RAW
 
-    # Lifecycle: Wait for database to be ready
+    # Lifecycle: Wait for database and init
     depends_on:
       mariadb:
         condition: service_healthy
+      home-assistant-init:
+        condition: service_completed_successfully
 
-    # Connectivity: Public facing proxy, outbound APIs, and internal database
-    networks:
-      - traefik-public
-      - outbound-public
-      - mariadb-internal
-
-    # Configuration: DB injection and native LinuxServer privilege mapping (Alphabetized)
+    # Configuration: Mount configuration and media directories, and read-only mount the main configuration file
     environment:
-      HOMEASSISTANT_DB_URL: "mysql://homeassistant:${HOMEASSISTANT_DB_PASSWORD:?}@mariadb/homeassistant?charset=utf8mb4"
+      HOMEASSISTANT_DB_URL: "mysql://homeassistant:${HOMEASSISTANT_DB_PASSWORD:?}@127.0.0.1:3306/homeassistant?charset=utf8mb4"
       PGID: "${HOMEASSISTANT_PGID:-1004}"
       PUID: "${HOMEASSISTANT_PUID:-1004}"
 
-    # Routing: Traefik dynamic configuration (Alphabetized)
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.home-assistant.entrypoints=websecure"
-      - "traefik.http.routers.home-assistant.rule=Host(`${HOMEASSISTANT_SUBDOMAIN:-home}.${DOMAIN_PRIMARY:-localhost}`)"
-      - "traefik.http.routers.home-assistant.service=home-assistant"
-      - "traefik.http.services.home-assistant.loadbalancer.server.port=8123"
-
-    # State: Persistent data, system message bus, and required in-memory mounts
+    # State: Persistent data mounts
     volumes:
       - ./data/config:/config
       - ./data/media:/media
-      - ./config/configuration.yaml:/config/configuration.yaml:rw
-      # - /run/dbus:/run/dbus:ro # Optional: Uncomment to enable D-Bus support for certain integrations (e.g., Bluetooth, Z-Wave)
-
-    # Monitoring: Internal check targeting the native API
-    healthcheck:
-      test: "wget -qO /dev/null http://127.0.0.1:8123/ || exit 1"
-      start_period: 1500s
-
-# --- Global Network Definitions ---
-networks:
-  traefik-public:
-  outbound-public:
-  mariadb-internal:
+      - ./config/configuration.yml:/config/configuration.yaml:ro
+      - /run/dbus:/run/dbus:ro

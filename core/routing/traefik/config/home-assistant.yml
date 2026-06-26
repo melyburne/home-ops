@@ -1,0 +1,20 @@
+# ==============================================================================
+# External Services: Home Assistant (Host Networked)
+# Description: Reverse proxies traffic exiting the Docker stack to the local
+#              host system where Home Assistant is listening on port 8123.
+# ==============================================================================
+http:
+  # --- Ingress: Domain Mapping ---
+  routers:
+    home-assistant:
+      entryPoints:
+        - websecure
+      rule: "Host(`home.aaronsoft.de`)"
+      service: home-assistant-svc
+
+  # --- Egress: Local Network Forwarding ---
+  services:
+    home-assistant-svc:
+      loadBalancer:
+        servers:
+          - url: "http://host.docker.internal:8123"

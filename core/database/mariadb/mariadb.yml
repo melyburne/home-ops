@@ -30,7 +30,9 @@ services:
       mariadb-init:
         condition: service_completed_successfully
 
-    # Connectivity: Isolated internal network to prevent direct outside access
+    # Connectivity: Expose MariaDB on localhost only (required for home assistant), for internal access by other containers
+    ports:
+      - "127.0.0.1:3306:3306"
     networks:
       - mariadb-internal
 

@@ -166,7 +166,9 @@ services:
       - "traefik.http.routers.redirect-secondary.tls.domains[0].main=${DOMAIN_SECONDARY:-localhost}"
       - "traefik.http.routers.redirect-secondary.tls.domains[0].sans=*.${DOMAIN_SECONDARY:-localhost}"
 
-    # State: Persistent data and dynamic config mounts
+    # State: Persistent data, routing infrastructure map, and temporary in-memory systems
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     volumes:
       - ./data:/data
       - ./config:/config:ro
