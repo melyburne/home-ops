@@ -374,7 +374,7 @@ services:
     # Monitoring: Internal check to ensure the app is healthy
     healthcheck:
       test: "curl -f http://127.0.0.1/healthcheck || exit 1"
-      start_period: 300s
+      start_period: 500s
 
 
 # --- Global Network Definitions ---
