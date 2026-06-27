@@ -5,22 +5,27 @@ default_config:
 frontend:
   themes: !include_dir_merge_named themes
 
+# Load automations, scripts, scenes, and secrets
 automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
 
-# Recorder
-recorder:
-  db_url: !env_var HOMEASSISTANT_DB_URL
-
-# Logger
-logger:
-  default: !env_var HOMEASSISTANT_LOG_LEVEL
 
 # Reverse Proxy Security Configuration
 http:
   use_x_forwarded_for: true
   trusted_proxies:
-    - "127.0.0.1"
-    - "172.16.0.0/12"
-    - "192.168.1.6"
+    - 127.0.0.1
+    - 172.16.0.0/12
+
+# Logger
+logger:
+  default: !env_var HOMEASSISTANT_LOG_LEVEL
+
+# Recorder
+recorder:
+  db_url: !env_var HOMEASSISTANT_DB_URL
+
+
+# SmartIR Integration
+smartir:
