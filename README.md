@@ -62,7 +62,7 @@ The stack is modular, splitting services into logical domains:
     To allow Traefik to securely communicate with Home Assistant without exposing port `8123` to the public internet, you must explicitly allow the Docker subnet in UFW:
 
     ```bash
-    sudo ufw allow from 172.20.0.0/24 to any port 8123 proto tcp
+    sudo ufw allow in from 172.16.0.0/12 to 172.17.0.1 port 8123 proto tcp comment 'Allow Traefik to Host Home Assistant'
     ```
 
     *Note: `172.16.0.0/12` is the standard private IP block Docker uses for bridge networks. `172.17.0.1` represents the default Docker gateway on the host.*
