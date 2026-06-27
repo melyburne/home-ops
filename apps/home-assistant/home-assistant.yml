@@ -3,8 +3,9 @@
 x-ha-ext-base: &ha-ext-base
   image: alpine:${ALPINE_DOCKER_TAG:-3.23}
 
-  # Execution: Use root for installing extensions
+  # Execution: Run as root and define platform for compatibility
   user: root
+  platform: linux/amd64
 
   # Security: Set base privileges and capabilities
   security_opt:
@@ -21,6 +22,11 @@ x-ha-ext-base: &ha-ext-base
   depends_on:
     home-assistant-init:
       condition: service_completed_successfully
+
+  # Environment: Pass PUID/PGID down for the chown command
+  environment:
+    HOMEASSISTANT_PUID: "${HOMEASSISTANT_PUID:-1004}"
+    HOMEASSISTANT_PGID: "${HOMEASSISTANT_PGID:-1004}"
 
   # Execution: Set base entrypoint
   entrypoint:
