@@ -25,7 +25,3 @@ logger:
 # Recorder
 recorder:
   db_url: !env_var HOMEASSISTANT_DB_URL
-
-
-# SmartIR Integration
-smartir:
