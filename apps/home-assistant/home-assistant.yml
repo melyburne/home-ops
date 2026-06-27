@@ -23,11 +23,6 @@ x-ha-ext-base: &ha-ext-base
     home-assistant-init:
       condition: service_completed_successfully
 
-  # Environment: Pass PUID/PGID down for the chown command
-  environment:
-    HOMEASSISTANT_PUID: "${HOMEASSISTANT_PUID:-1004}"
-    HOMEASSISTANT_PGID: "${HOMEASSISTANT_PGID:-1004}"
-
   # Execution: Set base entrypoint
   entrypoint:
     - /bin/sh
@@ -55,7 +50,7 @@ services:
         mkdir -p /data/config && mkdir -p /data/media &&
         cp /config/configuration.yaml /data/config/configuration.yaml &&
         touch /data/config/automations.yaml /data/config/scripts.yaml /data/config/scenes.yaml /data/config/secrets.yaml &&
-        chown -R ${HOMEASSISTANT_PUID:-1004}:${HOMEASSISTANT_PGID:-1004} /data
+        chown -R 0:0 /data
       "
     volumes:
       - ./data:/data
@@ -74,17 +69,20 @@ services:
   home-assistant:
     extends:
       file: ../../shared/templates.yml
-      service: base-default
-    image: lscr.io/linuxserver/homeassistant:${HOMEASSISTANT_DOCKER_TAG:-2026.6.4}
+      service: base-secure
+    image: ghcr.io/home-assistant/home-assistant:${HOMEASSISTANT_DOCKER_TAG:-stable}
     container_name: home-assistant
 
     # Connectivity: Use host network mode for device discovery (mDNS)
     network_mode: host
 
-    # Security: Explicitly grant required kernel capabilities
+    # Security: Lock file system and explicitly grant required kernel capabilities
+    read_only: true
     cap_add:
       - NET_ADMIN
       - NET_RAW
+    security_opt:
+      - apparmor:unconfined
 
     # Lifecycle: Wait for database and extensions
     depends_on:
@@ -97,20 +95,20 @@ services:
     environment:
       HOMEASSISTANT_DB_URL: "mysql://homeassistant:${HOMEASSISTANT_DB_PASSWORD:?}@127.0.0.1:3306/homeassistant?charset=utf8mb4"
       HOMEASSISTANT_LOG_LEVEL: "${HOMEASSISTANT_LOG_LEVEL:-info}"
-      PGID: "${HOMEASSISTANT_PGID:-1004}"
-      PUID: "${HOMEASSISTANT_PUID:-1004}"
 
-    # State: Persistent data mounts
+    # State: Persistent data mounts, dbus socket and read-only configuration file
     volumes:
       - ./data/config:/config
       - ./data/media:/media
       - ./data/config/configuration.yaml:/config/configuration.yaml:ro
       - /run/dbus:/run/dbus:ro
+    tmpfs:
+      - /tmp:rw,exec,nosuid,nodev
+      - /run:rw,exec,nosuid,nodev
 
     # Monitoring: Internal check targeting the native API
     healthcheck:
       test: "wget -qO /dev/null http://127.0.0.1:8123/ || exit 1"
-      start_period: 1500s
 
 # --- Global Network Definitions ---
 networks:

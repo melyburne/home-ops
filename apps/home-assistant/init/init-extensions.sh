@@ -117,7 +117,7 @@ done
 # 6. Apply Correct Permissions
 # Ensure the newly created files are owned by the Home Assistant container user
 # to prevent read/write errors when the application boots up.
-echo "Applying permissions (PUID: ${HOMEASSISTANT_PUID} / PGID: ${HOMEASSISTANT_PGID})..."
-chown -R ${HOMEASSISTANT_PUID:-1004}:${HOMEASSISTANT_PGID:-1004} "$DEST_DIR"
+echo "Applying permissions (PUID: 0 / PGID: 0..."
+chown -R 0:0 "$DEST_DIR"
 
 echo "Extension initialization complete."
