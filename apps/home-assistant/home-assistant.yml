@@ -68,7 +68,7 @@ services:
 
     # Execution: Download and install custom extensions via script
     command:
-      - "smartHomeHub/SmartIR:${HA_EXT_SMARTIR_DOCKER_TAG:-latest}"
+      - "smartHomeHub/SmartIR:${HOMEASSISTANT_EXT_SMARTIR_DOCKER_TAG:-latest}"
 
   # --- Main Smart Home Service: Home Assistant ---
   home-assistant:
