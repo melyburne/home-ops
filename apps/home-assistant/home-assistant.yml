@@ -90,7 +90,7 @@ services:
     depends_on:
       mariadb:
         condition: service_healthy
-      home-assistant-ext-init: # <--- Warten auf die Extensions
+      home-assistant-ext-init:
         condition: service_completed_successfully
 
     # Configuration: Environment variables
