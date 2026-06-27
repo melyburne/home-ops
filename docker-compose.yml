@@ -29,9 +29,6 @@ networks:
   traefik-public:
     name: traefik-public
     driver: bridge
-    ipam:
-      config:
-        - subnet: "172.20.0.0/24"
 
   # Connectivity: Outbound internet access for services requiring external APIs (e.g., Watchtower, DDNS)
   outbound-public:

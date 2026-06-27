@@ -1,3 +1,42 @@
+# --- DRY Templates ---
+# Template for Home Assistant Extension Initialization
+x-ha-ext-base: &ha-ext-base
+  image: alpine:${ALPINE_DOCKER_TAG:-3.23}
+
+  # Execution: Use root for installing extensions
+  user: root
+
+  # Security: Set base privileges and capabilities
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  cap_add:
+    - CHOWN
+    - FOWNER
+    - FSETID
+    - DAC_OVERRIDE
+
+  # Lifecycle: Runs strictly after the base folders are created
+  depends_on:
+    home-assistant-init:
+      condition: service_completed_successfully
+
+  # Execution: Set base entrypoint
+  entrypoint:
+    - /bin/sh
+    - /init.sh
+
+  # Connectivity: Needs internet to hit GitHub API
+  networks:
+    - outbound-public
+
+  # State: Mount the config volume and script
+  volumes:
+    - ./data/config:/config
+    - ./init/init-extensions.sh:/init.sh:ro
+
+
 services:
   # --- Init Service: Prepares config permissions before Home Assistant starts ---
   home-assistant-init:
@@ -5,8 +44,6 @@ services:
       file: ../../shared/templates.yml
       service: base-init
     container_name: home-assistant-init
-
-    # Execution: Run a shell command to prepare the configuration directory and set permissions
     command: >
       sh -c "
         mkdir -p /data/config &&
@@ -14,11 +51,18 @@ services:
         touch /data/config/automations.yaml /data/config/scripts.yaml /data/config/scenes.yaml /data/config/secrets.yaml &&
         chown -R ${HOMEASSISTANT_PUID:-1004}:${HOMEASSISTANT_PGID:-1004} /data
       "
-
-    # State: Mount both the persistent data directory and the static source config directory
     volumes:
       - ./data:/data
       - ./config:/config
+
+  # --- Ext Init Service: Downloads Home Assistant custom components ---
+  home-assistant-ext-init:
+    <<: *ha-ext-base
+    container_name: home-assistant-ext-init
+
+    # Execution: Download and install custom extensions via script
+    command:
+      - "smartHomeHub/SmartIR:${HA_EXT_SMARTIR_DOCKER_TAG:-latest}"
 
   # --- Main Smart Home Service: Home Assistant ---
   home-assistant:
@@ -36,14 +80,14 @@ services:
       - NET_ADMIN
       - NET_RAW
 
-    # Lifecycle: Wait for database and init
+    # Lifecycle: Wait for database and extensions
     depends_on:
       mariadb:
         condition: service_healthy
-      home-assistant-init:
+      home-assistant-ext-init: # <--- Warten auf die Extensions
         condition: service_completed_successfully
 
-    # Configuration: Mount configuration and media directories, and read-only mount the main configuration file
+    # Configuration: Environment variables
     environment:
       HOMEASSISTANT_DB_URL: "mysql://homeassistant:${HOMEASSISTANT_DB_PASSWORD:?}@127.0.0.1:3306/homeassistant?charset=utf8mb4"
       HOMEASSISTANT_LOG_LEVEL: "${HOMEASSISTANT_LOG_LEVEL:-info}"
@@ -61,3 +105,7 @@ services:
     healthcheck:
       test: "wget -qO /dev/null http://127.0.0.1:8123/ || exit 1"
       start_period: 1500s
+
+# --- Global Network Definitions ---
+networks:
+  outbound-public:
