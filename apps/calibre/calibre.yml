@@ -1,4 +1,18 @@
 services:
+  # --- Init Service: Prepares permissions for calbire ---
+  calibre-init:
+    extends:
+      file: ../../shared/templates.yml
+      service: base-init
+    container_name: calibre-init
+
+    # Execution: Set correct ownership for calbire
+    command: sh -c "chown -R ${CALIBRE_PGID:-1005}:${CALIBRE_PGID:-1005} /data"
+
+    # State: Mount data driectory
+    volumes:
+      - ./data:/data
+
   # --- Main Service: Calibre Web Automated ---
   calibre-web-automated:
     extends:
@@ -6,6 +20,11 @@ services:
       service: base-default
     image: crocodilestick/calibre-web-automated:${CALIBRE_DOCKER_TAG:-latest}
     container_name: calibre-web-automated
+
+  # Lifecycle: Runs strictly after the base folders are created
+    depends_on:
+      calibre-init:
+        condition: service_completed_successfully
 
     # Connectivity: Public facing proxy network and exposed local port
     ports:
