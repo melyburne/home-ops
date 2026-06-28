@@ -7,7 +7,7 @@ services:
     container_name: calibre-init
 
     # Execution: Set correct ownership for calbire
-    command: sh -c "chown -R ${CALIBRE_PGID:-1006}:${CALIBRE_PGID:-1006} /data"
+    command: sh -c "chown -R ${CALIBRE_PUID:-1006}:${CALIBRE_PGID:-1006} /data"
 
     # State: Mount data driectory
     volumes:
