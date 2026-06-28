@@ -147,7 +147,7 @@ services:
       # Internal Dashboard Router
       - "traefik.http.routers.dashboard.entrypoints=websecure"
       - "traefik.http.routers.dashboard.middlewares=dashboard-auth"
-      - "traefik.http.routers.dashboard.rule=Host(`${TRAEFIK_SUBDOMAIN:-traefik}.${DOMAIN_PRIMARY:-localhost}`) || Host(`${TRAEFIK_SUBDOMAIN:-traefik}.${DOMAIN_SECONDARY:-localhost}`)"
+      - "traefik.http.routers.dashboard.rule=Host(`${TRAEFIK_SUBDOMAIN:-traefik}.${DOMAIN_PRIMARY:-localhost}`)"
       - "traefik.http.routers.dashboard.service=api@internal"
 
       # Priority 1: Primary Domain Global Redirects (Naked domains & Typos -> Web Subdomain)
@@ -158,15 +158,6 @@ services:
       - "traefik.http.routers.redirect-primary.service=noop@internal"
       - "traefik.http.routers.redirect-primary.tls.domains[0].main=${DOMAIN_PRIMARY:-localhost}"
       - "traefik.http.routers.redirect-primary.tls.domains[0].sans=*.${DOMAIN_PRIMARY:-localhost}"
-
-      # Priority 1: Secondary Domain Global Redirects (Naked domains & Typos -> Web Subdomain)
-      - "traefik.http.routers.redirect-secondary.entrypoints=websecure"
-      - "traefik.http.routers.redirect-secondary.middlewares=redirect-to-web"
-      - "traefik.http.routers.redirect-secondary.priority=1"
-      - "traefik.http.routers.redirect-secondary.rule=HostRegexp(`^.+\\.${DOMAIN_SECONDARY:-localhost}$$`) || Host(`${DOMAIN_SECONDARY:-localhost}`)"
-      - "traefik.http.routers.redirect-secondary.service=noop@internal"
-      - "traefik.http.routers.redirect-secondary.tls.domains[0].main=${DOMAIN_SECONDARY:-localhost}"
-      - "traefik.http.routers.redirect-secondary.tls.domains[0].sans=*.${DOMAIN_SECONDARY:-localhost}"
 
     # State: Persistent data, routing infrastructure map, and temporary in-memory systems
     extra_hosts:

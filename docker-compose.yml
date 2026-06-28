@@ -18,10 +18,9 @@ include:
 
   # 4. End-User Applications
   - apps/home-assistant/home-assistant.yml
-  - apps/roundcube/roundcube.yml
+# - apps/roundcube/roundcube.yml
   - apps/ocis/ocis.yml
-  - apps/websites/web-aaronsoft/web-aaronsoft.yml
-  - apps/websites/web-get-orga-niced/web-get-orga-niced.yml
+# - apps/websites/web-hduong/web-hduong.yml
 
 # --- Global Network Definitions ---
 networks:
