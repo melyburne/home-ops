@@ -1,0 +1,46 @@
+services:
+  # --- Main Service: Calibre Web Automated ---
+  calibre-web-automated:
+    extends:
+      file: ../../shared/templates.yml
+      service: base-default
+    image: crocodilestick/calibre-web-automated:${CALIBRE_DOCKER_TAG:-latest}
+    container_name: calibre-web-automated
+
+    # Connectivity: Public facing proxy network and exposed local port
+    ports:
+      # Change the first number to change the port you want to access the Web UI, not the second
+      - "8083:8083"
+    networks:
+      - traefik-public
+
+    # Configuration: Calibre and backend settings (Alphabetized)
+    environment:
+      # CWA_WATCH_MODE: "poll" # If you want to force polling mode regardless of share type, set to poll
+      # DISABLE_LIBRARY_AUTOMOUNT: "false" # Skip the automatic library detection/mount at startup. Accepts: true/yes/1
+      HARDCOVER_TOKEN: "${CALIBRE_HARDCOVER_TOKEN:-}"
+      NETWORK_SHARE_MODE: "false"
+      PGID: "${CALIBRE_PGID:-1006}"
+      PUID: "${CALIBRE_PUID:-1006}"
+      # TRUSTED_PROXY_COUNT: "2" # If running behind multiple proxies (e.g., Cloudflare Tunnel). Default: 1
+      TZ: "${TZ:-Etc/UTC}"
+
+    # Routing: Traefik dynamic configuration (Alphabetized)
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.middlewares.cwa-headers.headers.customrequestheaders.X-Scheme=https"
+      - "traefik.http.routers.cwa.entrypoints=websecure"
+      - "traefik.http.routers.cwa.middlewares=cwa-headers"
+      - "traefik.http.routers.cwa.rule=Host(`${CALIBRE_SUBDOMAIN:-calibre}.${DOMAIN_PRIMARY:-localhost}`)"
+      - "traefik.http.services.cwa-svc.loadbalancer.server.port=8083"
+
+    # State: Persistent data mounts (Adjusted to relative paths for Home-Ops standard)
+    volumes:
+      - ./data/config:/config
+      - ./data/ingest:/cwa-book-ingest
+      - ./data/library:/calibre-library
+      - ./data/plugins:/config/.config/calibre/plugins
+
+# --- Global Network Definitions ---
+networks:
+  traefik-public:
