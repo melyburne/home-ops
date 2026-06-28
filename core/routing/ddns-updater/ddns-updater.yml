@@ -30,7 +30,7 @@ services:
       ddns-updater-init:
         condition: service_completed_successfully
 
-    # Connectivity: Attach to the shared outbound network for external API access
+    # Connectivity: Required for ipv6 address resolution and outbound API calls to Gandi
     network_mode: host
 
     # Configuration: Global environment variables (Alphabetized)

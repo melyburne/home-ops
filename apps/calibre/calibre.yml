@@ -60,10 +60,6 @@ services:
       - ./data/library:/calibre-library
       - ./data/plugins:/config/.config/calibre/plugins
 
-    # Monitoring: Internal check to ensure the web interface is responding
-    healthcheck:
-      test: "wget -qO /dev/null http://127.0.0.1:8083 || exit 1"
-
 # --- Global Network Definitions ---
 networks:
   traefik-public:
