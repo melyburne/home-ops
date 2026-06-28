@@ -21,6 +21,7 @@ include:
 # - apps/roundcube/roundcube.yml
   - apps/ocis/ocis.yml
 # - apps/websites/web-hduong/web-hduong.yml
+  - apps/calibre/calibre.yml
 
 # --- Global Network Definitions ---
 networks:

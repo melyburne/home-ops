@@ -12,7 +12,8 @@ The stack is modular, splitting services into logical domains:
 │   ├── home-assistant/    # Smart Home automation (host network)
 │   ├── ocis/              # ownCloud Infinite Scale & OnlyOffice
 │   ├── roundcube/         # Webmail client
-│   └── websites/          # Nginx-based static sites
+│   ├── websites/          # Nginx-based static sites
+│   └── calibre/           # Book library
 ├── core/                  # Infrastructure & backend services
 │   ├── database/          # MariaDB & Adminer
 │   ├── routing/           # Traefik Reverse Proxy & Gandi DDNS Updater
