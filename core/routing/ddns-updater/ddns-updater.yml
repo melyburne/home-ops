@@ -30,9 +30,8 @@ services:
       ddns-updater-init:
         condition: service_completed_successfully
 
-    # Connectivity: Attach to the shared outbound traffic
-    networks:
-      - outbound-public
+    # Connectivity: Attach to the shared outbound network for external API access
+    network_mode: host
 
     # Configuration: Global environment variables (Alphabetized)
     environment:
@@ -46,8 +45,3 @@ services:
       - ./data:/updater/data
     tmpfs:
       - /tmp
-
-
-# --- Global Network Definitions ---
-networks:
-  outbound-public:
