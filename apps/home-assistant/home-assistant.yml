@@ -65,7 +65,6 @@ services:
     command:
       - "marsh4200/ar_smart_ir:${HOMEASSISTANT_EXT_ARSMARTIR_DOCKER_TAG:-latest}"
       - "marsh4200/ar_smart_ir_builder:${HOMEASSISTANT_EXT_ARSMARTIR_BUILDER_DOCKER_TAG:-latest}"
-      - "piitaya/lovelace-mushroom:${HOMEASSISTANT_EXT_LOVELACE_MUSHROOM_DOCKER_TAG:-latest}"
 
   # --- Main Smart Home Service: Home Assistant ---
   home-assistant:
