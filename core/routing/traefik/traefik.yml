@@ -74,6 +74,7 @@ services:
     networks:
       traefik-public:
         aliases:
+          - ${OCIS_SUBDOMAIN:-ocis}.${DOMAIN_PRIMARY:-localhost}
           - onlyoffice.${DOMAIN_PRIMARY:-localhost}
       socket-internal:
 
