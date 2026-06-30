@@ -35,7 +35,7 @@ services:
 
     # Configuration: Global environment variables (Alphabetized)
     environment:
-      CONFIG: '{"settings":[{"provider":"cloudflare","zone_identifier":"${CLOUDFLARE_ZONE_ID:?}","domain":"${DOMAIN_PRIMARY:-localhost}","ttl":60,"token":"${CLOUDFLARE_TOKEN:?}","ip_version":"ipv4 or ipv6"}]}'
+      CONFIG: '{"settings":[{"provider":"cloudflare","zone_identifier":"${CLOUDFLARE_ZONE_ID:?}","domain":"${DOMAIN_PRIMARY:-localhost}","ttl":60,"token":"${CLOUDFLARE_TOKEN:?}","ip_version":"ipv6"}]}'
       LOG_LEVEL: "${DDNS_UPDATER_LOG_LEVEL:-info}"
       RESOLVER_ADDRESS: "1.1.1.1:53"
       SERVER_ENABLED: "false"
