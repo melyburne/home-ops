@@ -30,17 +30,17 @@ services:
       ddns-updater-init:
         condition: service_completed_successfully
 
-    # Connectivity: Required for ipv6 address resolution and outbound API calls to Gandi
+    # Connectivity: Required for ipv6 address resolution and outbound API calls to Cloudflare
     network_mode: host
 
     # Configuration: Global environment variables (Alphabetized)
     environment:
-      CONFIG: '{"settings":[{"provider":"gandi","domain":"${DOMAIN_PRIMARY:-localhost}","ttl":300,"ip_version":"ipv6","personal_access_token":"${GANDIV5_PERSONAL_ACCESS_TOKEN:?}"}]}'
+      CONFIG: '{"settings":[{"provider":"cloudflare","zone_identifier":"${CLOUDFLARE_ZONE_ID:?}","domain":"${DOMAIN_PRIMARY:-localhost}","ttl":60,"token":"${CLOUDFLARE_TOKEN:?}","ip_version":"ipv4 or ipv6"}]}'
       LOG_LEVEL: "${DDNS_UPDATER_LOG_LEVEL:-info}"
       RESOLVER_ADDRESS: "1.1.1.1:53"
       SERVER_ENABLED: "false"
 
-    # State: Persistence to prevent API rate limiting from Gandi on container restart
+    # State: Persistence to prevent API rate limiting from Cloudflare on container restart
     volumes:
       - ./data:/updater/data
     tmpfs:
