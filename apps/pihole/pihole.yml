@@ -54,11 +54,13 @@ services:
     # Configuration: Set environment variables for Pi-hole configuration and user/group IDs (Alphabetized)
     environment:
       FTLCONF_dhcp_active: "false"
+      FTLCONF_dns_hosts: |-
+        ${HOST_LOCAL_IPv4:?} ${DOMAIN_PRIMARY:?}
+        ${HOST_LOCAL_IPv6:?} ${DOMAIN_PRIMARY:?}
       FTLCONF_dns_listeningMode: "ALL"
       FTLCONF_dns_upstreams: "1.1.1.1;1.0.0.1"
-      FTLCONF_misc_dnsmasq_lines:
-        - address=/${DOMAIN_PRIMARY:-localhost}/${HOST_LOCAL_IPv4:-0.0.0.0}
-        - address=/${DOMAIN_PRIMARY:-localhost}/${HOST_LOCAL_IPv6:-::}
+      FTLCONF_misc_dnsmasq_lines: |-
+        cname=*.${DOMAIN_PRIMARY:?},${DOMAIN_PRIMARY:?}
       FTLCONF_ntp_ipv4_active: "false"
       FTLCONF_ntp_ipv6_active: "false"
       FTLCONF_ntp_sync_active: "false"
