@@ -18,7 +18,7 @@ services:
     extends:
       file: ../../shared/templates.yml
       service: base-secure
-    image: pihole/pihole:${PIHOLE_DOCKER_TAG:-2026.06.0}
+    image: pihole/pihole:${PIHOLE_DOCKER_TAG:-latest}
     container_name: pihole
 
     # Security: Explicitly grant required kernel capabilities
@@ -51,14 +51,11 @@ services:
       - traefik-public
       - outbound-public
 
-    # Configuration: Set environment variables for Pi-hole configuration and user/group IDs (Alphabetized)
+    # Configuration: Set environment variables for Pi-hole configuration and user/group IDs
     environment:
       FTLCONF_dhcp_active: "false"
       FTLCONF_dns_listeningMode: "ALL"
       FTLCONF_dns_upstreams: "1.1.1.1;1.0.0.1"
-      FTLCONF_misc_dnsmasq_lines: |-
-        address=/${DOMAIN_PRIMARY:-localhost}/${HOST_LOCAL_IP:?}
-        address=/${DOMAIN_SECONDARY:-localhost}/${HOST_LOCAL_IP:?}
       FTLCONF_ntp_ipv4_active: "false"
       FTLCONF_ntp_ipv6_active: "false"
       FTLCONF_ntp_sync_active: "false"
@@ -75,9 +72,13 @@ services:
       - "traefik.http.routers.pihole.rule=Host(`${PIHOLE_SUBDOMAIN:-pihole}.${DOMAIN_PRIMARY:-localhost}`)"
       - "traefik.http.services.pihole.loadbalancer.server.port=80"
 
-    # State: Persistent FTL config
+    # State: Persistent FTL config and in-memory mounts explicitly required for read-only filesystem
     volumes:
       - ./data/etc-pihole:/etc/pihole
+    tmpfs:
+      - /tmp
+      - /run
+      - /var/log/pihole
 
     # Monitoring: Internal check targeting local DNS resolution directly
     healthcheck:
