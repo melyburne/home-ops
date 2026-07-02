@@ -18,9 +18,9 @@ include:
 
   # 4. End-User Applications
   - apps/home-assistant/home-assistant.yml
-# - apps/roundcube/roundcube.yml
   - apps/ocis/ocis.yml
-# - apps/websites/web-hduong/web-hduong.yml
+  - apps/pihole/pihole.yml
+  - apps/roundcube/roundcube.yml
   - apps/calibre/calibre.yml
 
 # --- Global Network Definitions ---
