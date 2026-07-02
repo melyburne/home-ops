@@ -62,7 +62,7 @@ services:
         ${HOST_LOCAL_IPv4:-0.0.0.0} ${PIHOLE_SUBDOMAIN:-pihole}.${DOMAIN_PRIMARY:-localhost}
         ${HOST_LOCAL_IPv4:-0.0.0.0} ${ROUNDCUBE_SUBDOMAIN:-mail}.${DOMAIN_PRIMARY:-localhost}
         ${HOST_LOCAL_IPv4:-0.0.0.0} ${WEBSITE_SUBDOMAIN:-www}.${DOMAIN_PRIMARY:-localhost}
-        ${HOST_LOCAL_IPv4:-0.0.0.0} ${HOST_NAME_GATEWAY:-gateway}
+        ${GATEWAY_IPV4_ADDR:-0.0.0.0} ${GATEWAY_NAME:-gateway}
         ${HOST_LOCAL_IPv6:-::1} ${DOMAIN_PRIMARY:-localhost}
         ${HOST_LOCAL_IPv6:-::1} ${CALIBRE_SUBDOMAIN:-calibre}.${DOMAIN_PRIMARY:-localhost}
         ${HOST_LOCAL_IPv6:-::1} ${HOMEASSISTANT_SUBDOMAIN:-home}.${DOMAIN_PRIMARY:-localhost}
