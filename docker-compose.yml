@@ -21,7 +21,6 @@ include:
   - apps/ocis/ocis.yml
   - apps/roundcube/roundcube.yml
   - apps/pihole/pihole.yml
-  - apps/roundcube/roundcube.yml
   - apps/calibre/calibre.yml
 
 # --- Global Network Definitions ---
