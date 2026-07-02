@@ -81,7 +81,7 @@ services:
     # Configuration: Global environment variables (Alphabetized)
     environment:
       DOMAIN_PRIMARY: "${DOMAIN_PRIMARY:-localhost}"
-      CF_API_TOKEN: "${CLOUDFLARE_TOKEN:?}"
+      CLOUDFLARE_DNS_API_TOKEN: "${CLOUDFLARE_TOKEN:?}"
       HOMEASSISTANT_SUBDOMAIN: "${HOMEASSISTANT_SUBDOMAIN:-home}"
       LEGO_DISABLE_CNAME_SUPPORT: "true"
       TRAEFIK_LOG_LEVEL: "${TRAEFIK_LOG_LEVEL:-info}"
