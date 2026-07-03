@@ -17,7 +17,7 @@ services:
   calibre-web-automated:
     extends:
       file: ../../shared/templates.yml
-      service: base-default
+      service: base-default-outbound
     image: crocodilestick/calibre-web-automated:${CALIBRE_DOCKER_TAG:-latest}
     container_name: calibre-web-automated
 
