@@ -29,12 +29,12 @@ networks:
   traefik-public:
     name: traefik-public
     driver: bridge
-    enable_ipv6: true
-
+  
   # Connectivity: Outbound internet access for services requiring external APIs (e.g., Watchtower, DDNS)
   outbound-public:
     name: outbound-public
     driver: bridge
+    enable_ipv6: true
 
   # Security: Highly restricted internal network strictly for Traefik to read the Docker socket via proxy
   socket-internal:
