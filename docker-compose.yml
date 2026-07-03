@@ -29,6 +29,7 @@ networks:
   traefik-public:
     name: traefik-public
     driver: bridge
+    enable_ipv6: true
 
   # Connectivity: Outbound internet access for services requiring external APIs (e.g., Watchtower, DDNS)
   outbound-public:
