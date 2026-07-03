@@ -73,6 +73,7 @@ services:
         ${HOST_LOCAL_IPv6:-::1} ${PIHOLE_SUBDOMAIN:-pihole}.${DOMAIN_PRIMARY:-localhost}
         ${HOST_LOCAL_IPv6:-::1} ${ROUNDCUBE_SUBDOMAIN:-mail}.${DOMAIN_PRIMARY:-localhost}
         ${HOST_LOCAL_IPv6:-::1} ${WEBSITE_SUBDOMAIN:-www}.${DOMAIN_PRIMARY:-localhost}
+        ${GATEWAY_IPV6_ADDR:-::1} ${GATEWAY_NAME:-gateway}
       FTLCONF_dns_listeningMode: "ALL"
       FTLCONF_dns_upstreams: "1.1.1.1;1.0.0.1"
       FTLCONF_ntp_ipv4_active: "false"
