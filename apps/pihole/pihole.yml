@@ -43,6 +43,9 @@ services:
       pihole-init:
         condition: service_completed_successfully
 
+    # Set the hostname for the container
+    hostname: pihole
+
     # Connectivity: Expose DNS to local network and attach to Traefik + Outbound
     ports:
       - "53:53/tcp"
