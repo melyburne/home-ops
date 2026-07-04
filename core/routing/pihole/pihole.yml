@@ -1,106 +1,84 @@
+# --- Lifecycle: Default values ---
+x-lifecycle-defaults: &lifecycle-defaults
+  healthcheck:
+    start_period: 120s
+    interval: 15s
+    timeout: 10s
+    retries: 3
+  stop_grace_period: 30s
+
+x-outbound-dependencies: &outbound-dependencies
+  depends_on:
+    pihole:
+      condition: service_healthy
+
+# --- Init Service: Templates for preparing permissions ---
 services:
-  # --- Init Service: Prepares permissions for Pi-hole ---
-  pihole-init:
-    extends:
-      file: ../../../shared/templates.yml
-      service: base-init
-    container_name: pihole-init
+  base-init:
+    image: busybox:${BUSYBOX_DOCKER_TAG:-1.37}
 
-    # Execution: Create directory structure and assign FTL user permissions
-    command: sh -c "mkdir -p /data/etc-pihole && chown -R ${PIHOLE_PUID:-1006}:${PIHOLE_PGID:-1006} /data"
+    # Lifecycle: Tell Watchtower to ignore all containers using this template
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
 
-    # State: Mount local data directory
-    volumes:
-      - ./data:/data
+    # Connectivity: Attach to no network
+    network_mode: none
 
-  # --- Main Service: Pi-hole DNS & Web Interface ---
-  pihole:
-    extends:
-      file: ../../../shared/templates.yml
-      service: base-secure
-    image: pihole/pihole:${PIHOLE_DOCKER_TAG:-2026.06.0}
-    container_name: pihole
-
-    # Security: Explicitly grant required kernel capabilities
+    # Security: Lock the filesystem, drop all privileges, and add only required ones back
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     cap_add:
       - CHOWN
-      - DAC_OVERRIDE
       - FOWNER
-      - NET_BIND_SERVICE
-      - SETFCAP
-      - SETGID
-      - SETUID
-      - SYS_NICE
+      - DAC_OVERRIDE
 
-    # Resource Allocation: Allow the container to set process niceness up to -20
-    ulimits:
-      nice:
-        soft: -20
-        hard: -20
-
-    # Lifecycle: Wait for initialization container to establish file ownership
-    depends_on:
-      pihole-init:
-        condition: service_completed_successfully
-
-    # Set the hostname for the container
-    hostname: pihole
-
-    # Connectivity: Expose DNS to local network and attach to Traefik + Outbound
-    ports:
-      - "53:53/tcp"
-      - "53:53/udp"
-    networks:
-      - traefik-public
-      - outbound-public
-
-    # Configuration: Set environment variables for Pi-hole configuration and user/group IDs (Alphabetized)
+    # Environment: Set the timezone for all containers using this template
     environment:
-      FTLCONF_dhcp_active: "false"
-      FTLCONF_dns_hosts: |-
-        ${HOST_LOCAL_IPv4:-0.0.0.0} ${DOMAIN_PRIMARY:-localhost}
-        ${HOST_LOCAL_IPv4:-0.0.0.0} ${CALIBRE_SUBDOMAIN:-calibre}.${DOMAIN_PRIMARY:-localhost}
-        ${HOST_LOCAL_IPv4:-0.0.0.0} ${HOMEASSISTANT_SUBDOMAIN:-home}.${DOMAIN_PRIMARY:-localhost}
-        ${HOST_LOCAL_IPv4:-0.0.0.0} ${OCIS_SUBDOMAIN:-ocis}.${DOMAIN_PRIMARY:-localhost}
-        ${HOST_LOCAL_IPv4:-0.0.0.0} ${PIHOLE_SUBDOMAIN:-pihole}.${DOMAIN_PRIMARY:-localhost}
-        ${HOST_LOCAL_IPv4:-0.0.0.0} ${ROUNDCUBE_SUBDOMAIN:-mail}.${DOMAIN_PRIMARY:-localhost}
-        ${HOST_LOCAL_IPv4:-0.0.0.0} ${WEBSITE_SUBDOMAIN:-www}.${DOMAIN_PRIMARY:-localhost}
-        ${GATEWAY_IPV4_ADDR:-0.0.0.0} ${GATEWAY_NAME:-gateway}
-        ${HOST_LOCAL_IPv6:-::1} ${DOMAIN_PRIMARY:-localhost}
-        ${HOST_LOCAL_IPv6:-::1} ${CALIBRE_SUBDOMAIN:-calibre}.${DOMAIN_PRIMARY:-localhost}
-        ${HOST_LOCAL_IPv6:-::1} ${HOMEASSISTANT_SUBDOMAIN:-home}.${DOMAIN_PRIMARY:-localhost}
-        ${HOST_LOCAL_IPv6:-::1} ${OCIS_SUBDOMAIN:-ocis}.${DOMAIN_PRIMARY:-localhost}
-        ${HOST_LOCAL_IPv6:-::1} ${PIHOLE_SUBDOMAIN:-pihole}.${DOMAIN_PRIMARY:-localhost}
-        ${HOST_LOCAL_IPv6:-::1} ${ROUNDCUBE_SUBDOMAIN:-mail}.${DOMAIN_PRIMARY:-localhost}
-        ${HOST_LOCAL_IPv6:-::1} ${WEBSITE_SUBDOMAIN:-www}.${DOMAIN_PRIMARY:-localhost}
-        ${GATEWAY_IPV6_ADDR:-::1} ${GATEWAY_NAME:-gateway}
-      FTLCONF_dns_listeningMode: "ALL"
-      FTLCONF_dns_upstreams: "1.1.1.1;1.0.0.1"
-      FTLCONF_ntp_ipv4_active: "false"
-      FTLCONF_ntp_ipv6_active: "false"
-      FTLCONF_ntp_sync_active: "false"
-      FTLCONF_webserver_api_password: "${PIHOLE_WEB_PASSWORD:?}"
-      FTLCONF_webserver_port: "80"
-      PIHOLE_GID: "${PIHOLE_PGID:-1006}"
-      PIHOLE_UID: "${PIHOLE_PUID:-1006}"
       TZ: "${TZ:-Etc/UTC}"
 
-    # Routing: Traefik dynamic configuration (Alphabetized)
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.pihole.entrypoints=websecure"
-      - "traefik.http.routers.pihole.rule=Host(`${PIHOLE_SUBDOMAIN:-pihole}.${DOMAIN_PRIMARY:-localhost}`)"
-      - "traefik.http.services.pihole.loadbalancer.server.port=80"
+  # --- Basic Service Base: Template for basic containers ---
+  base-default:
+    restart: unless-stopped
 
-    # State: Persistent FTL config
-    volumes:
-      - ./data/etc-pihole:/etc/pihole
+    # Monitoring: Keep logs locally and rotate them automatically
+    logging:
+      driver: local
 
-    # Monitoring: Internal check targeting local DNS resolution directly
-    healthcheck:
-      test: "dig +short +norecurse +retry=0 @127.0.0.1 pi.hole || exit 1"
+    # Lifecycle: Inject default lifecycle values locally
+    <<: *lifecycle-defaults
 
-# --- Global Network Definitions ---
-networks:
-  outbound-public:
-  traefik-public:
+  # --- Basic Outbound Dependent Base: For containers requiring active internet/DNS ---
+  base-default-outbound:
+    extends:
+      service: base-default
+    <<: *outbound-dependencies
+
+  # --- Secure Service Base: Template for secure containers ---
+  base-secure:
+    restart: unless-stopped
+
+    # Monitoring: Keep logs locally and rotate them automatically
+    logging:
+      driver: local
+
+    # Security: Drop all privileges by default
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+    # Environment: Set the timezone for all containers using this template
+    environment:
+      TZ: "${TZ:-Etc/UTC}"
+
+    # Lifecycle: Inject default lifecycle values locally
+    <<: *lifecycle-defaults
+
+  # --- Secure Outbound Dependent Base: For containers requiring active internet/DNS ---
+  base-secure-outbound:
+    extends:
+      service: base-secure
+    <<: *outbound-dependencies
