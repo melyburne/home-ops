@@ -2,122 +2,190 @@
 set -e
 
 # ==============================================================================
-# Script: init-extensions.sh (Home Assistant)
+# Script: init-extensions.sh
 # Environment: Alpine (POSIX sh)
-# Description: Automatically downloads and installs Home Assistant Custom Components
-#              (HACS equivalents) from GitHub releases. Extracts archives, locates
-#              the component via manifest.json, and places it into the correct
-#              custom_components directory.
-#
-# Usage: ./init-extensions.sh [author/repo:version] ...
-# Example: ./init-extensions.sh smartHomeHub/SmartIR:1.17.6 custom-components/hacs:latest
+# Description: Modular installer for Home Assistant integrations and frontend UI
+#              plugins. Surgically injects frontend resources directly into 
+#              Home Assistant's internal JSON database (.storage).
 # ==============================================================================
 
-# Ensure the target installation directory exists within the Home Assistant config
-DEST_DIR="/config/custom_components"
-mkdir -p "$DEST_DIR"
+# Ensure jq is installed for robust JSON manipulation
+if ! command -v jq >/dev/null 2>&1; then
+  apk add --no-cache -q jq
+fi
+
+# --- Global Configurations ---
+DIR_INTEGRATIONS="/config/custom_components"
+DIR_FRONTEND="/config/www/community"
+DIR_STORAGE="/config/.storage"
+FILE_RESOURCES="${DIR_STORAGE}/lovelace_resources"
+
+mkdir -p "$DIR_INTEGRATIONS" "$DIR_FRONTEND" "$DIR_STORAGE"
+
+# Initialize Home Assistant's resource database if it doesn't exist (e.g., fresh install)
+if [ ! -f "$FILE_RESOURCES" ]; then
+  echo '{"version":1,"minor_version":1,"key":"lovelace_resources","data":{"items":[]}}' > "$FILE_RESOURCES"
+  echo "Initialized fresh lovelace_resources JSON database."
+fi
 
 # ------------------------------------------------------------------------------
-# Function: install_extension
-# Description: Fetches, downloads, extracts, and installs a single HA custom component.
-# Arguments:
-#   $1 - GitHub Repository (e.g., "author/repo")
-#   $2 - Target Version (e.g., "1.17.6" or "latest")
+# API Helpers
 # ------------------------------------------------------------------------------
-install_extension() {
+
+get_latest_version() {
+  local REPO="$1"
+  wget -qO- "https://api.github.com/repos/${REPO}/releases/latest" | \
+    grep '"tag_name":' | \
+    sed -E 's/.*"tag_name": *"([^"]+)".*/\1/'
+}
+
+get_release_assets() {
   local REPO="$1"
   local VERSION="$2"
+  wget -qO- "https://api.github.com/repos/${REPO}/releases/tags/${VERSION}" | \
+    grep '"browser_download_url":' | \
+    sed -E 's/.*"browser_download_url": *"([^"]+)".*/\1/'
+}
 
-  echo "Processing ${REPO}..."
+# ------------------------------------------------------------------------------
+# Installation Pipelines
+# ------------------------------------------------------------------------------
 
-  # 1. Determine Target Version
-  # If version is "latest" or empty, query the GitHub API to find the newest release tag.
-  if [ "$VERSION" = "latest" ] || [ -z "$VERSION" ]; then
-    VERSION=$(wget -qO- "https://api.github.com/repos/${REPO}/releases/latest" | \
-              grep '"tag_name":' | \
-              sed -E 's/.*"tag_name": *"([^"]+)".*/\1/')
-  fi
-  echo "Target version: ${VERSION}"
+install_integration() {
+  local REPO="$1"
+  local VERSION="$2"
+  local TEMP_ZIP="/tmp/ext_archive.zip"
+  local TEMP_DIR="/tmp/ext_extract"
 
-  # 2. Locate Download URL
-  # Query the specific release and look for a compiled .zip asset.
-  local ASSET_URL=$(wget -qO- "https://api.github.com/repos/${REPO}/releases/tags/${VERSION}" | \
-                    grep '"browser_download_url":' | \
-                    grep -E '\.(zip)"' | \
-                    head -n 1 | \
-                    sed -E 's/.*"browser_download_url": *"([^"]+)".*/\1/')
+  echo "[Integration] Processing ${REPO} @ ${VERSION}..."
 
-  # Fallback mechanism: If developers don't attach compiled binaries (very common
-  # for Python scripts), gracefully fallback to downloading the source code archive.
-  if [ -z "$ASSET_URL" ]; then
-    echo "No compiled asset found, falling back to source code archive..."
-    ASSET_URL="https://github.com/${REPO}/archive/refs/tags/${VERSION}.zip"
+  local ASSET_URLS=$(get_release_assets "$REPO" "$VERSION")
+  local ZIP_URL=$(echo "$ASSET_URLS" | grep -i '\.zip$' | head -n 1)
+
+  if [ -z "$ZIP_URL" ]; then
+    ZIP_URL="https://github.com/${REPO}/archive/refs/tags/${VERSION}.zip"
   fi
 
-  # 3. Download and Extract the Asset
-  # Extract into an isolated temporary directory to prevent file conflicts
-  local FILE_NAME="ext_archive.zip"
-  echo "Downloading from ${ASSET_URL}..."
-  wget -qO "/tmp/${FILE_NAME}" "$ASSET_URL"
+  wget -qO "$TEMP_ZIP" "$ZIP_URL"
+  mkdir -p "$TEMP_DIR"
+  unzip -q -o "$TEMP_ZIP" -d "$TEMP_DIR/"
 
-  mkdir -p "/tmp/ext_extract"
-  unzip -q -o "/tmp/${FILE_NAME}" -d "/tmp/ext_extract/"
-
-  # 4. Install the Application
-  # HA components are often deeply nested in zips (e.g., repo-name-main/custom_components/smartir).
-  # We dynamically find the correct root by locating the component's 'manifest.json' file.
-  local MANIFEST_DIR=$(find "/tmp/ext_extract" -name "manifest.json" -exec dirname {} \; | head -n 1)
+  local MANIFEST_DIR=$(find "$TEMP_DIR" -name "manifest.json" -exec dirname {} \; | head -n 1)
 
   if [ -n "$MANIFEST_DIR" ]; then
     local COMPONENT_NAME=$(basename "$MANIFEST_DIR")
+    local DEST_PATH="${DIR_INTEGRATIONS}/${COMPONENT_NAME}"
 
-    # Clear any existing installation to ensure a clean slate and prevent orphaned files
-    rm -rf "${DEST_DIR}/${COMPONENT_NAME}"
-
-    # Move the located component directory into the Home Assistant configuration
-    mv "$MANIFEST_DIR" "${DEST_DIR}/${COMPONENT_NAME}"
-    echo "Successfully installed ${COMPONENT_NAME} into ${DEST_DIR}/${COMPONENT_NAME}"
+    rm -rf "$DEST_PATH"
+    mv "$MANIFEST_DIR" "$DEST_PATH"
+    echo "Successfully installed to ${DEST_PATH}"
   else
-    echo "Error: manifest.json not found inside ${REPO} release archive!"
+    echo "Error: manifest.json not found inside archive!"
     exit 1
   fi
 
-  # 5. Cleanup
-  # Remove temporary extraction folders and downloaded zip files
-  rm -rf "/tmp/ext_extract" "/tmp/${FILE_NAME}"
+  rm -rf "$TEMP_DIR" "$TEMP_ZIP"
   echo "----------------------------------------"
 }
 
+install_frontend() {
+  local REPO="$1"
+  local VERSION="$2"
+  local REPO_NAME="${REPO##*/}"
+  local DEST_PATH="${DIR_FRONTEND}/${REPO_NAME}"
+
+  echo "[Frontend] Processing ${REPO} @ ${VERSION}..."
+
+  local ASSET_URLS=$(get_release_assets "$REPO" "$VERSION")
+  local ZIP_URL=$(echo "$ASSET_URLS" | grep -i '\.zip$' | head -n 1)
+
+  rm -rf "$DEST_PATH"
+  mkdir -p "$DEST_PATH"
+
+  if [ -n "$ZIP_URL" ]; then
+    local TEMP_ZIP="/tmp/ext_archive.zip"
+    wget -qO "$TEMP_ZIP" "$ZIP_URL"
+    unzip -q -o "$TEMP_ZIP" -d "$DEST_PATH/"
+    rm -f "$TEMP_ZIP"
+  else
+    local FOUND_ASSETS=0
+    for url in $ASSET_URLS; do
+      if echo "$url" | grep -qE '\.(js|css)$'; then
+        wget -q -P "$DEST_PATH" "$url"
+        FOUND_ASSETS=1
+      fi
+    done
+    if [ "$FOUND_ASSETS" -eq 0 ]; then
+      echo "Error: No valid frontend assets found!"
+      exit 1
+    fi
+  fi
+  echo "Extracted/Downloaded to ${DEST_PATH}"
+
+  # --- JSON Injection: Safely register resource in Home Assistant ---
+  local JS_FILE=$(find "$DEST_PATH" -name "*.js" | head -n 1)
+  
+  if [ -n "$JS_FILE" ]; then
+    local JS_BASENAME=$(basename "$JS_FILE")
+    local RESOURCE_URL="/local/community/${REPO_NAME}/${JS_BASENAME}"
+    
+    # Check if URL is already registered in the JSON to prevent duplicates
+    local EXISTS=$(jq --arg url "$RESOURCE_URL" '.data.items[]? | select(.url == $url)' "$FILE_RESOURCES")
+    
+    if [ -z "$EXISTS" ]; then
+      # Generate a UUID for the new entry
+      local UUID=$(cat /proc/sys/kernel/random/uuid)
+      
+      # Inject the new object into the items array
+      local TMP_JSON=$(mktemp)
+      jq --arg url "$RESOURCE_URL" --arg id "$UUID" \
+         '.data.items += [{"id": $id, "type": "module", "url": $url}]' \
+         "$FILE_RESOURCES" > "$TMP_JSON"
+      
+      mv "$TMP_JSON" "$FILE_RESOURCES"
+      echo "Injected ${JS_BASENAME} into internal .storage database."
+    else
+      echo "Resource ${JS_BASENAME} already registered. Skipping injection."
+    fi
+  fi
+  
+  echo "----------------------------------------"
+}
 
 # ==============================================================================
 # Main Execution
 # ==============================================================================
 
-# Abort cleanly if no arguments are provided
 if [ "$#" -eq 0 ]; then
   echo "No extensions specified to install."
   exit 0
 fi
 
-# Iterate over all provided arguments
 for arg in "$@"; do
-  # Split argument into REPO and VERSION based on the colon ':' delimiter
-  REPO="${arg%%:*}"
-  VERSION="${arg##*:}"
+  TYPE="integration"
+  REPO_VERSION="$arg"
 
-  # Fallback to 'latest' if the user omitted the version tag (e.g., just "author/repo")
-  if [ "$REPO" = "$VERSION" ]; then
-    VERSION="latest"
+  if echo "$arg" | grep -q "="; then
+    TYPE="${arg%%=*}"
+    REPO_VERSION="${arg#*=}"
   fi
 
-  # Execute installation
-  install_extension "$REPO" "$VERSION"
+  REPO="${REPO_VERSION%%:*}"
+  VERSION="${REPO_VERSION##*:}"
+
+  if [ "$REPO" = "$VERSION" ]; then VERSION="latest"; fi
+  if [ "$VERSION" = "latest" ] || [ -z "$VERSION" ]; then
+    VERSION=$(get_latest_version "$REPO")
+  fi
+
+  if [ "$TYPE" = "frontend" ]; then
+    install_frontend "$REPO" "$VERSION"
+  else
+    install_integration "$REPO" "$VERSION"
+  fi
 done
 
-# 6. Apply Correct Permissions
-# Ensure the newly created files are owned by the Home Assistant container user
-# to prevent read/write errors when the application boots up.
 echo "Applying permissions (PUID: 0 / PGID: 0)..."
-chown -R 0:0 "$DEST_DIR"
+chown -R 0:0 "$DIR_INTEGRATIONS" "$DIR_FRONTEND" "$DIR_STORAGE"
 
 echo "Extension initialization complete."
