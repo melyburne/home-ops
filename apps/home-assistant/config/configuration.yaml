@@ -4,6 +4,8 @@ default_config:
 # Load frontend themes
 frontend:
   themes: !include_dir_merge_named themes
+  extra_module_url:
+    - /local/community/lovelace-card-mod/card-mod.js # Hardcoded option requried for card-mod extension
 
 # Load automations, scripts, scenes, and resources
 automation: !include automations.yaml
