@@ -44,6 +44,7 @@ x-ocis-ext-custom: &ocis-ext-custom
 
   # Configuration: Set user and group IDs for oCIS
   environment:
+    GITHUB_TOKEN: "${GITHUB_PERSONAL_ACCESS_TOKEN:-}"
     OCIS_PUID: "${OCIS_PUID:-1005}"
     OCIS_PGID: "${OCIS_PGID:-1005}"
 
