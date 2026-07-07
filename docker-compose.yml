@@ -18,10 +18,11 @@ include:
   - core/system/watchtower/watchtower.yml
 
   # 4. End-User Applications
+  - apps/calibre/calibre.yml
   - apps/home-assistant/home-assistant.yml
   - apps/ocis/ocis.yml
   - apps/roundcube/roundcube.yml
-  - apps/calibre/calibre.yml
+  - apps/websites/web-hduong.yml
 
 # --- Global Network Definitions ---
 networks:
@@ -29,7 +30,7 @@ networks:
   traefik-public:
     name: traefik-public
     driver: bridge
-  
+
   # Connectivity: Outbound internet access for services requiring external APIs (e.g., Watchtower, DDNS)
   outbound-public:
     name: outbound-public
