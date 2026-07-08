@@ -21,8 +21,8 @@ include:
   - apps/calibre/calibre.yml
   - apps/home-assistant/home-assistant.yml
   - apps/ocis/ocis.yml
-  - apps/roundcube/roundcube.yml
-  - apps/websites/web-hduong.yml
+#  - apps/roundcube/roundcube.yml
+#  - apps/websites/web-hduong.yml
 
 # --- Global Network Definitions ---
 networks:
