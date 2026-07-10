@@ -98,10 +98,10 @@ network:
           - 1.1.1.1
 ```
 
-Apply the network changes immediately:
+Set correct permissions & apply the network changes immediately:
 
 ```bash
-sudo netplan apply
+sudo chmod 600 99-netcfg.yaml && sudo netplan apply
 ```
 
 #### C. Firewall Deployment Profile (UFW)
