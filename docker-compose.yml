@@ -23,7 +23,7 @@ include:
   - apps/ocis/ocis.yml
 #  - apps/roundcube/roundcube.yml
 #  - apps/websites/web-hduong.yml
-#  - apps/immich/immich.yml
+  - apps/immich/immich.yml
 
 # --- Global Network Definitions ---
 networks:
