@@ -11,6 +11,16 @@ services:
     image: ghcr.io/immich-app/immich-server:${IMMICH_DOCKER_TAG:-release}
     container_name: immich-server
 
+    # SECURITY HARMONY: Allow internal root, but strip all kernel privileges
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+
     # Lifecycle: Wait for required backend services
     depends_on:
       immich-redis:
@@ -39,6 +49,7 @@ services:
     # Routing: Traefik dynamic reverse proxy configuration (Alphabetized)
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
       - "traefik.http.routers.immich.entrypoints=websecure"
       - "traefik.http.routers.immich.rule=Host(`${IMMICH_SUBDOMAIN:-immich}.${DOMAIN_PRIMARY:-localhost}`)"
       - "traefik.http.services.immich.loadbalancer.server.port=2283"
@@ -50,6 +61,16 @@ services:
       service: base-default
     image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_DOCKER_TAG:-release}
     container_name: immich-machine-learning
+
+    # SECURITY HARMONY: Allow internal root, but strip all kernel privileges
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
 
     # Connectivity: Internal communication only; no direct public exposure
     networks:
@@ -75,6 +96,9 @@ services:
     image: docker.io/valkey/valkey:9@sha256:4963247afc4cd33c7d3b2d2816b9f7f8eeebab148d29056c2ca4d7cbc966f2d9
     container_name: immich-redis
 
+    security_opt:
+      - no-new-privileges:true
+
     # Connectivity: Internal communication only
     networks:
       - immich-internal
@@ -90,6 +114,9 @@ services:
       service: base-default
     image: ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0@sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23
     container_name: immich-postgres
+
+    security_opt:
+      - no-new-privileges:true
 
     # Connectivity: Internal communication only
     networks:
