@@ -108,8 +108,6 @@ services:
       - "--entrypoints.websecure.http.tls.certresolver=resolver"
       - "--entrypoints.websecure.http.tls.domains[0].main=${DOMAIN_PRIMARY:-localhost}"
       - "--entrypoints.websecure.http.tls.domains[0].sans=*.${DOMAIN_PRIMARY:-localhost}"
-      - "--entrypoints.websecure.http.tls.domains[1].main=${DOMAIN_SECONDARY:-localhost}"
-      - "--entrypoints.websecure.http.tls.domains[1].sans=*.${DOMAIN_SECONDARY:-localhost}"
       - "--entrypoints.websecure.transport.respondingTimeouts.idleTimeout=3m"
       - "--entrypoints.websecure.transport.respondingTimeouts.readTimeout=12h"
       - "--entrypoints.websecure.transport.respondingTimeouts.writeTimeout=12h"
