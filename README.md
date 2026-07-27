@@ -15,7 +15,6 @@ The stack is modular, splitting services into logical domains:
 │   ├── websites/          # Nginx-based static sites
 │   └── calibre/           # Calibre web book server
 ├── core/                  # Infrastructure & backend services
-│   ├── database/          # MariaDB & Adminer
 │   ├── routing/           # Traefik Reverse Proxy, Pi-hole and DDNS Updater
 │   └── system/            # Watchtower (auto-updates) & Fallback error pages
 ├── shared/                # Global DRY configurations
@@ -42,9 +41,9 @@ cp .env.example .env
 nano .env
 ```
 
-### 2. Generate Traefik Credentials
+### 2. Generate Traefik, Pi-hole and Zigbee2MQTT Credentials
 
-Generate a password hash for the Traefik dashboard. Replace `admin` with your preferred username.
+Generate a seperate password hash for the Traefik, Pi-hole and Zigbee2MQTT dashboard. Replace `admin` with your preferred username.
 
 ```bash
 htpasswd -nB admin
@@ -73,10 +72,10 @@ Apply the following adjustments within your primary router interface (e.g., FRIT
 
 #### B. Host Network Configuration (Netplan)
 
-Save this configuration to `/etc/netplan/01-netcfg.yaml` to enforce local Pi-hole DNS prioritization, drop upstream nameserver hijacking, and lock down static interface suffixes for reliable IPv6 port-forwarding. Replace `<HOST_LAN_IPV4>` with your server's static IP.
+Save this configuration to `/etc/netplan/99-netcfg.yaml` to enforce local Pi-hole DNS prioritization, drop upstream nameserver hijacking, and lock down static interface suffixes for reliable IPv6 port-forwarding. Replace `<HOST_LAN_IPV4>` with your server's static IP.
 
 ```yaml
-# /etc/netplan/01-netcfg.yaml
+# /etc/netplan/99-netcfg.yaml
 network:
   version: 2
   ethernets:
@@ -148,7 +147,7 @@ sudo ufw allow in proto tcp from <LAN_SUBNET_V4> to <HOST_LAN_IPV4> port 30000:4
 Apply the ufw rules immediately:
 
 ```bash
-sudo netplan apply
+sudo ufw reload
 ```
 
 > *Note: `172.16.0.0/12` encapsulates isolated Docker bridge spaces. The explicit `fe80::/10` IPv6 link-local rule eliminates multi-second Happy Eyeballs fallback lookup delays on modern client devices.*
