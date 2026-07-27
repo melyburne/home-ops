@@ -9,41 +9,32 @@ include:
   - core/routing/pihole/pihole.yml
   - core/routing/traefik/traefik.yml
 
-  # 2. Database Tier
-  - core/database/adminer/adminer.yml
-  - core/database/mariadb/mariadb.yml
-
-  # 3. System & Maintenance Tier
+  # 2. System & Maintenance Tier
   - core/system/fallback/fallback.yml
   - core/system/watchtower/watchtower.yml
 
-  # 4. End-User Applications
+  # 3. End-User Applications
   - apps/calibre/calibre.yml
   - apps/home-assistant/home-assistant.yml
   - apps/ocis/ocis.yml
-#  - apps/roundcube/roundcube.yml
-#  - apps/websites/web-hduong.yml
+  #  - apps/roundcube/roundcube.yml
+  #  - apps/websites/web-hduong.yml
   - apps/immich/immich.yml
 
 # --- Global Network Definitions ---
 networks:
-  # Connectivity: Public traffic routing from the reverse proxy to exposed applications
-  traefik-public:
-    name: traefik-public
-    driver: bridge
-
   # Connectivity: Outbound internet access for services requiring external APIs (e.g., Watchtower, DDNS)
   outbound-public:
     name: outbound-public
     driver: bridge
     enable_ipv6: true
 
+    # Connectivity: Public traffic routing from the reverse proxy to exposed applications
+  traefik-public:
+    name: traefik-public
+    driver: bridge
+
   # Security: Highly restricted internal network strictly for Traefik to read the Docker socket via proxy
   socket-internal:
     name: socket-internal
     internal: true
-
-  # Security: Isolated internal network preventing direct outside access to backend databases
-  mariadb-internal:
-    name: mariadb-internal
-    driver: bridge
