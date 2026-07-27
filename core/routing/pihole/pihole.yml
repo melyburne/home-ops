@@ -85,6 +85,7 @@ services:
       FTLCONF_ntp_ipv6_active: "false"
       FTLCONF_ntp_sync_active: "false"
       FTLCONF_webserver_api_password: "${PIHOLE_WEB_PASSWORD:?}"
+      FTLCONF_webserver_domain: "${PIHOLE_SUBDOMAIN:-pihole}.${DOMAIN_PRIMARY:-localhost}"
       FTLCONF_webserver_port: "80"
       PIHOLE_GID: "${PIHOLE_PGID:-1002}"
       PIHOLE_UID: "${PIHOLE_PUID:-1002}"
