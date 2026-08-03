@@ -32,10 +32,10 @@ washdata_appliance:
       {% set ACTIVE_STATES = ['starting', 'running', 'rinse', 'paused', 'user_paused', 'ending'] %}
       {% set prg_text = program if program and program | lower not in ['unknown', 'off', 'auto_detect', 'detecting...', 'none', 'unavailable'] else 'Detecting...' %}
 
-      <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+      <div style="position: relative; width: 100%;">
         <span>[[name]]</span>
         {% if status in ACTIVE_STATES or status == 'anti_wrinkle' %}
-          <span style="font-size: 0.85em; color: var(--secondary-text-color); font-weight: normal; text-align: right;">
+          <span style="position: absolute; right: 0; font-size: 0.85em; color: var(--secondary-text-color); font-weight: normal;">
             {{ prg_text }} · {{ power }} W
           </span>
         {% endif %}
@@ -201,3 +201,80 @@ washdata_appliance:
       {% else %}
         disabled
       {% endif %}
+
+
+# ==============================================================================
+# Template: switch_appliance
+# Description: Production-grade Mushroom template card with safe UX principles
+#              for critical appliances (dishwasher, washing machine, server).
+# ==============================================================================
+
+switch_appliance:
+  default:
+    - name: none
+    - icon: mdi:power-socket-de
+    - critical_bool: false
+    - switch_entity: none
+    - sensor_power_entity: none
+  card:
+    type: custom:mushroom-template-card
+    entity: "[[switch_entity]]"
+    primary: >-
+      {# Safely resolve card display name #}
+      {% set custom_name = '[[name]]' %}
+
+      {% if custom_name and custom_name | lower != 'none' %}
+        {{ custom_name }}
+      {% else %}
+        {{ state_attr('[[switch_entity]]', 'friendly_name') | default('Switch', true) }}
+      {% endif %}
+    secondary: >-
+      {# Fetch translated switch state and append power draw if active, configured, and > 0 W #}
+      {% set state_str = state_translated('[[switch_entity]]') %}
+      {% set power_entity = '[[sensor_power_entity]]' %}
+      {% set has_power = power_entity and power_entity | lower not in ['none', 'unknown', 'unavailable'] %}
+
+      {% if is_state('[[switch_entity]]', 'on') and has_power %}
+        {% set pwr_val = states(power_entity) | float(0) | round(0) %}
+        {% if pwr_val > 0 %}
+          {{ state_str }} · {{ pwr_val }} W
+        {% else %}
+          {{ state_str }}
+        {% endif %}
+      {% else %}
+        {{ state_str }}
+      {% endif %}
+    icon: "[[icon]]"
+    color: >-
+      {# Vibrant active color when running; clean neutral when idle #}
+      {% if is_state('[[switch_entity]]', 'on') %}
+        {% if '[[critical_bool]]' | bool %}
+          deep-orange
+        {% else %}
+          amber
+        {% endif %}
+      {% endif %}
+    badge_icon: >-
+      {# Use shield-check when armed/idle, shield-alert when actively drawing power #}
+      {% if '[[critical_bool]]' | bool %}
+        {% if is_state('[[switch_entity]]', 'on') %}
+          mdi:shield-alert
+        {% else %}
+          mdi:shield-check
+        {% endif %}
+      {% endif %}
+    badge_color: >-
+      {# Orange/red badge during active running cycles, subtle blue-grey when idle #}
+      {% if '[[critical_bool]]' | bool %}
+        {% if is_state('[[switch_entity]]', 'on') %}
+          red
+        {% else %}
+          blue-grey
+        {% endif %}
+      {% endif %}
+    tap_action:
+      action: toggle
+      confirmation: "[[critical_bool]]"
+    icon_tap_action:
+      action: toggle
+      confirmation: "[[critical_bool]]"
