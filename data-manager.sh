@@ -228,19 +228,51 @@ _manage_stacks() {
   shift
   local ymls=("$@")
   local env_arg=()
+  local root_compose="${PROJECT_ROOT}/docker-compose.yml"
 
   [[ -f "${PROJECT_ROOT}/.env" ]] && env_arg=("--env-file" "${PROJECT_ROOT}/.env")
+
+  # Safety Check: Ensure the root compose file exists for cross-dependency resolution
+  if [[ ! -f "$root_compose" ]]; then
+    log_error "Root docker-compose.yml missing. Required for cross-dependency resolution."
+    exit 1
+  fi
 
   for yml in "${ymls[@]}"; do
     local stack_name="${yml#${PROJECT_ROOT}/}"
 
-    if [[ "$action" == "stop" ]]; then
-      log_info "Stopping associated stack: ${stack_name}"
-      execute docker compose --project-directory "${PROJECT_ROOT}" "${env_arg[@]:-}" -f "$yml" stop
-    else
-      log_info "Starting associated stack: ${stack_name}"
-      execute docker compose --project-directory "${PROJECT_ROOT}" "${env_arg[@]:-}" -f "$yml" up -d
+    # 1. Statically extract top-level service names from the module YML
+    #    (Matches exactly 2 spaces of indentation to ignore nested keys)
+    local services=()
+    while read -r srv; do
+      [[ -n "$srv" ]] && services+=("$srv")
+    done < <(awk '
+      /^services:/ { in_services=1; next }
+      in_services && /^  [A-Za-z0-9_-]+:/ {
+        sub(/:/, "", $1);
+        print $1
+      }
+      in_services && /^[^ ]/ && !/^services:/ { in_services=0 }
+    ' "$yml")
+
+    if [[ ${#services[@]} -eq 0 ]]; then
+      log_warn "Could not parse any services from ${stack_name}. Skipping."
+      continue
     fi
+
+    # 2. Execute from the project root using the unified docker-compose.yml.
+    #    This natively satisfies 'depends_on' and relative path validation, 
+    #    while exclusively targeting the parsed services to minimize downtime.
+    (
+      cd "${PROJECT_ROOT}" || exit 1
+      if [[ "$action" == "stop" ]]; then
+        log_info "Stopping associated services in: ${stack_name}"
+        execute docker compose "${env_arg[@]:-}" -f "$root_compose" stop "${services[@]}"
+      else
+        log_info "Starting associated services in: ${stack_name}"
+        execute docker compose "${env_arg[@]:-}" -f "$root_compose" up -d "${services[@]}"
+      fi
+    )
   done
 }
 
