@@ -60,9 +60,10 @@ generate_entry_id() {
 # --- Module: HTTP Configuration ---
 provision_http_config() {
   local staging_file="${TEMP_WORKSPACE}/http.tmp"
+  local stable_exists
   local existing_port
   local existing_proxies
-  
+
   # Validation guard for HTTP server port
   if [ -z "$HTTP_SERVER_PORT" ]; then
     echo "[ERROR] HOMEASSISTANT_HTTP_SERVER_PORT is missing in the environment. Cannot provision HTTP." >&2
@@ -84,6 +85,7 @@ provision_http_config() {
   desired_proxies_min=$(echo "$proxies_json" | jq -c .)
 
   # Extract existing state (if any)
+  stable_exists=$(jq -r 'if .data.stable != null then "true" else "false" end' "$FILE_HTTP_CONFIG")
   existing_port=$(jq -r '.data.stable.server_port // empty' "$FILE_HTTP_CONFIG")
   existing_proxies=$(jq -c '.data.stable.trusted_proxies // []' "$FILE_HTTP_CONFIG")
 
@@ -91,10 +93,20 @@ provision_http_config() {
   if [ "$existing_port" = "$HTTP_SERVER_PORT" ] && [ "$existing_proxies" = "$desired_proxies_min" ]; then
     echo "[SKIP] HTTP configuration is already up to date. No changes needed." >&2
     return 0
-  else
-    echo "[ACTION] Configuration mismatch detected. Injecting HTTP settings (Port: $HTTP_SERVER_PORT)..." >&2
+  elif [ "$stable_exists" = "true" ]; then
+    echo "[ACTION] Configuration mismatch detected. Updating existing HTTP settings (Port: $HTTP_SERVER_PORT)..." >&2
 
-    # Perform atomic injection for the exact HTTP configuration payload
+    # Update only the relevant parameters on the existing config
+    jq \
+      --argjson port "$HTTP_SERVER_PORT" \
+      --argjson proxies "$proxies_json" \
+      '.data.stable.server_port = $port |
+       .data.stable.trusted_proxies = $proxies |
+       .data.yaml_migration_done = true' "$FILE_HTTP_CONFIG" > "$staging_file"
+  else
+    echo "[ACTION] Injecting fresh HTTP settings (Port: $HTTP_SERVER_PORT)..." >&2
+
+    # Perform atomic injection for a completely new config payload
     jq \
       --argjson port "$HTTP_SERVER_PORT" \
       --argjson proxies "$proxies_json" \
@@ -119,6 +131,7 @@ provision_http_config() {
   mv "$staging_file" "$FILE_HTTP_CONFIG"
   echo "[SUCCESS] HTTP configuration provisioned successfully." >&2
 }
+
 
 # ==============================================================================
 # 3. Main Execution
