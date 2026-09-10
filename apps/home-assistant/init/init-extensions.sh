@@ -1,12 +1,13 @@
 #!/bin/sh
 # ==============================================================================
 # Script: init-extensions.sh
-# Environment: Alpine (POSIX sh)
-# Description: Declarative, idempotent installer for Home Assistant integrations
-#              and frontend UI plugins. Utilizes a Manifest Cache pattern to
-#              bypass heavy downloads if up-to-date. Rebuilds the internal
-#              .storage/lovelace_resources database dynamically on every boot
-#              using an atomic transaction pattern to prevent empty states.
+# Environment: Home Assistant Base (Debian / POSIX sh)
+# Description: Declarative, idempotent installer for Home Assistant integrations,
+#              frontend UI plugins, themes, and compiled Python dependencies.
+#              Utilizes a Manifest Cache pattern to bypass downloads if up-to-date,
+#              rebuilds .storage/lovelace_resources atomically on every boot,
+#              and isolates wheel compilation into a dedicated user-site directory
+#              to fully support read-only container deployments.
 # ==============================================================================
 
 # Exit on error (-e), treat unset variables as an error (-u), and fail pipes (-o pipefail)
@@ -18,14 +19,17 @@ set -euo pipefail
 
 DIR_INTEGRATIONS="/config/custom_components"
 DIR_FRONTEND="/config/www/community"
+DIR_THEMES="/config/themes"
 DIR_STORAGE="/config/.storage"
+DIR_DEPS="/config/deps"
 FILE_RESOURCES="${DIR_STORAGE}/lovelace_resources"
 MANIFEST_FILE="/config/.ha_extension_manifest.json"
 
-# Ensure runtime dependencies are met
-if ! command -v jq >/dev/null 2>&1; then
-  echo "[INIT] Installing required dependencies: jq, unzip, wget..." >&2
-  apk add --no-cache -q jq unzip wget
+# Ensure runtime dependencies are met (Adapted for Debian/HA Image)
+if ! command -v jq >/dev/null 2>&1 || ! command -v unzip >/dev/null 2>&1; then
+  echo "[INIT] Installing required system dependencies: jq, unzip, wget..." >&2
+  export DEBIAN_FRONTEND=noninteractive
+  apt-get update -qq && apt-get install -yqq jq unzip wget >/dev/null 2>&1
 fi
 
 # Setup automatic cleanup of temporary workspace directories on exit or failure
@@ -33,7 +37,7 @@ TEMP_WORKSPACE=$(mktemp -d)
 trap 'rm -rf "$TEMP_WORKSPACE"' EXIT
 
 # Create required directory structure
-mkdir -p "$DIR_INTEGRATIONS" "$DIR_FRONTEND" "$DIR_STORAGE"
+mkdir -p "$DIR_INTEGRATIONS" "$DIR_FRONTEND" "$DIR_THEMES" "$DIR_STORAGE" "$DIR_DEPS"
 
 # Validate or reset corrupted Manifest Cache
 if [ ! -f "$MANIFEST_FILE" ] || ! jq . "$MANIFEST_FILE" >/dev/null 2>&1; then
@@ -45,6 +49,7 @@ fi
 # The production file will not be touched until the entire network loop succeeds.
 FILE_RESOURCES_STAGING="${TEMP_WORKSPACE}/lovelace_resources.tmp"
 echo '{"version":1,"minor_version":1,"key":"lovelace_resources","data":{"items":[]}}' > "$FILE_RESOURCES_STAGING"
+
 
 # ------------------------------------------------------------------------------
 # 2. Cache & API Helpers (DRY)
@@ -70,6 +75,7 @@ github_api_req() {
   cat "$response_file"
 }
 
+# Queries GitHub for the latest release tag
 get_latest_version() {
   local repo="$1"
   local json_payload=""
@@ -82,38 +88,38 @@ get_latest_version() {
     echo "[ERROR] Could not extract valid release tag information for repository: ${repo}" >&2
     exit 1
   fi
+
   echo "$res"
 }
 
+# Extracts a specific property from the local manifest cache
 get_cached_data() {
-  local repo="$1"
-  local key="$2"
+  local repo="$1" key="$2"
   jq -r --arg r "$repo" --arg k "$key" 'if .[$r] then .[$r][$k] else empty end' "$MANIFEST_FILE"
 }
 
 # Atomic cache writing to prevent corruption on unexpected container stops
 update_cache() {
-  local repo="$1"
-  local type="$2"
-  local version="$3"
-  local target_val="$4"
+  local repo="$1" type="$2" version="$3" target_val="$4"
   local tmp_file="${TEMP_WORKSPACE}/manifest.tmp.json"
 
-  if [ "$type" = "integration" ]; then
-    jq --arg r "$repo" --arg v "$version" --arg f "$target_val" \
-      '.[$r] = {version: $v, folder: $f, type: "integration"}' "$MANIFEST_FILE" > "$tmp_file"
-  else
+  if [ "$type" = "frontend" ]; then
     jq --arg r "$repo" --arg v "$version" --arg js "$target_val" \
       '.[$r] = {version: $v, js_filename: $js, type: "frontend"}' "$MANIFEST_FILE" > "$tmp_file"
+  else
+    jq --arg r "$repo" --arg v "$version" --arg f "$target_val" --arg t "$type" \
+      '.[$r] = {version: $v, folder: $f, type: $t}' "$MANIFEST_FILE" > "$tmp_file"
   fi
 
   mv "$tmp_file" "$MANIFEST_FILE"
 }
 
+
 # ------------------------------------------------------------------------------
-# 3. File System & Lovelace Pipelines
+# 3. File System & Discovery Pipelines
 # ------------------------------------------------------------------------------
 
+# Downloads and extracts a zip archive to a unique temporary directory
 download_and_extract() {
   local url="$1"
   local extract_dir="${TEMP_WORKSPACE}/$(cat /proc/sys/kernel/random/uuid)"
@@ -127,29 +133,41 @@ download_and_extract() {
   echo "$extract_dir"
 }
 
+# Shortcut helper to download a GitHub source archive directly
+download_source_zip() {
+  local repo="$1" version="$2"
+  download_and_extract "https://github.com/${repo}/archive/refs/tags/${version}.zip"
+}
+
+# Sequential heuristic scanner for finding the correct javascript asset in an archive
 find_frontend_asset() {
-  local search_dir="$1"
-  local repo_name="$2"
+  local search_dir="$1" repo_name="$2"
   local short_name="${repo_name#lovelace-}"
   local target_file=""
 
+  # Priority 1: Dist/Release folder with accurately named file
   target_file=$(find "$search_dir" -type f \( -ipath "*/dist/*.js" -o -ipath "*/release/*.js" \) \( -iname "${repo_name}.js" -o -iname "${short_name}.js" \) | head -n 1)
-  [ -z "$target_file" ] && target_file=$(find "$search_dir" -type f -ipath "*/dist/*.js" | head -n 1)
-  [ -z "$target_file" ] && target_file=$(find "$search_dir" -type f -name "*.js" -not -path "*/node_modules/*" -not -path "*/src/*" \( -iname "${repo_name}.js" -o -iname "${short_name}.js" \) | head -n 1)
-  [ -z "$target_file" ] && target_file=$(find "$search_dir" -type f -name "*.js" -not -path "*/node_modules/*" -not -path "*/src/*" -not -name "*config*" | head -n 1)
+  if [ -n "$target_file" ]; then echo "$target_file"; return 0; fi
 
-  echo "$target_file"
+  # Priority 2: Any JS file in Dist/Release folder
+  target_file=$(find "$search_dir" -type f -ipath "*/dist/*.js" | head -n 1)
+  if [ -n "$target_file" ]; then echo "$target_file"; return 0; fi
+
+  # Priority 3: Accurately named file anywhere outside node_modules/src
+  target_file=$(find "$search_dir" -type f -name "*.js" -not -path "*/node_modules/*" -not -path "*/src/*" \( -iname "${repo_name}.js" -o -iname "${short_name}.js" \) | head -n 1)
+  if [ -n "$target_file" ]; then echo "$target_file"; return 0; fi
+
+  # Fallback: Any valid JS file outside excluded paths
+  find "$search_dir" -type f -name "*.js" -not -path "*/node_modules/*" -not -path "*/src/*" -not -name "*config*" | head -n 1
 }
 
+# Safely injects the Javascript resource definition into the staging database
 inject_lovelace_resource() {
-  local repo_name="$1"
-  local js_basename="$2"
+  local repo_name="$1" js_basename="$2"
   local resource_url="/local/community/${repo_name}/${js_basename}"
-  local uuid=$(cat /proc/sys/kernel/random/uuid)
   local tmp_json="${TEMP_WORKSPACE}/tmp_storage.json"
 
-  # Overwrite the real Lovelace resource file atomically
-  jq --arg url "$resource_url" --arg id "$uuid" \
+  jq --arg url "$resource_url" --arg id "$(cat /proc/sys/kernel/random/uuid)" \
     '.data.items += [{"id": $id, "type": "module", "url": $url}]' \
     "$FILE_RESOURCES_STAGING" > "$tmp_json"
 
@@ -157,38 +175,38 @@ inject_lovelace_resource() {
   echo "[LOVELACE] Staged resource: ${js_basename}" >&2
 }
 
+
 # ------------------------------------------------------------------------------
 # 4. Installation Handlers
 # ------------------------------------------------------------------------------
 
+# Resolves, downloads, and extracts Home Assistant custom components atomically
 install_integration() {
-  local repo="$1"
-  local version="$2"
+  local repo="$1" version="$2"
 
   echo "[INSTALL] Integration: ${repo} @ ${version}..." >&2
 
   local api_json=$(github_api_req "repos/${repo}/releases/tags/${version}")
   local zip_url=$(echo "$api_json" | jq -r '.assets[]? | select(.name | endswith(".zip")) | .browser_download_url' | head -n 1)
 
-  [ -z "$zip_url" ] && zip_url="https://github.com/${repo}/archive/refs/tags/${version}.zip"
+  if [ -z "$zip_url" ]; then
+    zip_url="https://github.com/${repo}/archive/refs/tags/${version}.zip"
+  fi
 
   local extracted_dir=$(download_and_extract "$zip_url")
   local manifest_file=$(find "$extracted_dir" -name "manifest.json" | head -n 1)
 
   if [ -n "$manifest_file" ]; then
     local component_name=$(jq -r '.domain // empty' "$manifest_file")
-    local dest_path="${DIR_INTEGRATIONS}/${component_name}"
 
     if [ -z "$component_name" ]; then
-      local component_dir=$(dirname "$manifest_file")
-      component_name=$(basename "$component_dir")
+      component_name=$(basename "$(dirname "$manifest_file")")
     fi
 
-    rm -rf "$dest_path"
-    mv "$(dirname "$manifest_file")" "$dest_path"
+    local dest_path="${DIR_INTEGRATIONS}/${component_name}"
+    rm -rf "$dest_path" && mv "$(dirname "$manifest_file")" "$dest_path"
 
     update_cache "$repo" "integration" "$version" "$component_name"
-
     echo "$component_name" > "${TEMP_WORKSPACE}/.last_integration"
     echo "[SUCCESS] Installed component: ${component_name}" >&2
   else
@@ -197,76 +215,116 @@ install_integration() {
   fi
 }
 
+# Locates, downloads, and installs Lovelace frontend resources atomically
 install_frontend() {
-  local repo="$1"
-  local version="$2"
-  local repo_name="${repo##*/}"
+  local repo="$1" version="$2" repo_name="${1##*/}"
   local dest_path="${DIR_FRONTEND}/${repo_name}"
+  local temp_dest="${TEMP_WORKSPACE}/frontend_${repo_name}"
   local final_js_file=""
 
   echo "[INSTALL] Frontend: ${repo} @ ${version}..." >&2
 
-  rm -rf "$dest_path"
-  mkdir -p "$dest_path"
+  mkdir -p "$temp_dest"
 
   local api_json=$(github_api_req "repos/${repo}/releases/tags/${version}")
-  local js_asset_url=$(echo "$api_json" | jq -r '.assets[]? | select(.name | endswith(".js")) | .browser_download_url' | head -n 1)
+  local asset_url=$(echo "$api_json" | jq -r '.assets[]? | select(.name | endswith(".js")) | .browser_download_url' | head -n 1)
 
-  if [ -n "$js_asset_url" ]; then
-    local filename="${js_asset_url##*/}"
-    wget -qO "${dest_path}/${filename}" "$js_asset_url"
-    final_js_file="${dest_path}/${filename}"
-    echo "[INFO] Downloaded compiled asset directly." >&2
+  if [ -n "$asset_url" ]; then
+    final_js_file="${temp_dest}/${asset_url##*/}"
+    wget -qO "$final_js_file" "$asset_url"
   else
-    echo "[INFO] Initiating deep recursive source scan..." >&2
-    local source_url="https://github.com/${repo}/archive/refs/tags/${version}.zip"
+    local extracted_dir=$(download_source_zip "$repo" "$version")
+    local found_asset=$(find_frontend_asset "$extracted_dir" "$repo_name")
 
-    local extracted_dir=$(download_and_extract "$source_url")
-    local found_js=$(find_frontend_asset "$extracted_dir" "$repo_name")
-
-    if [ -n "$found_js" ]; then
-      local filename=$(basename "$found_js")
-      mv "$found_js" "${dest_path}/${filename}"
-      final_js_file="${dest_path}/${filename}"
-    else
-      echo "[ERROR] No valid frontend .js assets located for ${repo}!" >&2
-      exit 1
+    if [ -n "$found_asset" ]; then
+      final_js_file="${temp_dest}/$(basename "$found_asset")"
+      mv "$found_asset" "$final_js_file"
     fi
   fi
 
   if [ -n "$final_js_file" ]; then
     local js_basename=$(basename "$final_js_file")
+
+    rm -rf "$dest_path" && mv "$temp_dest" "$dest_path"
+
     update_cache "$repo" "frontend" "$version" "$js_basename"
     inject_lovelace_resource "$repo_name" "$js_basename"
     echo "[SUCCESS] Installed frontend: ${repo_name}" >&2
+  else
+    echo "[ERROR] No valid frontend .js assets located for ${repo}!" >&2
+    exit 1
   fi
 }
+
+# Locates, downloads, and installs YAML theme files atomically
+install_theme() {
+  local repo="$1" version="$2" repo_name="${1##*/}"
+  local dest_path="${DIR_THEMES}/${repo_name}"
+  local temp_dest="${TEMP_WORKSPACE}/theme_${repo_name}"
+
+  echo "[INSTALL] Theme: ${repo} @ ${version}..." >&2
+
+  mkdir -p "$temp_dest"
+
+  local api_json=$(github_api_req "repos/${repo}/releases/tags/${version}")
+  local asset_urls=$(echo "$api_json" | jq -r '.assets[]? | select(.name | endswith(".yaml")) | .browser_download_url')
+
+  if [ -n "$asset_urls" ]; then
+    for url in $asset_urls; do
+      wget -qO "${temp_dest}/${url##*/}" "$url"
+    done
+  else
+    local extracted_dir=$(download_source_zip "$repo" "$version")
+    local themes_dir=$(find "$extracted_dir" -type d \( -iname "themes" -o -iname "theme" \) | head -n 1)
+
+    if [ -n "$themes_dir" ]; then
+      find "$themes_dir" -type f -name "*.yaml" -exec mv {} "$temp_dest/" \;
+    else
+      local short_name="${repo_name#theme-}"
+      find "$extracted_dir" -type f -name "*.yaml" -not -path "*/.*" \( -iname "*${repo_name}*.yaml" -o -iname "*${short_name}*.yaml" \) -exec mv {} "$temp_dest/" \;
+    fi
+  fi
+
+  local count=$(find "$temp_dest" -maxdepth 1 -type f -name "*.yaml" | wc -l)
+  if [ "$count" -gt 0 ]; then
+    rm -rf "$dest_path" && mv "$temp_dest" "$dest_path"
+
+    update_cache "$repo" "theme" "$version" "$repo_name"
+    echo "$repo_name" > "${TEMP_WORKSPACE}/.last_theme"
+    echo "[SUCCESS] Installed theme directory with ${count} variation(s): ${repo_name}" >&2
+  else
+    echo "[ERROR] No valid theme .yaml assets located for ${repo}!" >&2
+    exit 1
+  fi
+}
+
 
 # ==============================================================================
 # 5. Main Execution (The Cache Logic Controller)
 # ==============================================================================
 
 if [ "$#" -eq 0 ]; then
-  echo "[INIT] No extensions specified to install." >&2
-  exit 0
+  echo "[INIT] No extensions specified. Proceeding to cleanup phase..." >&2
 fi
 
 # POSIX strings to track valid components for declarative cleanup
 VALID_INTEGRATIONS=":"
 VALID_FRONTENDS=":"
+VALID_THEMES=":"
 VALID_REPOS=":"
 
 for arg in "$@"; do
   TYPE="integration"
-  REPO_VERSION="$arg"
+  RAW_ENTRY="$arg"
 
   if echo "$arg" | grep -q "="; then
     TYPE="${arg%%=*}"
-    REPO_VERSION="${arg#*=}"
+    RAW_ENTRY="${arg#*=}"
   fi
 
-  REPO="${REPO_VERSION%%:*}"
-  TARGET_VERSION="${REPO_VERSION##*:}"
+  REPO="${RAW_ENTRY%%:*}"
+  TARGET_VERSION="${RAW_ENTRY#*:}"
+  [ "$REPO" = "$TARGET_VERSION" ] && TARGET_VERSION="latest"
   APP_NAME="${REPO##*/}"
   VALID_REPOS="${VALID_REPOS}${REPO}:"
 
@@ -277,35 +335,45 @@ for arg in "$@"; do
 
   CACHED_VERSION=$(get_cached_data "$REPO" "version")
 
-  if [ "$TYPE" = "frontend" ]; then
+  case "$TYPE" in
+    frontend)
     CACHED_JS=$(get_cached_data "$REPO" "js_filename")
-
-    if [ "$TARGET_VERSION" = "$CACHED_VERSION" ] && [ -n "$CACHED_JS" ] && [ -d "${DIR_FRONTEND}/${APP_NAME}" ]; then
+      if [ "$TARGET_VERSION" = "$CACHED_VERSION" ] && [ -n "$CACHED_JS" ] && [ -f "${DIR_FRONTEND}/${APP_NAME}/${CACHED_JS}" ]; then
       echo "[CACHE] Frontend ${REPO} up-to-date (${TARGET_VERSION}). Injecting resource..." >&2
       inject_lovelace_resource "$APP_NAME" "$CACHED_JS"
-      VALID_FRONTENDS="${VALID_FRONTENDS}${APP_NAME}:"
     else
       echo "[UPDATE] Frontend ${REPO} (Local: ${CACHED_VERSION:-None} -> Remote: ${TARGET_VERSION})" >&2
       install_frontend "$REPO" "$TARGET_VERSION"
+      fi
       VALID_FRONTENDS="${VALID_FRONTENDS}${APP_NAME}:"
-    fi
+      ;;
 
-  else
-    # Integration Flow
+    theme)
     CACHED_FOLDER=$(get_cached_data "$REPO" "folder")
+    if [ "$TARGET_VERSION" = "$CACHED_VERSION" ] && [ -n "$CACHED_FOLDER" ] && [ -d "${DIR_THEMES}/${CACHED_FOLDER}" ]; then
+      echo "[CACHE] Theme ${REPO} up-to-date (${TARGET_VERSION})." >&2
+      VALID_THEMES="${VALID_THEMES}${CACHED_FOLDER}:"
+    else
+      echo "[UPDATE] Theme ${REPO} (Local: ${CACHED_VERSION:-None} -> Remote: ${TARGET_VERSION})" >&2
+      install_theme "$REPO" "$TARGET_VERSION"
+        VALID_THEMES="${VALID_THEMES}$(cat "${TEMP_WORKSPACE}/.last_theme"):"
+    fi
+      ;;
 
+    integration)
+    CACHED_FOLDER=$(get_cached_data "$REPO" "folder")
     if [ "$TARGET_VERSION" = "$CACHED_VERSION" ] && [ -n "$CACHED_FOLDER" ] && [ -d "${DIR_INTEGRATIONS}/${CACHED_FOLDER}" ]; then
       echo "[CACHE] Integration ${REPO} up-to-date (${TARGET_VERSION})." >&2
       VALID_INTEGRATIONS="${VALID_INTEGRATIONS}${CACHED_FOLDER}:"
     else
       echo "[UPDATE] Integration ${REPO} (Local: ${CACHED_VERSION:-None} -> Remote: ${TARGET_VERSION})" >&2
       install_integration "$REPO" "$TARGET_VERSION"
-
-      NEW_FOLDER=$(cat "${TEMP_WORKSPACE}/.last_integration")
-      VALID_INTEGRATIONS="${VALID_INTEGRATIONS}${NEW_FOLDER}:"
-    fi
+        VALID_INTEGRATIONS="${VALID_INTEGRATIONS}$(cat "${TEMP_WORKSPACE}/.last_integration"):"
   fi
+      ;;
+  esac
 done
+
 
 # ==============================================================================
 # 6. Declarative Reconciliation & Post-Installation
@@ -328,9 +396,14 @@ for repo in $TRACKED_REPOS; do
       fi
     else
       folder_name=$(get_cached_data "$repo" "folder")
-      if [ -n "$folder_name" ] && ! echo "$VALID_INTEGRATIONS" | grep -q ":${folder_name}:"; then
+      if [ -n "$folder_name" ]; then
+        if [ "$cached_type" = "theme" ] && ! echo "$VALID_THEMES" | grep -q ":${folder_name}:"; then
+          echo "[CLEANUP] Removing orphaned theme: ${folder_name}" >&2
+          rm -rf "${DIR_THEMES}/${folder_name}"
+        elif [ "$cached_type" = "integration" ] && ! echo "$VALID_INTEGRATIONS" | grep -q ":${folder_name}:"; then
         echo "[CLEANUP] Removing orphaned integration: ${folder_name}" >&2
         rm -rf "${DIR_INTEGRATIONS}/${folder_name}"
+        fi
       fi
     fi
 
@@ -342,12 +415,64 @@ for repo in $TRACKED_REPOS; do
   fi
 done
 
-# Overwrite the real Lovelace resource file atomically
-# Only executed if all download routines and queries exited with zero status codes
+# ==============================================================================
+# 7. Python Dependency Compilation (DRY)
+# ==============================================================================
+
+echo "[DEPENDENCIES] Scanning all active integrations for Python requirements..." >&2
+
+REQ_FILE="${TEMP_WORKSPACE}/requirements.txt"
+touch "$REQ_FILE"
+
+# Extract requirements arrays from all installed integration manifests
+for manifest in "${DIR_INTEGRATIONS}"/*/manifest.json; do
+  if [ -f "$manifest" ]; then
+    jq -r '.requirements[]?' "$manifest" 2>/dev/null >> "$REQ_FILE" || true
+  fi
+done
+
+# Only proceed with the installation pipeline if at least one requirement was found
+if [ -s "$REQ_FILE" ]; then
+  # Deduplicate the requirements list to handle shared dependencies across
+  # multiple integrations seamlessly without throwing installation conflicts.
+  DEDUP_FILE="${TEMP_WORKSPACE}/requirements.dedup.txt"
+  sort -u "$REQ_FILE" > "$DEDUP_FILE"
+
+  echo "[DEPENDENCIES] Resolving and installing Python packages: $(cat "$DEDUP_FILE" | tr '\n' ' ')" >&2
+
+  # Resolve dynamic site-packages target for the current Python runtime
+  TARGET_PATH=$(PYTHONUSERBASE="$DIR_DEPS" python3 -m site --user-site)
+
+  # Purge previous dependency tree to prevent orphan bloat and version conflicts
+  echo "[DEPENDENCIES] Purging old dependency cache for a clean state..." >&2
+  rm -rf "${DIR_DEPS}/lib" "${DIR_DEPS}/bin"
+  mkdir -p "$TARGET_PATH"
+
+  # Install requirements via uv with pip fallback
+  if command -v uv >/dev/null 2>&1; then
+    uv pip install -r "$DEDUP_FILE" --target "$TARGET_PATH"
+  else
+    python3 -m pip install -r "$DEDUP_FILE" --target "$TARGET_PATH"
+  fi
+
+  echo "[SUCCESS] Python dependencies provisioned at ${TARGET_PATH}" >&2
+else
+  # If no requirements are needed anymore, ensure the dependency folder is wiped to reclaim storage space.
+  echo "[DEPENDENCIES] No Python requirements found. Cleaning up old deps..." >&2
+  rm -rf "${DIR_DEPS}/lib" "${DIR_DEPS}/bin"
+fi
+
+
+# ==============================================================================
+# 8. Declarative Finalization & Permissions
+# ==============================================================================
+
+# Overwrite Lovelace resource database atomically from staging
 echo "[COMMIT] Committing staging Lovelace database transaction to production..." >&2
 mv "$FILE_RESOURCES_STAGING" "$FILE_RESOURCES"
 
+# Enforce root ownership across all persistent configuration trees
 echo "[PERMISSIONS] Applying (PUID: 0 / PGID: 0) to ensure Home Assistant access..." >&2
-chown -R 0:0 "$DIR_INTEGRATIONS" "$DIR_FRONTEND" "$DIR_STORAGE"
+chown -R 0:0 "$DIR_INTEGRATIONS" "$DIR_FRONTEND" "$DIR_THEMES" "$DIR_STORAGE" "$DIR_DEPS"
 
 echo "[SUCCESS] Extension initialization complete." >&2
