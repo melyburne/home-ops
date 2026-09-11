@@ -78,12 +78,13 @@ services:
       - "integration=edmogeor/hass-ga-manual-ui:${HOMEASSISTANT_EXT_HASS_GA_MANUAL_UI_DOCKER_TAG:-latest}"
       - "integration=marsh4200/ar_smart_ir_builder:${HOMEASSISTANT_EXT_ARSMARTIR_BUILDER_DOCKER_TAG:-latest}"
       - "integration=marsh4200/ar_smart_ir:${HOMEASSISTANT_EXT_ARSMARTIR_DOCKER_TAG:-latest}"
-      - "integration=ruaan-deysel/ha-philips-airpurifier:${HOMEASSISTANT_EXT_HA_PHILIPS_AIRPURIFIER_DOCKER_TAG:-latest}"
+      - "integration=regulara/ha-philips-airpurifier-http:${HOMEASSISTANT_EXT_HA_PHILIPS_AIRPURIFIER_DOCKER_TAG:-latest}"
       # - "integration=frenck/spook:${HOMEASSISTANT_EXT_SPOOK_DOCKER_TAG:-latest}" # Used for cleaning up old entities, but not needed for normal operation
 
       # Frontend extensions
       - "frontend=brunosabot/streamline-card:${HOMEASSISTANT_EXT_STREAMLINE_CARD_DOCKER_TAG:-latest}"
       - "frontend=custom-cards/button-card:${HOMEASSISTANT_EXT_BUTTON_CARD_DOCKER_TAG:-latest}"
+      - "frontend=denysdovhan/purifier-card:${HOMEASSISTANT_EXT_PURIVIER_CARD_DOCKER_TAG:-latest}"
       - "frontend=francois-le-ko4la/lovelace-entity-progress-card:${HOMEASSISTANT_EXT_LOVELACE_ENTITY_PROGRESS_CARD_DOCKER_TAG:-latest}"
       - "frontend=piitaya/lovelace-mushroom:${HOMEASSISTANT_EXT_LOVELACE_MUSHROOM_DOCKER_TAG:-latest}"
 
