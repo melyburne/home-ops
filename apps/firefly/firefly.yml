@@ -19,7 +19,7 @@ services:
     volumes:
       - firefly_upload:/var/www/html/storage/upload:rw
     env_file:
-      - .env
+      - ../../.env
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.routers.firefly.rule=Host(`\({FIREFLY_III_SUBDOMAIN:-firefly}.\){DOMAIN_PRIMARY:-localhost}`)'
