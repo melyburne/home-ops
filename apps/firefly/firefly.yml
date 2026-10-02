@@ -25,9 +25,13 @@ services:
     networks:
       - firefly-internal
 
-    # Configuration: Database credentials and settings
-    env_file:
-      - ../../.env
+    # Configuration: Natively auto-creates the databases and users on first startup (Alphabetized)
+    environment:
+      MARIADB_AUTO_UPGRADE: "true"
+      MARIADB_DATABASE: "${FIREFLY_III_DB_DATABASE:-firefly}"
+      MARIADB_PASSWORD: "${FIREFLY_III_DB_PASSWORD:?}"
+      MARIADB_ROOT_PASSWORD: "${MARIADB_ROOT_PASSWORD:?}"
+      MARIADB_USER: "${FIREFLY_III_DB_USERNAME:-firefly}"
 
     # State: Mount database storage volume
     volumes:
@@ -61,9 +65,19 @@ services:
       - traefik-public
       - firefly-internal
 
-    # Configuration: Core application settings
-    env_file:
-      - ../../.env
+    # Configuration: Core application and database connection settings (Alphabetized)
+    environment:
+      APP_DEBUG: "${FIREFLY_III_APP_DEBUG:-false}"
+      APP_ENV: "${FIREFLY_III_APP_ENV:-local}"
+      APP_KEY: "${FIREFLY_III_APP_KEY:?}"
+      DB_CONNECTION: "mysql"
+      DB_DATABASE: "${FIREFLY_III_DB_DATABASE:-firefly}"
+      DB_HOST: "db"
+      DB_PASSWORD: "${FIREFLY_III_DB_PASSWORD:?}"
+      DB_PORT: "3306"
+      DB_USERNAME: "${FIREFLY_III_DB_USERNAME:-firefly}"
+      SITE_OWNER: "${FIREFLY_III_SITE_OWNER:?}"
+      TZ: "${TZ:-Europe/Berlin}"
 
     # Routing: Traefik dynamic configuration (Alphabetized)
     labels:
@@ -92,9 +106,9 @@ services:
     networks:
       - firefly-internal
 
-    # Configuration: Application and cron environment variables
-    env_file:
-      - ../../.env
+    # Configuration: Timezone for cron daemon execution
+    environment:
+      TZ: "${TZ:-Europe/Berlin}"
 
     # Execution: Register cron job and run daemon
     command:
