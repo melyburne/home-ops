@@ -4,29 +4,41 @@
 
 services:
   # ----------------------------------------------------------------------------
+  # 1. Hilfs-Container: Setzt die Datei- und Ordnerrechte VOR dem App-Start
+  # ----------------------------------------------------------------------------
+  init-permissions:
+    image: alpine:latest
+    container_name: firefly_iii_init
+    restart: "no" # Startet nur einmalig beim Hochfahren
+    volumes:
+      # Mountet das Firefly-Upload-Volume temporär nach /data
+      - firefly_upload:/data:rw
+    # Führt den chown-Befehl aus
+    command: sh -c "chown -R \({FIREFLY_III_PUID:-1007}:\){FIREFLY_III_PGID:-1007} /data"
+  # ----------------------------------------------------------------------------
   # Core Application (Laravel)
   # ----------------------------------------------------------------------------
   app:
-    image: fireflyiii/core:latest
+    image: fireflyiii/core:${FIREFLY_III_DOCKER_TAG:-latest}
     container_name: firefly_iii_core
     restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
     networks:
-      - traefik_network
-      - firefly_internal
+      - traefik-public
+      - firefly-internal
     volumes:
       - firefly_upload:/var/www/html/storage/upload:rw
     env_file:
       - ../../.env
     labels:
-      - 'traefik.enable=true'
+      - "traefik.enable=true"
       - 'traefik.http.routers.firefly.rule=Host(`\({FIREFLY_III_SUBDOMAIN:-firefly}.\){DOMAIN_PRIMARY:-localhost}`)'
-      - 'traefik.http.routers.firefly.entrypoints=websecure'
-      - 'traefik.http.routers.firefly.tls=true'
-      - 'traefik.http.routers.firefly.tls.certresolver=letsencrypt'
-      - 'traefik.http.services.firefly.loadbalancer.server.port=8080'
+      - "traefik.http.routers.firefly.entrypoints=websecure"
+      - "traefik.http.routers.firefly.tls=true"
+      - "traefik.http.routers.firefly.tls.certresolver=letsencrypt"
+      - "traefik.http.services.firefly.loadbalancer.server.port=8080"
 
   # ----------------------------------------------------------------------------
   # Database Backend (MariaDB LTS)
@@ -36,7 +48,7 @@ services:
     container_name: firefly_iii_db
     restart: unless-stopped
     networks:
-      - firefly_internal
+      - firefly-internal
     volumes:
       - firefly_db:/var/lib/mysql:rw
     env_file:
@@ -58,14 +70,14 @@ services:
     depends_on:
       - app
     networks:
-      - firefly_internal
+      - firefly-internal
     env_file:
       - ../../.env
     command:
       - /bin/sh
       - -c
       - |
-        echo "\({STATIC_CRON_SCHEDULE:-0 3 * * *} wget -qO- http://app:8080/api/v1/cron/\){STATIC_CRON_TOKEN} > /dev/null 2>&1" | crontab -
+        echo "\({FIREFLY_III_STATIC_CRON_SCHEDULE:-0 3 * * *} wget -qO- http://app:8080/api/v1/cron/\){FIREFLY_III_STATIC_CRON_TOKEN} > /dev/null 2>&1" | crontab -
         exec crond -f -L /dev/stdout
 
 # ==============================================================================
@@ -81,9 +93,7 @@ volumes:
 # Network Declarations
 # ==============================================================================
 networks:
-  firefly_internal:
+  firefly-internal:
     driver: bridge
     internal: true
-  traefik_network:
-    external: true
-    name: traefik_network
+  traefik-public:
