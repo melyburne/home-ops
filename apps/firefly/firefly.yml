@@ -34,7 +34,7 @@ services:
       - ../../.env
     labels:
       - "traefik.enable=true"
-      - 'traefik.http.routers.firefly.rule=Host(`\({FIREFLY_III_SUBDOMAIN:-firefly}.\){DOMAIN_PRIMARY:-localhost}`)'
+      - 'traefik.http.routers.firefly.rule=Host(`${FIREFLY_III_SUBDOMAIN:-firefly}.${DOMAIN_PRIMARY:-localhost}`)'
       - "traefik.http.routers.firefly.entrypoints=websecure"
       - "traefik.http.routers.firefly.tls=true"
       - "traefik.http.routers.firefly.tls.certresolver=letsencrypt"
@@ -77,7 +77,7 @@ services:
       - /bin/sh
       - -c
       - |
-        echo "\({FIREFLY_III_STATIC_CRON_SCHEDULE:-0 3 * * *} wget -qO- http://app:8080/api/v1/cron/\){FIREFLY_III_STATIC_CRON_TOKEN} > /dev/null 2>&1" | crontab -
+        echo "${FIREFLY_III_STATIC_CRON_SCHEDULE:-0 3 * * *} wget -qO- http://app:8080/api/v1/cron/\)${FIREFLY_III_STATIC_CRON_TOKEN} > /dev/null 2>&1" | crontab -
         exec crond -f -L /dev/stdout
 
 # ==============================================================================
