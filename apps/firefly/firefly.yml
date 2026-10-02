@@ -21,12 +21,12 @@ services:
     env_file:
       - .env
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.firefly.rule=Host(`{FIREFLY_III_SUBDOMAIN:-firefly}.{DOMAIN_PRIMARY:-localhost}`)"
-      - "traefik.http.routers.firefly.entrypoints=websecure"
-      - "traefik.http.routers.firefly.tls=true"
-      - "traefik.http.routers.firefly.tls.certresolver=letsencrypt"
-      - "traefik.http.services.firefly.loadbalancer.server.port=8080"
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.firefly.rule=Host(`\({FIREFLY_III_SUBDOMAIN:-firefly}.\){DOMAIN_PRIMARY:-localhost}`)'
+      - 'traefik.http.routers.firefly.entrypoints=websecure'
+      - 'traefik.http.routers.firefly.tls=true'
+      - 'traefik.http.routers.firefly.tls.certresolver=letsencrypt'
+      - 'traefik.http.services.firefly.loadbalancer.server.port=8080'
 
   # ----------------------------------------------------------------------------
   # Database Backend (MariaDB LTS)
@@ -65,4 +65,25 @@ services:
       - /bin/sh
       - -c
       - |
-        echo "
+        echo "\({STATIC_CRON_SCHEDULE:-0 3 * * *} wget -qO- http://app:8080/api/v1/cron/\){STATIC_CRON_TOKEN} > /dev/null 2>&1" | crontab -
+        exec crond -f -L /dev/stdout
+
+# ==============================================================================
+# Global Volume Definitions
+# ==============================================================================
+volumes:
+  firefly_upload:
+    name: firefly_iii_upload
+  firefly_db:
+    name: firefly_iii_db
+
+# ==============================================================================
+# Network Declarations
+# ==============================================================================
+networks:
+  firefly_internal:
+    driver: bridge
+    internal: true
+  traefik_network:
+    external: true
+    name: traefik_network
