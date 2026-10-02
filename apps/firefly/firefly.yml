@@ -4,22 +4,22 @@ services:
     extends:
       file: ../../shared/templates.yml
       service: base-init
-    container_name: firefly_iii_init
+    container_name: firefly_init
 
     # Execution: Fix permissions on the upload volume
-    command: sh -c "chown -R ${FIREFLY_III_PUID:-1007}:${FIREFLY_III_PGID:-1007} /data"
+    command: sh -c "chown -R ${FIREFLY_PUID:-1007}:${FIREFLY_PGID:-1007} /data"
 
     # State: Mount upload volume
     volumes:
       - firefly_upload:/data:rw
 
   # --- Internal Database Service: MariaDB ---
-  db:
+  firefly-db:
     extends:
       file: ../../shared/templates.yml
       service: base-default
     image: mariadb:lts
-    container_name: firefly_iii_db
+    container_name: firefly-db
 
     # Connectivity: Expose internal network for other containers
     networks:
@@ -28,10 +28,10 @@ services:
     # Configuration: Natively auto-creates the databases and users on first startup (Alphabetized)
     environment:
       MARIADB_AUTO_UPGRADE: "true"
-      MARIADB_DATABASE: "${FIREFLY_III_DB_DATABASE:-firefly}"
-      MARIADB_PASSWORD: "${FIREFLY_III_DB_PASSWORD:?}"
+      MARIADB_DATABASE: "${FIREFLY_DB_DATABASE:-firefly}"
+      MARIADB_PASSWORD: "${FIREFLY_DB_PASSWORD:?}"
       MARIADB_ROOT_PASSWORD: "${MARIADB_ROOT_PASSWORD:?}"
-      MARIADB_USER: "${FIREFLY_III_DB_USERNAME:-firefly}"
+      MARIADB_USER: "${FIREFLY_DB_USERNAME:-firefly}"
 
     # State: Mount database storage volume
     volumes:
@@ -50,14 +50,14 @@ services:
     extends:
       file: ../../shared/templates.yml
       service: base-default
-    image: fireflyiii/core:${FIREFLY_III_DOCKER_TAG:-latest}
-    container_name: firefly_iii_core
+    image: fireflyiii/core:${FIREFLY_DOCKER_TAG:-latest}
+    container_name: firefly_core
 
     # Lifecycle: Wait for permissions to be fixed and database to be healthy
     depends_on:
       firefly-init:
         condition: service_completed_successfully
-      db:
+      firefly-db:
         condition: service_healthy
 
     # Connectivity: Public facing proxy and internal database network
@@ -67,23 +67,23 @@ services:
 
     # Configuration: Core application and database connection settings (Alphabetized)
     environment:
-      APP_DEBUG: "${FIREFLY_III_APP_DEBUG:-false}"
-      APP_ENV: "${FIREFLY_III_APP_ENV:-local}"
-      APP_KEY: "${FIREFLY_III_APP_KEY:?}"
+      APP_DEBUG: "false"
+      APP_ENV: "${FIREFLY_APP_ENV:-local}"
+      APP_KEY: "${FIREFLY_APP_KEY:?}"
       DB_CONNECTION: "mysql"
-      DB_DATABASE: "${FIREFLY_III_DB_DATABASE:-firefly}"
-      DB_HOST: "db"
-      DB_PASSWORD: "${FIREFLY_III_DB_PASSWORD:?}"
+      DB_DATABASE: "firefly"
+      DB_HOST: "firefly-db"
+      DB_PASSWORD: "${FIREFLY_DB_PASSWORD:?}"
       DB_PORT: "3306"
-      DB_USERNAME: "${FIREFLY_III_DB_USERNAME:-firefly}"
-      SITE_OWNER: "${FIREFLY_III_SITE_OWNER:?}"
-      TZ: "${TZ:-Europe/Berlin}"
+      DB_USERNAME: "firefly"
+      SITE_OWNER: "${FIREFLY_SITE_OWNER:?}"
+      TZ: "${TZ:-Etc/UTC}"
 
     # Routing: Traefik dynamic configuration (Alphabetized)
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.firefly.entrypoints=websecure"
-      - "traefik.http.routers.firefly.rule=Host(`${FIREFLY_III_SUBDOMAIN:-firefly}.${DOMAIN_PRIMARY:-localhost}`)"
+      - "traefik.http.routers.firefly.rule=Host(`${FIREFLY_SUBDOMAIN:-firefly}.${DOMAIN_PRIMARY:-localhost}`)"
       - "traefik.http.services.firefly.loadbalancer.server.port=8080"
 
     # State: Mount upload volume
@@ -96,7 +96,7 @@ services:
       file: ../../shared/templates.yml
       service: base-default
     image: alpine:latest
-    container_name: firefly_iii_cron
+    container_name: firefly_cron
 
     # Lifecycle: Wait for core application to be ready
     depends_on:
@@ -108,14 +108,14 @@ services:
 
     # Configuration: Timezone for cron daemon execution
     environment:
-      TZ: "${TZ:-Europe/Berlin}"
+      TZ: "${TZ:-Etc/UTC}"
 
     # Execution: Register cron job and run daemon
     command:
       - /bin/sh
       - -c
       - |
-        echo "${FIREFLY_III_STATIC_CRON_SCHEDULE:-0 3 * * *} wget -qO- http://app:8080/api/v1/cron/${FIREFLY_III_STATIC_CRON_TOKEN} > /dev/null 2>&1" | crontab -
+        echo "${FIREFLY_STATIC_CRON_SCHEDULE:-0 3 * * *} wget -qO- http://app:8080/api/v1/cron/${FIREFLY_STATIC_CRON_TOKEN} > /dev/null 2>&1" | crontab -
         exec crond -f -L /dev/stdout
 
 # --- Global Network Definitions ---
@@ -128,6 +128,6 @@ networks:
 # --- Global Volume Definitions ---
 volumes:
   firefly_upload:
-    name: firefly_iii_upload
+    name: firefly_upload
   firefly_db:
-    name: firefly_iii_db
+    name: firefly_db
