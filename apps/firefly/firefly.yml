@@ -6,20 +6,24 @@ services:
       service: base-init
     container_name: firefly_init
 
-    # Execution: Fix permissions on the upload volume
-    command: sh -c "chown -R ${FIREFLY_PUID:-1007}:${FIREFLY_PGID:-1007} /data"
+    # Execution: Create data directories and set permissions
+    command: >
+      sh -c "
+        mkdir -p /data/upload /data/db &&
+        chown -R ${FIREFLY_PUID:-1007}:${FIREFLY_PGID:-1007} /data/upload
+      "
 
-    # State: Mount upload volume
+    # State: Mount data directory
     volumes:
-      - firefly_upload:/data:rw
+      - ./data:/data
 
   # --- Internal Database Service: MariaDB ---
-  firefly-db:
+  db:
     extends:
       file: ../../shared/templates.yml
       service: base-default
     image: mariadb:lts
-    container_name: firefly-db
+    container_name: firefly_db
 
     # Connectivity: Expose internal network for other containers
     networks:
@@ -27,15 +31,18 @@ services:
 
     # Configuration: Natively auto-creates the databases and users on first startup (Alphabetized)
     environment:
+      # Core Database Settings
       MARIADB_AUTO_UPGRADE: "true"
+      MARIADB_ROOT_PASSWORD: "${MARIADB_ROOT_PASSWORD:?}"
+
+      # Firefly III App Database & User Settings
       MARIADB_DATABASE: "${FIREFLY_DB_DATABASE:-firefly}"
       MARIADB_PASSWORD: "${FIREFLY_DB_PASSWORD:?}"
-      MARIADB_ROOT_PASSWORD: "${MARIADB_ROOT_PASSWORD:?}"
       MARIADB_USER: "${FIREFLY_DB_USERNAME:-firefly}"
 
     # State: Mount database storage volume
     volumes:
-      - firefly_db:/var/lib/mysql:rw
+      - ./data/db:/var/lib/mysql
 
     # Monitoring: Built-in check to ensure the InnoDB engine is fully initialized
     healthcheck:
@@ -57,7 +64,7 @@ services:
     depends_on:
       firefly-init:
         condition: service_completed_successfully
-      firefly-db:
+      db:
         condition: service_healthy
 
     # Connectivity: Public facing proxy and internal database network
@@ -68,11 +75,11 @@ services:
     # Configuration: Core application and database connection settings (Alphabetized)
     environment:
       APP_DEBUG: "false"
-      APP_ENV: "${FIREFLY_APP_ENV:-local}"
+      APP_ENV: "$local"
       APP_KEY: "${FIREFLY_APP_KEY:?}"
       DB_CONNECTION: "mysql"
       DB_DATABASE: "firefly"
-      DB_HOST: "firefly-db"
+      DB_HOST: "db"
       DB_PASSWORD: "${FIREFLY_DB_PASSWORD:?}"
       DB_PORT: "3306"
       DB_USERNAME: "firefly"
@@ -88,7 +95,7 @@ services:
 
     # State: Mount upload volume
     volumes:
-      - firefly_upload:/var/www/html/storage/upload:rw
+      - ./data/upload:/var/www/html/storage/upload
 
   # --- Recurring Automation Service: Firefly III Cron ---
   cron:
@@ -124,10 +131,3 @@ networks:
   firefly-internal:
     name: firefly-internal
     internal: true
-
-# --- Global Volume Definitions ---
-volumes:
-  firefly_upload:
-    name: firefly_upload
-  firefly_db:
-    name: firefly_db
