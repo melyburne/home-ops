@@ -40,7 +40,7 @@ services:
     volumes:
       - firefly_db:/var/lib/mysql:rw
     env_file:
-      - .db.env
+      - ../../.env
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 10s
@@ -60,7 +60,7 @@ services:
     networks:
       - firefly_internal
     env_file:
-      - .env
+      - ../../.env
     command:
       - /bin/sh
       - -c
