@@ -109,15 +109,11 @@ services:
   firefly-cron:
     extends:
       file: ../../shared/templates.yml
-      service: base-default
+      service: base-secure
     image: alpine:${ALPINE_DOCKER_TAG:-3.24}
     container_name: firefly-cron
 
-    # Security: Drop all capabilities, add back only what crond strictly requires to spawn jobs
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
+    # Security: Add only capabilities what crond strictly requires to spawn jobs
     cap_add:
       - SETUID
       - SETGID
@@ -129,10 +125,6 @@ services:
     # Connectivity: Internal network to reach Firefly core
     networks:
       - firefly-internal
-
-    # Configuration: Timezone for cron daemon execution
-    environment:
-      TZ: "${TZ:-Etc/UTC}"
 
     # Execution: Register cron job and run daemon
     command:
