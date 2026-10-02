@@ -1,58 +1,39 @@
-# ==============================================================================
-# Firefly III Stack (apps/firefly/firefly.yml)
-# ==============================================================================
-
 services:
-  # ----------------------------------------------------------------------------
-  # 1. Hilfs-Container: Setzt die Datei- und Ordnerrechte VOR dem App-Start
-  # ----------------------------------------------------------------------------
-  init-permissions:
-    image: alpine:latest
+  # --- Init Service: Prepares permissions for Firefly III ---
+  firefly-init:
+    extends:
+      file: ../../shared/templates.yml
+      service: base-init
     container_name: firefly_iii_init
-    restart: "no" # Startet nur einmalig beim Hochfahren
-    volumes:
-      # Mountet das Firefly-Upload-Volume temporär nach /data
-      - firefly_upload:/data:rw
-    # Führt den chown-Befehl aus
-    command: sh -c "chown -R \({FIREFLY_III_PUID:-1007}:\){FIREFLY_III_PGID:-1007} /data"
-  # ----------------------------------------------------------------------------
-  # Core Application (Laravel)
-  # ----------------------------------------------------------------------------
-  app:
-    image: fireflyiii/core:${FIREFLY_III_DOCKER_TAG:-latest}
-    container_name: firefly_iii_core
-    restart: unless-stopped
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - traefik-public
-      - firefly-internal
-    volumes:
-      - firefly_upload:/var/www/html/storage/upload:rw
-    env_file:
-      - ../../.env
-    labels:
-      - "traefik.enable=true"
-      - 'traefik.http.routers.firefly.rule=Host(`${FIREFLY_III_SUBDOMAIN:-firefly}.${DOMAIN_PRIMARY:-localhost}`)'
-      - "traefik.http.routers.firefly.entrypoints=websecure"
-      - "traefik.http.routers.firefly.tls=true"
-      - "traefik.http.routers.firefly.tls.certresolver=letsencrypt"
-      - "traefik.http.services.firefly.loadbalancer.server.port=8080"
 
-  # ----------------------------------------------------------------------------
-  # Database Backend (MariaDB LTS)
-  # ----------------------------------------------------------------------------
+    # Execution: Fix permissions on the upload volume
+    command: sh -c "chown -R ${FIREFLY_III_PUID:-1007}:${FIREFLY_III_PGID:-1007} /data"
+
+    # State: Mount upload volume
+    volumes:
+      - firefly_upload:/data:rw
+
+  # --- Internal Database Service: MariaDB ---
   db:
+    extends:
+      file: ../../shared/templates.yml
+      service: base-default
     image: mariadb:lts
     container_name: firefly_iii_db
-    restart: unless-stopped
+
+    # Connectivity: Expose internal network for other containers
     networks:
       - firefly-internal
-    volumes:
-      - firefly_db:/var/lib/mysql:rw
+
+    # Configuration: Database credentials and settings
     env_file:
       - ../../.env
+
+    # State: Mount database storage volume
+    volumes:
+      - firefly_db:/var/lib/mysql:rw
+
+    # Monitoring: Built-in check to ensure the InnoDB engine is fully initialized
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 10s
@@ -60,40 +41,79 @@ services:
       retries: 5
       start_period: 30s
 
-  # ----------------------------------------------------------------------------
-  # Recurring Automation / Cron Runner
-  # ----------------------------------------------------------------------------
-  cron:
-    image: alpine:latest
-    container_name: firefly_iii_cron
-    restart: unless-stopped
+  # --- Main Web Service: Firefly III Core ---
+  app:
+    extends:
+      file: ../../shared/templates.yml
+      service: base-default
+    image: fireflyiii/core:${FIREFLY_III_DOCKER_TAG:-latest}
+    container_name: firefly_iii_core
+
+    # Lifecycle: Wait for permissions to be fixed and database to be healthy
     depends_on:
-      - app
+      firefly-init:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+
+    # Connectivity: Public facing proxy and internal database network
     networks:
+      - traefik-public
       - firefly-internal
+
+    # Configuration: Core application settings
     env_file:
       - ../../.env
+
+    # Routing: Traefik dynamic configuration (Alphabetized)
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.firefly.entrypoints=websecure"
+      - "traefik.http.routers.firefly.rule=Host(`${FIREFLY_III_SUBDOMAIN:-firefly}.${DOMAIN_PRIMARY:-localhost}`)"
+      - "traefik.http.services.firefly.loadbalancer.server.port=8080"
+
+    # State: Mount upload volume
+    volumes:
+      - firefly_upload:/var/www/html/storage/upload:rw
+
+  # --- Recurring Automation Service: Firefly III Cron ---
+  cron:
+    extends:
+      file: ../../shared/templates.yml
+      service: base-default
+    image: alpine:latest
+    container_name: firefly_iii_cron
+
+    # Lifecycle: Wait for core application to be ready
+    depends_on:
+      - app
+
+    # Connectivity: Internal network to reach Firefly core
+    networks:
+      - firefly-internal
+
+    # Configuration: Application and cron environment variables
+    env_file:
+      - ../../.env
+
+    # Execution: Register cron job and run daemon
     command:
       - /bin/sh
       - -c
       - |
-        echo "${FIREFLY_III_STATIC_CRON_SCHEDULE:-0 3 * * *} wget -qO- http://app:8080/api/v1/cron/\)${FIREFLY_III_STATIC_CRON_TOKEN} > /dev/null 2>&1" | crontab -
+        echo "${FIREFLY_III_STATIC_CRON_SCHEDULE:-0 3 * * *} wget -qO- http://app:8080/api/v1/cron/${FIREFLY_III_STATIC_CRON_TOKEN} > /dev/null 2>&1" | crontab -
         exec crond -f -L /dev/stdout
 
-# ==============================================================================
-# Global Volume Definitions
-# ==============================================================================
+# --- Global Network Definitions ---
+networks:
+  traefik-public:
+  firefly-internal:
+    name: firefly-internal
+    internal: true
+
+# --- Global Volume Definitions ---
 volumes:
   firefly_upload:
     name: firefly_iii_upload
   firefly_db:
     name: firefly_iii_db
-
-# ==============================================================================
-# Network Declarations
-# ==============================================================================
-networks:
-  firefly-internal:
-    driver: bridge
-    internal: true
-  traefik-public:
