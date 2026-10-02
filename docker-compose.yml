@@ -17,9 +17,10 @@ include:
   - apps/calibre/calibre.yml
   - apps/home-assistant/home-assistant.yml
   - apps/ocis/ocis.yml
+  - apps/firefly/firefly.yml
   #  - apps/roundcube/roundcube.yml
   #  - apps/websites/web-hduong.yml
-  # - apps/immich/immich.yml
+  #  - apps/immich/immich.yml
 
 # --- Global Network Definitions ---
 networks:

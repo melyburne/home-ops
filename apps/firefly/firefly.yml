@@ -1,0 +1,71 @@
+# ==============================================================================
+# Firefly III - Personal Finance Manager Stack
+# Architecture: App (Laravel) + MariaDB (Storage) + Periodic Cron Runner
+# Reverse Proxy: Traefik routing via websecure entrypoint
+# ==============================================================================
+
+services:
+  # ----------------------------------------------------------------------------
+  # Firefly III Core Application
+  # ----------------------------------------------------------------------------
+  app:
+    image: fireflyiii/core:latest
+    container_name: firefly_iii_core
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - traefik_network
+      - firefly_internal
+    volumes:
+      - firefly_upload:/var/www/html/storage/upload:rw
+    env_file:
+      - .env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.firefly.rule=Host(`${FIREFLY_III_SUBDOMAIN:-firefly}.${DOMAIN_PRIMARY:-localhost}`)"
+      - "traefik.http.routers.firefly.entrypoints=websecure"
+      - "traefik.http.routers.firefly.tls=true"
+      - "traefik.http.routers.firefly.tls.certresolver=letsencrypt"
+      - "traefik.http.services.firefly.loadbalancer.server.port=8080"
+
+  # ----------------------------------------------------------------------------
+  # Database Backend (MariaDB LTS)
+  # ----------------------------------------------------------------------------
+  db:
+    image: mariadb:lts
+    container_name: firefly_iii_db
+    restart: unless-stopped
+    networks:
+      - firefly_internal
+    volumes:
+      - firefly_db:/var/lib/mysql:rw
+    env_file:
+      - .db.env
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ----------------------------------------------------------------------------
+  # Recurring Automation / Cron Runner
+  # Invokes the static API cron trigger endpoint daily at 03:00
+  # ----------------------------------------------------------------------------
+  cron:
+    image: alpine:latest
+    container_name: firefly_iii_cron
+    restart: unless-stopped
+    depends_on:
+      - app
+    networks:
+      - firefly_internal
+    env_file:
+      - .env
+    command:
+      - /bin/sh
+      - -c
+      - |
+        echo "
