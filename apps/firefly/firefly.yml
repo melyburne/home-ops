@@ -10,7 +10,9 @@ services:
     command: >
       sh -c "
         mkdir -p /data/upload /data/db &&
-        chown -R ${FIREFLY_PUID:-1007}:${FIREFLY_PGID:-1007} /data/upload
+        chown -R ${FIREFLY_PUID:-1007}:${FIREFLY_PGID:-1007} /data/db &&
+        chown -R 33:33 /data/upload &&
+        chmod 775 /data/upload
       "
 
     # State: Mount data directory
@@ -21,9 +23,18 @@ services:
   firefly-db:
     extends:
       file: ../../shared/templates.yml
-      service: base-default
-    image: mariadb:lts
+      service: base-secure
+    image: mariadb:${MARIADB_DOCKER_TAG:-11.8}
     container_name: firefly-db
+
+    # Security: Run as non-root user, lock filesystem
+    user: "${FIREFLY_PUID:-1007}:${FIREFLY_PGID:-1007}"
+    read_only: true
+
+    # Lifecycle: Wait for permissions to be fixed
+    depends_on:
+      firefly-init:
+        condition: service_completed_successfully
 
     # Connectivity: Expose internal network for other containers
     networks:
@@ -40,23 +51,22 @@ services:
       MARIADB_PASSWORD: "${FIREFLY_DB_PASSWORD:?}"
       MARIADB_USER: "${FIREFLY_DB_USERNAME:-firefly}"
 
-    # State: Mount database storage volume
+    # State: Mount database storage volume and in-memory temp areas
     volumes:
       - ./data/db:/var/lib/mysql
+    tmpfs:
+      - /tmp
+      - /run/mysqld
 
     # Monitoring: Built-in check to ensure the InnoDB engine is fully initialized
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
+      test: "healthcheck.sh --connect --innodb_initialized"
 
   # --- Main Web Service: Firefly III Core ---
   firefly:
     extends:
       file: ../../shared/templates.yml
-      service: base-default
+      service: base-secure
     image: fireflyiii/core:${FIREFLY_DOCKER_TAG:-latest}
     container_name: firefly
 
@@ -106,6 +116,15 @@ services:
       service: base-default
     image: alpine:latest
     container_name: firefly-cron
+
+    # Security: Drop all capabilities, add back only what crond strictly requires to spawn jobs
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETUID
+      - SETGID
 
     # Lifecycle: Wait for core application to be ready
     depends_on:
