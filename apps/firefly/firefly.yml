@@ -24,7 +24,7 @@ services:
       - .env
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.firefly.rule=Host(`${FIREFLY_III_SUBDOMAIN:-firefly}.${DOMAIN_PRIMARY:-localhost}`)"
+      - "traefik.http.routers.firefly.rule=Host(`{FIREFLY_III_SUBDOMAIN:-firefly}.{DOMAIN_PRIMARY:-localhost}`)"
       - "traefik.http.routers.firefly.entrypoints=websecure"
       - "traefik.http.routers.firefly.tls=true"
       - "traefik.http.routers.firefly.tls.certresolver=letsencrypt"
@@ -69,11 +69,3 @@ services:
       - -c
       - |
         echo "
-
-networks:
-  firefly_internal:
-    driver: bridge
-    internal: true
-  traefik_network:
-    external: true
-    name: traefik_network
