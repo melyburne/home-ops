@@ -4,15 +4,15 @@ services:
     extends:
       file: ../../shared/templates.yml
       service: base-init
-    container_name: firefly_init
+    container_name: firefly-init
 
     # Execution: Create data directories and set permissions
     command: >
       sh -c "
         mkdir -p /data/upload /data/db &&
         chown -R ${FIREFLY_PUID:-1007}:${FIREFLY_PGID:-1007} /data/db &&
-        chown -R 33:33 /data/upload &&
-        chmod 775 /data/upload
+        chown -R ${FIREFLY_PUID:-1007}:33 /data/upload &&
+        chmod -R 775 /data/upload
       "
 
     # State: Mount data directory
@@ -42,13 +42,10 @@ services:
 
     # Configuration: Natively auto-creates the databases and users on first startup (Alphabetized)
     environment:
-      # Core Database Settings
       MARIADB_AUTO_UPGRADE: "true"
-      MARIADB_ROOT_PASSWORD: "${MARIADB_ROOT_PASSWORD:?}"
-
-      # Firefly III App Database & User Settings
       MARIADB_DATABASE: "${FIREFLY_DB_DATABASE:-firefly}"
       MARIADB_PASSWORD: "${FIREFLY_DB_PASSWORD:?}"
+      MARIADB_ROOT_PASSWORD: "${MARIADB_ROOT_PASSWORD:?}"
       MARIADB_USER: "${FIREFLY_DB_USERNAME:-firefly}"
 
     # State: Mount database storage volume and in-memory temp areas
@@ -85,7 +82,7 @@ services:
     # Configuration: Core application and database connection settings (Alphabetized)
     environment:
       APP_DEBUG: "false"
-      APP_ENV: "local"
+      APP_ENV: "production"
       APP_KEY: "${FIREFLY_APP_KEY:?}"
       APP_URL: "https://${FIREFLY_SUBDOMAIN:-firefly}.${DOMAIN_PRIMARY:-localhost}"
       DB_CONNECTION: "mysql"
@@ -96,7 +93,6 @@ services:
       DB_USERNAME: "firefly"
       SITE_OWNER: "${FIREFLY_SITE_OWNER:?}"
       TRUSTED_PROXIES: "**"
-      TZ: "${TZ:-Etc/UTC}"
 
     # Routing: Traefik dynamic configuration (Alphabetized)
     labels:
@@ -114,7 +110,7 @@ services:
     extends:
       file: ../../shared/templates.yml
       service: base-default
-    image: alpine:latest
+    image: alpine:${ALPINE_DOCKER_TAG:-3.24}
     container_name: firefly-cron
 
     # Security: Drop all capabilities, add back only what crond strictly requires to spawn jobs
