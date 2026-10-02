@@ -69,3 +69,11 @@ services:
       - -c
       - |
         echo "
+
+networks:
+  firefly_internal:
+    driver: bridge
+    internal: true
+  traefik_network:
+    external: true
+    name: traefik_network
