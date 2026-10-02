@@ -1,12 +1,10 @@
 # ==============================================================================
-# Firefly III - Personal Finance Manager Stack
-# Architecture: App (Laravel) + MariaDB (Storage) + Periodic Cron Runner
-# Reverse Proxy: Traefik routing via websecure entrypoint
+# Firefly III Stack (apps/firefly/firefly.yml)
 # ==============================================================================
 
 services:
   # ----------------------------------------------------------------------------
-  # Firefly III Core Application
+  # Core Application (Laravel)
   # ----------------------------------------------------------------------------
   app:
     image: fireflyiii/core:latest
@@ -24,7 +22,7 @@ services:
       - .env
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.firefly.rule=Host(`{FIREFLY_III_SUBDOMAIN:-firefly}.{DOMAIN_PRIMARY:-localhost}`)"
+      - "traefik.http.routers.firefly.rule=Host(`\({FIREFLY_III_SUBDOMAIN:-firefly}.\){DOMAIN_PRIMARY:-localhost}`)"
       - "traefik.http.routers.firefly.entrypoints=websecure"
       - "traefik.http.routers.firefly.tls=true"
       - "traefik.http.routers.firefly.tls.certresolver=letsencrypt"
@@ -52,7 +50,6 @@ services:
 
   # ----------------------------------------------------------------------------
   # Recurring Automation / Cron Runner
-  # Invokes the static API cron trigger endpoint daily at 03:00
   # ----------------------------------------------------------------------------
   cron:
     image: alpine:latest
