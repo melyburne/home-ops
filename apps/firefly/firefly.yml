@@ -111,6 +111,9 @@ services:
       - /tmp
       - /var/tmp
       - /run
+      - /etc/nginx
+      - /var/lib/nginx
+      - /var/log/nginx
       - /var/www/html/storage/framework/cache
       - /var/www/html/storage/framework/sessions
       - /var/www/html/storage/framework/views
@@ -150,6 +153,9 @@ services:
       - /tmp
       - /var/tmp
       - /run
+      - /etc/nginx
+      - /var/lib/nginx
+      - /var/log/nginx
       - /var/www/html/storage/framework/cache
       - /var/www/html/storage/framework/sessions
       - /var/www/html/storage/framework/views
