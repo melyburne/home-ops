@@ -83,6 +83,7 @@ services:
     environment:
       APP_ENV: "production"
       APP_KEY: "${FIREFLY_APP_KEY:?}"
+      APP_LOG_LEVEL: "${FIREFLY_APP_LOG_LEVEL:-notice}"
       APP_URL: "https://${FIREFLY_SUBDOMAIN:-firefly}.${DOMAIN_PRIMARY:-localhost}"
       COOKIE_SECURE: "true"
       DB_DATABASE: "firefly"
@@ -130,6 +131,7 @@ services:
     # Configuration: Core application and database connection settings (Alphabetized)
     environment:
       APP_ENV: "production"
+      APP_LOG_LEVEL: "${FIREFLY_APP_LOG_LEVEL:-notice}"
       COOKIE_SECURE: "true"
       FIREFLY_III_URL: "http://firefly:8080"
       TRUSTED_PROXIES: "**"
