@@ -122,6 +122,10 @@ services:
       - traefik-public
       - firefly-internal
 
+    # Configuration: Core application and database connection settings (Alphabetized)
+    environment:
+      TRUSTED_PROXIES: "**"
+
     # Routing: Traefik dynamic configuration (Alphabetized)
     labels:
       - "traefik.enable=true"
