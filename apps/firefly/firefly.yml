@@ -64,7 +64,7 @@ services:
     extends:
       file: ../../shared/templates.yml
       service: base-secure
-    image: fireflyiii/core:${FIREFLY_DOCKER_TAG:-latest}
+    image: fireflyiii/core:${FIREFLY_DOCKER_TAG:-version-6}
     container_name: firefly
 
     # Lifecycle: Wait for permissions to be fixed and database to be healthy
@@ -81,7 +81,6 @@ services:
 
     # Configuration: Core application and database connection settings (Alphabetized)
     environment:
-      APP_DEBUG: "false"
       APP_ENV: "production"
       APP_KEY: "${FIREFLY_APP_KEY:?}"
       APP_URL: "https://${FIREFLY_SUBDOMAIN:-firefly}.${DOMAIN_PRIMARY:-localhost}"
@@ -109,7 +108,7 @@ services:
     extends:
       file: ../../shared/templates.yml
       service: base-secure
-    image: fireflyiii/data-importer:latest
+    image: fireflyiii/data-importer:${FIREFLY_IMPORT_DOCKER_TAG:-version-6}
     container_name: firefly-import
 
     # Lifecycle: Wait for core application to be ready
@@ -124,6 +123,8 @@ services:
 
     # Configuration: Core application and database connection settings (Alphabetized)
     environment:
+      FIREFLY_III_URL: "http://firefly:8080"
+      VANITY_URL: "https://${FIREFLY_IMPORT_SUBDOMAIN:-firefly-import}.${DOMAIN_PRIMARY:-localhost}"
       TRUSTED_PROXIES: "**"
 
     # Routing: Traefik dynamic configuration (Alphabetized)
