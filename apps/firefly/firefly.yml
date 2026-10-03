@@ -124,7 +124,7 @@ services:
     # Configuration: Core application and database connection settings (Alphabetized)
     environment:
       FIREFLY_III_URL: "http://firefly:8080"
-      VANITY_URL: "https://${FIREFLY_IMPORT_SUBDOMAIN:-firefly-import}.${DOMAIN_PRIMARY:-localhost}"
+      VANITY_URL: "https://${FIREFLY_SUBDOMAIN:-firefly-import}.${DOMAIN_PRIMARY:-localhost}"
       TRUSTED_PROXIES: "**"
 
     # Routing: Traefik dynamic configuration (Alphabetized)
