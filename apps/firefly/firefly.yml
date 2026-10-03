@@ -105,6 +105,27 @@ services:
     volumes:
       - ./data/upload:/var/www/html/storage/upload
 
+  firefly-imp:
+    extends:
+      file: ../../shared/templates.yml
+      service: base-secure
+    image: fireflyiii/data-importer:latest
+    hostname: importer
+    restart: always
+    container_name: firefly-imp
+
+    # Lifecycle: Wait for core application to be ready
+    depends_on:
+      - firefly
+
+    # Connectivity: Internal network to reach Firefly core
+    networks:
+      - firefly-internal
+
+    # State: Mount data directory
+    volumes:
+      - ./data/import:/import
+
   # --- Recurring Automation Service: Firefly III Cron ---
   firefly-cron:
     extends:
