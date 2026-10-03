@@ -67,9 +67,6 @@ services:
     image: fireflyiii/core:${FIREFLY_DOCKER_TAG:-latest}
     container_name: firefly
 
-    # Security: Read-only root filesystem
-    read_only: true
-
     # Lifecycle: Wait for permissions to be fixed and database to be healthy
     depends_on:
       firefly-init:
@@ -104,20 +101,9 @@ services:
       - "traefik.http.routers.firefly.rule=Host(`${FIREFLY_SUBDOMAIN:-firefly}.${DOMAIN_PRIMARY:-localhost}`)"
       - "traefik.http.services.firefly.loadbalancer.server.port=8080"
 
-    # State: Mount upload volume and in-memory temp areas
+    # State: Mount upload volume
     volumes:
       - ./data/upload:/var/www/html/storage/upload
-    tmpfs:
-      - /tmp
-      - /var/tmp
-      - /run
-      - /etc/nginx
-      - /var/lib/nginx
-      - /var/log/nginx
-      - /var/www/html/storage/framework/cache
-      - /var/www/html/storage/framework/sessions
-      - /var/www/html/storage/framework/views
-      - /var/www/html/storage/logs
 
   firefly-import:
     extends:
@@ -125,9 +111,6 @@ services:
       service: base-secure
     image: fireflyiii/data-importer:latest
     container_name: firefly-import
-
-    # Security: Read-only root filesystem
-    read_only: true
 
     # Lifecycle: Wait for core application to be ready
     depends_on:
@@ -146,20 +129,9 @@ services:
       - "traefik.http.routers.firefly-import.rule=Host(`${FIREFLY_IMPORT_SUBDOMAIN:-firefly-import}.${DOMAIN_PRIMARY:-localhost}`)"
       - "traefik.http.services.firefly-import.loadbalancer.server.port=8080"
 
-    # State: Mount data directory and in-memory temp areas
+    # State: Mount data directory
     volumes:
       - ./data/import:/import
-    tmpfs:
-      - /tmp
-      - /var/tmp
-      - /run
-      - /etc/nginx
-      - /var/lib/nginx
-      - /var/log/nginx
-      - /var/www/html/storage/framework/cache
-      - /var/www/html/storage/framework/sessions
-      - /var/www/html/storage/framework/views
-      - /var/www/html/storage/logs
 
   # --- Recurring Automation Service: Firefly III Cron ---
   firefly-cron:
