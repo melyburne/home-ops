@@ -108,7 +108,7 @@ services:
     extends:
       file: ../../shared/templates.yml
       service: base-secure
-    image: fireflyiii/data-importer:${FIREFLY_IMPORT_DOCKER_TAG:-version-6}
+    image: fireflyiii/data-importer:${FIREFLY_IMPORT_DOCKER_TAG:-version-2}
     container_name: firefly-import
 
     # Lifecycle: Wait for core application to be ready
