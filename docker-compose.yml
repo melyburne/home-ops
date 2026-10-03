@@ -15,9 +15,9 @@ include:
 
   # 3. End-User Applications
   - apps/calibre/calibre.yml
+  - apps/firefly/firefly.yml
   - apps/home-assistant/home-assistant.yml
   - apps/ocis/ocis.yml
-  - apps/firefly/firefly.yml
   #  - apps/roundcube/roundcube.yml
   #  - apps/websites/web-hduong.yml
   #  - apps/immich/immich.yml
