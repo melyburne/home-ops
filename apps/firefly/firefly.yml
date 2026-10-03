@@ -106,6 +106,10 @@ services:
     volumes:
       - ./data/upload:/var/www/html/storage/upload
 
+    # Monitoring: Probe web server
+    healthcheck:
+      test: "curl -f http://127.0.0.1:8080 || exit 1"
+
   firefly-import:
     extends:
       file: ../../shared/templates.yml
@@ -141,6 +145,10 @@ services:
     # State: Mount data directory
     volumes:
       - ./data/import:/import
+
+    # Monitoring: Probe web server
+    healthcheck:
+      test: "curl -f http://127.0.0.1:8080 || exit 1"
 
   # --- Recurring Automation Service: Firefly III Cron ---
   firefly-cron:
@@ -179,6 +187,10 @@ services:
       - /tmp
       - /var/run
       - /var/spool/cron/crontabs
+
+  # Monitoring: Ensure crond daemon is actively running
+    healthcheck:
+      test: "pgrep crond"
 
 # --- Global Network Definitions ---
 networks:
