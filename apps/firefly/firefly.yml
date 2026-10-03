@@ -87,6 +87,7 @@ services:
       COOKIE_SECURE: "true"
       DB_HOST: "firefly-db"
       DB_PASSWORD: "${FIREFLY_DB_PASSWORD:?}"
+      DB_USERNAME: "firefly"
       DKR_CHECK_SQLITE: "false"
       SITE_OWNER: "${FIREFLY_SITE_OWNER:?}"
       STATIC_CRON_TOKEN: "${FIREFLY_STATIC_CRON_TOKEN:?}"
